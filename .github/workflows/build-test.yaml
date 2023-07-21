@@ -1,0 +1,139 @@
+name: Build and run unit tests
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  checkout-test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILDKIT: "1"
+      AUTHNZ_EMU: "1"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
+      AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Docker and Compose
+        uses: docker/setup-buildx-action@v1
+      - name: Build
+        run: |
+          ./build.sh buildonly
+          ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
+      - name: Start
+        run: |
+          for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+            docker-compose ${!OPTS_NAME} up --detach --force-recreate
+          done
+          sleep 5
+      - name: Status
+        run: |
+          for BADSTATUS in stopped restarting; do
+            docker-compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
+          done
+          # Show hints at what may be wrong
+          for SERVNAME in $(cat /tmp/notgood); do
+            docker-compose ${ANMS_COMPOSE_OPTS} logs --tail 50 ${SERVNAME}
+          done
+          # Fail if any names are in the file
+          ! grep '[^[:space:]]' /tmp/notgood
+      - name: Test
+        run: |
+          # Checkout the running gateway+backend
+          docker build -t checkout-test checkout-test
+          docker run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
+
+  anms-core_unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          pip3 install deps/anms-ace
+          pip3 install deps/anms-camp
+      - name: Install
+        working-directory: anms-core
+        run: pip3 install -e '.[test]'
+      - name: Run test
+        working-directory: anms-core
+        run: PYTHONPATH=src python3 -m pytest --junit-xml=testresults.xml --cov=anms test
+
+  anms-core_flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          pip3 install deps/anms-ace
+          pip3 install deps/anms-camp
+      - name: Install flake8
+        working-directory: anms-core
+        run: pip3 install -e '.[flake8]'
+      - name: Run flake8
+        working-directory: anms-core
+        run: |
+          FAIL_SRC=0
+          flake8 src || FAIL_SRC=$?
+
+  transcoder_flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install flake8
+        working-directory: transcoder
+        run: pip3 install -e '.[flake8]'
+      - name: Run flake8
+        working-directory: transcoder
+        run: |
+          FAIL_SRC=0
+          flake8 src || FAIL_SRC=$?
+
+  aricodec_flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          pip3 install deps/anms-ace
+      - name: Install flake8
+        working-directory: aricodec
+        run: pip3 install -e '.[flake8]'
+      - name: Run flake8
+        working-directory: aricodec
+        run: |
+          FAIL_SRC=0
+          flake8 src || FAIL_SRC=$?
