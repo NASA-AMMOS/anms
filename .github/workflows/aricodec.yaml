@@ -2,7 +2,7 @@ name: Test aricodec
 on:
   push:
     paths:
-      - .github/workflows/transcoder.yaml
+      - .github/workflows/aricodec.yaml
       - deps
       - aricodec
 

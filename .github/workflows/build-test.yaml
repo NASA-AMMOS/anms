@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: "1"
+      DOCKER_IMAGE_TAG: ${{ github.head_ref || github.ref_name }}
       AUTHNZ_EMU: "1"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
       AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
@@ -20,8 +21,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: Set up Docker and Compose
-        uses: docker/setup-buildx-action@v1
       - name: Build
         run: |
           ./build.sh buildonly
@@ -48,3 +47,9 @@ jobs:
           # Checkout the running gateway+backend
           docker build -t checkout-test checkout-test
           docker run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
+      - name: Stop
+        if: always()
+        run: |
+          for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+            docker-compose ${!OPTS_NAME} rm --stop --force
+          done
