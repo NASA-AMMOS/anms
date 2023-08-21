@@ -1,0 +1,5 @@
+anms::docker_image_prefix: ""
+anms::docker_image_tag: "latest"
+anms::docker_registry_user: ""
+anms::docker_registry_pass: ""
+anms::version: "local build"

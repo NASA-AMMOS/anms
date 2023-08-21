@@ -1,0 +1,299 @@
+##
+## Copyright (c) 2023 The Johns Hopkins University Applied Physics
+## Laboratory LLC.
+##
+## This file is part of the Asynchronous Network Managment System (ANMS).
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##     http://www.apache.org/licenses/LICENSE-2.0
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## This work was performed for the Jet Propulsion Laboratory, California
+## Institute of Technology, sponsored by the United States Government under
+## the prime contract 80NM0018D0004 between the Caltech and NASA under
+## subcontract 1658085.
+##
+
+# This configuration uses the environment variables:
+# DOCKER_CTR_PREFIX to contain a (default empty) container name prefix
+# DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
+# DOCKER_IMAGE_TAG to contain the image tag for custom images
+#
+version: '3.9'
+
+networks:
+  default:
+    name: ${DOCKER_CTR_PREFIX}anms
+    driver_opts:
+      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
+      com.docker.network.driver.mtu: 65535
+
+volumes:
+  grafana-data: {}
+  postgres-data: {}
+  opensearch: {}
+  ammos-tls:
+    external: true
+
+services:
+  authnz:
+    container_name: authnz
+    image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
+    hostname: authnz
+    restart: unless-stopped
+    security_opt:
+      - "label=type:authnz.process"
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - nginx
+    environment:
+      CAM_SERVER_URL: ${CAM_SERVER_URL}
+      CAM_ADMIN_USER: ${CAM_ADMIN_USER}
+      CAM_ADMIN_PASSWORD: ${CAM_ADMIN_PASSWORD}
+      AGENT_NAME: ${CAM_AGENT_NAME}
+      AGENT_PASSWORD: ${CAM_AGENT_PASSWORD}
+      CAM_GW_URL: "https://${ANMS_GW_FQDN}:443/"
+      PROXY_URLS: "http://nginx/"
+      NOT_ENFORCED_URLS: "http://nginx/favicon.ico"
+    volumes:
+      - ammos-tls:/ammos/etc/pki/tls:ro
+
+  nginx:
+    container_name: ${DOCKER_CTR_PREFIX}nginx
+    hostname: nginx
+    image: ${DOCKER_IMAGE_PREFIX}anms-nginx:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:nginx.process"
+    depends_on:
+      - anms-core
+      - anms-ui
+      - grafana
+      - adminer
+
+  opensearch:
+    container_name: ${DOCKER_CTR_PREFIX}opensearch
+    hostname: opensearch
+    image: opensearchproject/opensearch:2.0.0
+    restart: unless-stopped
+    security_opt:
+      - "label=type:opensearch.process"
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+        hard: 65536
+    volumes:
+      - "opensearch:/usr/share/opensearch/data"
+    ports:
+      - "9200:9200"
+      - "9600:9600" # required for Performance Analyzer
+
+  opensearch-dashboards:
+    container_name: ${DOCKER_CTR_PREFIX}opensearch-dashboards
+    hostname: opensearch-dashboards
+    image: opensearchproject/opensearch-dashboards:2.0.0
+    restart: unless-stopped
+    security_opt:
+      - "label=type:opensearch-dashboards.process"
+    ports:
+      - "5601:5601"
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch:9200"]' # must be a string with no spaces when specified as an environment variable
+
+  postgres:
+    container_name: ${DOCKER_CTR_PREFIX}postgres
+    hostname: postgres
+    image: ${DOCKER_IMAGE_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:postgres.process"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+    ports:
+      - "${DB_PORT-5432}:5432"
+
+  mqtt-broker:
+    container_name: ${DOCKER_CTR_PREFIX}mqtt-broker
+    hostname: mqtt-broker
+    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:mqtt-broker.process"
+    ports:
+      - "1883:1883"
+
+  transcoder:
+    container_name: ${DOCKER_CTR_PREFIX}transcoder
+    hostname: transcoder
+    image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:transcoder.process"
+    depends_on:
+      mqtt-broker:
+        condition: service_healthy
+
+  grafana:
+    container_name: ${DOCKER_CTR_PREFIX}grafana
+    hostname: grafana
+    image: ${DOCKER_IMAGE_PREFIX}grafana:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:grafana.process"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - grafana-image-renderer
+    environment:
+      - GF_RENDERING_SERVER_URL=http://${RENDERER_HOST_PORT}/render
+      - GF_RENDERING_CALLBACK_URL=http://${GRAFANA_HOST_PORT}/
+      - GF_SERVER_ROOT_URL=http://${ANMS_GW_FQDN}/grafana/
+    volumes:
+      - "grafana-data:/var/lib/grafana"
+
+  grafana-image-renderer:
+    container_name: ${DOCKER_CTR_PREFIX}grafana-image-renderer
+    hostname: grafana-image-renderer
+    image: grafana/grafana-image-renderer:3.6.1
+    restart: unless-stopped
+    security_opt:
+      - "label=type:grafana-image-renderer.process"
+    ports:
+      - "${RENDERER_PORT:-8081}:8081"
+
+  redis:
+    container_name: ${DOCKER_CTR_PREFIX}redis
+    hostname: redis
+    image: redis:6.0-alpine
+    restart: unless-stopped
+    security_opt:
+      - "label=type:redis.process"
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli" ,"-h", "localhost", "ping"]
+      interval: 15s
+      timeout: 60s
+      retries: 5
+    command: redis-server --databases 1 --bind 0.0.0.0 --port ${REDIS_PORT:-6379}
+
+  aricodec:
+    container_name: ${DOCKER_CTR_PREFIX}aricodec
+    hostname: aricodec
+    image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:aricodec.process"
+    environment:
+      DB_URI: postgresql://${DB_USER}:${DB_PASSWORD}@postgres/${DB_NAME}
+      MQTT_HOST: mqtt-broker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+
+  anms-ui:
+    container_name: ${DOCKER_CTR_PREFIX}anms-ui
+    hostname: anms-ui
+    image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:anms-ui.process"
+    ports:
+      - "${ANMS_UI_HTTP_PORT:-9030}:9030"
+      - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      ENV_UI_VERSION: ${ANMS_VERSION}
+      NET_BIND_INTERFACE: "0.0.0.0"
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      REDIS_URI_HOSTNAME: redis
+
+  anms-core:
+    container_name: ${DOCKER_CTR_PREFIX}anms-core
+    hostname: anms-core
+    image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:anms-core.process"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      ANMS_VERSION: ${ANMS_VERSION}
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    ports:
+      - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+
+  adminer:
+    container_name: ${DOCKER_CTR_PREFIX}adminer
+    hostname: adminer
+    image:  adminer:latest
+    restart: unless-stopped
+    security_opt:
+      - "label=type:adminer.process"
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+
+  ion-manager:
+    container_name: ${DOCKER_CTR_PREFIX}ion-manager
+    hostname: ion-manager
+    image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+    restart: unless-stopped
+    security_opt:
+      - "label=type:ion-manager.process"
+    ports:
+      - "1113:1113/udp"
+      - "4556:4556/udp"
+      - "${ION_MGR_PORT:-8089}:8089"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    environment:
+      container: docker
+      ION_NODE_NUM: 1
+      MGR_NODE_NUM: 1
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}

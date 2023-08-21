@@ -1,0 +1,12 @@
+# hiera.yaml
+version: 5
+
+hierarchy:
+  - name: "Override of any other data"
+    path: "override.yaml"
+  - name: "Per-host data"
+    path: "fqdn/%{fqdn}.yaml"
+  - name: "Per-OS defaults"
+    path: "os/%{facts.os.family}.yaml"
+  - name: "Common data"
+    path: "common.yaml"

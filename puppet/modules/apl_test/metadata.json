@@ -1,0 +1,45 @@
+{
+  "name": "test_camserver",
+  "version": "0.0.0",
+  "author": "JHU/APL",
+  "summary": "Install and configure a local non-redundant CAM Server",
+  "license": "Apache-2.0",
+  "source": "",
+  "project_page": "",
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 4.16.0 < 9.0.0"
+    },
+    {
+      "name": "puppetlabs/apt"
+    },
+    {
+      "name": "puppet/trusted_ca"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "8"
+      ]
+    },
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": [
+        "20.04",
+        "22.04"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 6.0.0 < 8.0.0"
+    }
+  ],
+  "template-url": "https://github.com/puppetlabs/pdk-templates.git#main",
+  "template-ref": "heads/main-0-g806810b",
+  "pdk-version": "2.4.0"
+}

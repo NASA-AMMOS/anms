@@ -1,0 +1,14 @@
+groups:
+  - name: JHUAPL
+    targets:
+      - sipos-anms.jhuapl.edu
+      - anms-cam.jhuapl.edu
+      - anms-test.jhuapl.edu
+      - anms-test2.jhuapl.edu
+      - anms-demo.jhuapl.edu
+    config:
+      transport: ssh
+      ssh:
+        native-ssh: false
+        host-key-check: false
+        run-as: root

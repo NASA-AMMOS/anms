@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>ANMS Registration</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="ANMS Registration">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <base href="<$ baseUrl $>">
+</head>
+<body>
+<div id="vue-register"></div>
+<!-- Global Scope -->
+<script id="vue-init" type="text/javascript">
+  var Constants = Object.freeze({
+    BASE_URL: '<$ baseUrl $>',
+    BASE_API_URL: '<$ apiUrl $>',
+    BASE_VERSION: '<$ baseVersion $>',
+    BASE_RELEASE: ('<$ baseRelease $>' === 'true'),
+    CSRF_TOKEN: '<$ csrfToken $>',
+    REGISTER_EMAIL: '<$ registerEmail $>',
+    REGISTER_TOKEN: '<$ registerToken $>',
+    FLASH_SUCCESS_MESSAGES: JSON.parse('<$ flashSuccess | safe $>'),
+    FLASH_ERROR_MESSAGES: JSON.parse('<$ flashError | safe $>')
+  });
+</script>
+</body>
+</html>

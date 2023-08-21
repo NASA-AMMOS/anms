@@ -1,0 +1,22 @@
+# Editor files
+.idea/
+.vscode/
+*~
+
+/venv/
+__pycache__
+requirements.txt
+*.egg-info
+*.whl
+grpc_examples_python
+
+server/debug.log*
+.coverage
+testresults.xml
+
+.python-version
+
+
+*.log*
+**/node_modules
+test/integration_tests/newman/*.json

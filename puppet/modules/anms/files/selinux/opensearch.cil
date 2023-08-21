@@ -1,0 +1,12 @@
+(block opensearch
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process wap_wsp_port_t ( tcp_socket ( name_bind ))) ;FIXME: should be http
+    (allow process http_port_t ( tcp_socket ( name_bind )))
+    (allow process opensearch_port_t ( tcp_socket ( name_bind name_connect )))
+    (allow process unreserved_port_t ( tcp_socket ( name_bind )))
+    (allow process container_var_lib_t ( dir ( add_name create getattr ioctl lock open read remove_name rmdir search setattr write )))
+    (allow process container_var_lib_t ( file ( append create getattr ioctl lock map open read rename setattr unlink write )))
+    (allow process container_var_lib_t ( fifo_file ( getattr read write append ioctl lock open )))
+    (allow process container_var_lib_t ( sock_file ( append getattr open read write )))
+)

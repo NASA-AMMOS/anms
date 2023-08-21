@@ -1,0 +1,87 @@
+[
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc11541050502252381871819410000",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:amp_agent/Rptt.full_report()],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0x8718194100",
+    "uri": "ari:/IANA:amp_agent/Rptt.full_report()",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc1154105050225238187182d410000",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:bp_agent/Rptt.full_report()],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc11541050502252382871819410087182d410000",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:amp_agent/Rptt.full_report(),ari:/IANA:bp_agent/Rptt.full_report()],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc115410505022523818216410100",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:amp_agent/Edd.num_tbl_tpls()],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc115410a05062416161625128b01410100050581c115410505022523818718194100006747656e52707473",
+    "note": "URI parsing for TBR type not yet fully functional",
+    "uri": "ari:/IANA:amp_agent/Ctrl.add_tbr(ari://Tbr.1,UVAST.0,UVAST.5,UVAST.5,[ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:amp_agent/Rptt.full_report()],[])],'GenRpts')",
+    "toSql": 0,
+    "skipUri": true
+  },
+  {"comment":{
+    "type": "ARI",
+    "cbor": "ari:0xc1154102050224250742343982821641018c181d4100",
+    "uri": "ari:/IANA:amp_agent/Ctrl.add_rptt(ari://Rptt.49,[ari:/IANA:amp_agent/Edd.num_tbl_tpls(),ari:/IANA:amp_agent/Var.num_rules()])",
+    "toSql": 1,
+    "skipUri": false
+  },"todo":"new ari translation is wonky"},
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc115410505022523818c181d410000",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:amp_agent/Var.num_rules()],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc11541050502252382821641018c181d410000",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:amp_agent/Edd.num_tbl_tpls(),ari:/IANA:amp_agent/Var.num_rules()],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc11541050502252381c7182d41010501126769706e3a312e3100",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:bp_agent/Rptt.endpoint_report('ipn:1.1')],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc11541050502252381c7182d41010501126869706e3a332e363400",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:bp_agent/Rptt.endpoint_report('ipn:3.64')],[])",
+    "toSql": 1,
+    "skipUri": false
+  },
+  {
+    "type": "ARI",
+    "cbor": "ari:0xc11541050502252383c7182d41010501126769706e3a312e31c7182d41010501126869706e3a332e3634c7182d41010501126869706e3a332e363500",
+    "uri": "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:bp_agent/Rptt.endpoint_report('ipn:1.1'),ari:/IANA:bp_agent/Rptt.endpoint_report('ipn:3.64'),ari:/IANA:bp_agent/Rptt.endpoint_report('ipn:3.65')],[])",
+    "toSql": 1,
+    "skipUri": false
+  }
+]

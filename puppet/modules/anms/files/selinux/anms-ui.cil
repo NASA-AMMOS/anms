@@ -1,0 +1,7 @@
+(block anms-ui
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process tor_port_t ( tcp_socket ( name_bind ))) ;FIXME: should be http
+    (allow process pki_ca_port_t ( tcp_socket ( name_bind ))) ;FIXME: should be http
+    (allow process redis_port_t ( tcp_socket ( name_connect )))
+)

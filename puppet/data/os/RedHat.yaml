@@ -1,0 +1,3 @@
+simp_options::fips: true
+selinux::mode: enforcing
+selinux::module_build_root: "/var/cache/puppet/puppet-selinux"

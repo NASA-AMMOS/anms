@@ -1,3 +1,23 @@
-# Editor files
+
 *~
-*.bak
+.idea/
+*~
+#*
+.#*
+
+# Python intermediates
+__pycache__
+.pytest_cache
+.coverage
+coverage.xml
+testresults.xml
+
+# Javascript and ESLint related content to be ignored
+node_modules
+package-lock.json
+
+ion/configs/**/logs
+
+docker_data/grafana_vol
+
+.DS_Store

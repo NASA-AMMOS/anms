@@ -1,0 +1,6 @@
+(block adminer
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process http_cache_port_t ( tcp_socket ( name_bind )))
+    (allow process postgresql_port_t ( tcp_socket ( name_connect )))
+)

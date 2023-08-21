@@ -1,0 +1,24 @@
+# This Puppetfile is managed by Bolt. Do not edit.
+# For more information, see https://pup.pt/bolt-modules
+
+# The following directive installs modules to the managed moduledir.
+moduledir '.modules'
+
+mod 'simp/crypto_policy', '0.2.2'
+mod 'simp/fips', '0.5.2'
+mod 'puppetlabs/java_ks', '4.4.2'
+mod 'puppetlabs/docker', '5.1.0'
+mod 'puppetlabs/concat', '7.4.0'
+mod 'puppetlabs/apt', '9.0.2'
+mod 'puppet/trusted_ca', '4.1.0'
+mod 'puppet/selinux', '3.4.1'
+mod 'puppet/openssl', '2.0.1'
+mod 'puppet/firewalld', '4.5.1'
+mod 'puppetlabs/stdlib', '7.1.0'
+mod 'simp/simplib', '4.10.4'
+mod 'herculesteam/augeasproviders_grub', '3.2.0'
+mod 'puppetlabs/powershell', '6.0.0'
+mod 'puppetlabs/reboot', '4.3.1'
+mod 'simp/simpkv', '0.8.0'
+mod 'herculesteam/augeasproviders_core', '2.7.0'
+mod 'puppetlabs/pwshlib', '0.10.3'

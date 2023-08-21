@@ -1,0 +1,7 @@
+# SCM files
+.git
+.gitignore
+
+Dockerfile
+test
+run*.sh

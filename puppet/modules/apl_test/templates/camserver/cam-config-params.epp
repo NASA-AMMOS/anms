@@ -1,0 +1,115 @@
+#
+# Setup parameters for CAM Server using the AM embedded LDAP server.
+# You may want to change the passwords in the "passwords".
+# After that, you can run cam-config-params.sh to the config directory.
+# Then run setup-cam-server.sh to set up the CAM Server.
+#
+# If you want other authentication methods and CAM features,
+# you can un-comment the entries and fill in your data.
+#
+CAM_HOST=<%= $facts['networking']['hostname'] %>
+CAM_FQDN=<%= $facts['networking']['fqdn'] %>
+CAM_PORT="8443"
+CAM_DOMAIN="${CAM_FQDN#*.}"
+
+# SSO cookie
+# Default below works, but better to make unique, such as CAM_COOKIE_NAME="exampleSsoToken"
+CAM_COOKIE_NAME="iPlanetDirectoryPro"
+CAM_COOKIE_DOMAIN="$CAM_DOMAIN"
+
+# CONFIG_STORE_TYPE can be either Embedded or External.
+# External needs CAM Config Store running during setup.
+CONFIG_STORE_TYPE="Embedded"
+CONFIG_ROOT_DN="dc=config,dc=cam"
+
+# Authentication Modules
+# 0 - skip, 1 - install, 2 - add to UserAuthChain, 3 - add to AdminAuthChain, 4 - add to both
+AUTHN_PIV_CERT="0"
+AUTHN_SECURID="0"
+AUTHN_LDAP="4"
+AUTHN_LDAP_APPUSER="0"
+AUTHN_KERBEROS="0"
+AUTHN_KRB_AD="0"
+AUTHN_DATASTORE="3"
+
+# Federated Identity (this example has the CAM Server acting as both IdP and SP)
+#CIRCLE_OF_TRUST="exampleCOT"
+#HOSTED_IDP_ENTITY="https://${LB_CAM_FQDN}:${LB_CAM_PORT}/cam"
+#HOSTED_SP_ENTITY="https://${LB_CAM_FQDN}:${LB_CAM_PORT}/cam"
+#REMOTE_IDP_ENTITIES="https://exampleSP1.exampleDomain1:443/cam https://exampleSP2.exampleDomain2:443/cam"
+#REMOTE_SP_ENTITIES="https://exampleSP2.exampleDomain2:443/cam https://exampleSP2.exampleDomain2:443/cam"
+
+# LDAP Authentication and Data Store parameters.
+# Use LDAP_FQDN2 for secondary LDAP server.
+LDAP_FQDN="anms-dc1.jhuapl.edu"
+#LDAP_FQDN2="ldap2.${CAM_DOMAIN}"
+LDAP_BASE_DN="cn=accounts,dc=anms,dc=jhuapl,dc=edu"
+LDAP_BIND_USER="uid=cam-test-binduser,cn=users,${LDAP_BASE_DN}"
+LDAP_USER_SEARCH_DN="cn=users,${LDAP_BASE_DN}"
+LDAP_APP_SEARCH_DN="cn=users,${LDAP_BASE_DN}"
+LDAP_PEOPLE_CONTAINER="cn=users"
+LDAP_USER_OBJECT_CLASS="inetorgperson"
+LDAP_GROUP_CONTAINER="cn=groups"
+LDAP_GROUP_OBJECT_CLASS="groupOfNames"
+LDAP_GROUP_UNIQUE_MEMBER="member"
+LDAP_SEARCH_MAX_RESULTS="500"
+LDAP_CONNECTION_POOL_MIN="1"
+LDAP_CONNECTION_POOL_MAX="10"
+
+# Kerberos Authentication
+# KERBEROS_REALM="EXAMPLE.NASA.GOV"
+# KERBEROS_KDC="krb-example.nasa.gov:krb-example2.nasa.gov"
+# KERBEROS_KEYTAB_FILE="HTTP.${CAM_HOST}.keytab"
+
+# Kerberos for Active Directory
+# KRB_AD_REALM="EXAMPLE.NASA.GOV"
+# KRB_AD_KDC="ad-example.nasa.gov:ad-example2.nasa.gov"
+# KRB_AD_KEYTAB_FILE="HTTP.AD.${CAM_HOST}.keytab"
+
+# PIV Certificate Authentication
+#PIV_CERT_LDAP_SERVER="dir.nasa.gov:636"
+#PIV_CERT_BASE_DN="ou=people,ou=nasa,o=U.S. Government,c=US"
+#PIV_CERT_BIND_USER="uid=example,ou=Centers,ou=Applications,dc=nasa,dc=gov"
+#PIV_CERT_SEARCH_ALIAS="examplenasaagencyuid"
+
+# max idle time for SSO token in minutes
+MAX_IDLE_TIME="60"
+
+# max session time for SSO token in minutes
+MAX_SESSION_TIME="720"
+
+# list of LDAP groups (separated by space) that are authorized to manage the CAM Server
+CAM_ADMIN_GROUPS="cam-admins"
+
+# list of LDAP groups that are authorized to manage policies via REST API 
+POLICY_ADMIN_GROUPS=""
+
+# CAM Monitor
+# Leave MONITOR_USER empty or undefined to skip setting up and running the CAM Monitor
+# If necessary, edit /ammos/cam-server/etc/cam-monitor.cfg for additional customization after setup
+#MONITOR_USER="example-monitor-user"
+#MONITOR_KEYTAB_FILE=${MONITOR_USER}.keytab
+#NOTIFY_LIST="example-user@example.com example-notify-list@example.com"
+#CHECK_PERIOD=60        # check every 60 seconds
+#NOTIFY_REPEAT_PERIOD=3600  # repeat notification every hour
+
+# Policies (can be a list of files separated by space)
+#POLICY_FILES="policies/monitor-policy.xml policies/policy-import.xml"
+
+# ----- Web Agent Profiles -----
+#WEBAGENT_NAMES="web-host"
+
+#WEBAGENT_NAME_1="web-host"
+#WEBAGENT_FQDN_1="web-host.${CAM_DOMAIN}"
+#WEBAGENT_PORT_1="443"
+#WEBAGENT_NOTENFORCED_1="https://${WEBAGENT_FQDN_1}:${WEBAGENT_PORT_1}/favicon.ico"
+#WEBAGENT_LOGIN_URL_1="https://${CAM_FQDN}:${CAM_PORT}/cam-ui/login.jsp"
+
+# ----- Tomcat Agent Profiles -----
+#JEEAGENT_NAMES="tomcat-host"
+
+#JEEAGENT_NAME_1="tomcat-host"
+#JEEAGENT_FQDN_1="tomcat-host.${CAM_DOMAIN}"
+#JEEAGENT_PORT_1="8443"
+#JEEAGENT_APP_1="app"
+#JEEAGENT_LOGIN_URL_1="https://${CAM_FQDN}:${CAM_PORT}/cam-ui/login.jsp"

@@ -1,0 +1,44 @@
+#
+# Copyright 2014-2021 ForgeRock AS. All Rights Reserved
+#
+# Use of this code requires a commercial software license with ForgeRock AS.
+# or with one of its affiliates. All use shall be exclusively subject
+# to such license between the licensee and ForgeRock AS.
+#
+
+vcl 4.0;
+
+import am;
+
+backend default {
+     .host = "127.0.0.1";
+     .port = "80";
+}
+
+##
+# OpenAM Varnish Web Policy Agent configuration
+# Do not modify below this line
+##
+
+sub vcl_init {
+    am.init("AM_AGENT_CONF_PATH", 0);
+}
+
+sub vcl_recv {
+    if(!am.authenticate()) {
+        return (synth(800));
+    }
+    return (hash);
+}
+
+sub vcl_synth {
+    if(resp.status == 800) {
+        am.done();
+        return (deliver);
+    }
+}
+
+sub vcl_deliver {
+    am.done();
+    return (deliver);
+}

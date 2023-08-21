@@ -1,0 +1,44 @@
+
+; MQTT use
+(type mqtt_port_t)
+(roletype object_r mqtt_port_t)
+(typeattributeset defined_port_type mqtt_port_t)
+(typeattributeset port_type mqtt_port_t)
+(portcon tcp 1883 (system_u object_r mqtt_port_t ((s0) (s0))))
+
+
+; DTN uses
+(type udpcl_port_t)
+(roletype object_r udpcl_port_t)
+(typeattributeset defined_port_type udpcl_port_t)
+(typeattributeset port_type udpcl_port_t)
+(portcon udp 4556 (system_u object_r udpcl_port_t ((s0) (s0))))
+
+(type ltp_port_t)
+(roletype object_r ltp_port_t)
+(typeattributeset defined_port_type ltp_port_t)
+(typeattributeset port_type ltp_port_t)
+(portcon udp 1113 (system_u object_r ltp_port_t ((s0) (s0))))
+
+
+(type opensearch_port_t)
+(roletype object_r opensearch_port_t)
+(typeattributeset defined_port_type opensearch_port_t)
+(typeattributeset port_type opensearch_port_t)
+;(portcon udp 9200 (system_u object_r opensearch_port_t ((s0) (s0))))
+(portcon udp 9300 (system_u object_r opensearch_port_t ((s0) (s0))))
+(portcon udp 9600 (system_u object_r opensearch_port_t ((s0) (s0))))
+(portcon udp 5601 (system_u object_r opensearch_port_t ((s0) (s0))))
+
+; HTTP alternate ports
+; Grafana:
+(portcon tcp 3000 (system_u object_r http_port_t ((s0) (s0))))
+;(portcon tcp 8081 (system_u object_r http_port_t ((s0) (s0))))
+; anms-ui
+;(portcon tcp 9030 (system_u object_r http_port_t ((s0) (s0))))
+; anms-core
+(portcon tcp 5555 (system_u object_r http_port_t ((s0) (s0))))
+; adminer
+;(portcon tcp 8080 (system_u object_r http_port_t ((s0) (s0))))
+; ion-manager
+(portcon tcp 8089 (system_u object_r http_port_t ((s0) (s0))))

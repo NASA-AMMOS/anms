@@ -1,0 +1,8 @@
+[submodule "ace"]
+	path = ace
+	url = ../ace.git
+	branch = dev
+[submodule "CAmpPython"]
+	path = CAmpPython
+	url = ../CAmpPython.git
+	branch = dev

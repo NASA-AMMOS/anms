@@ -1,0 +1,17 @@
+<!--
+  -
+  - Copyright 2014-2021 ForgeRock AS. All Rights Reserved
+  -
+  - Use of this code requires a commercial software license with ForgeRock AS.
+  - or with one of its affiliates. All use shall be exclusively subject
+  - to such license between the licensee and ForgeRock AS.
+  -
+  -->
+
+<configSchema>
+    <sectionSchema name="system.webServer/OpenAmModule">
+        <attribute name="enabled" type="bool" defaultValue="false"/>
+        <attribute name="configFile" type="string" defaultValue="c:\web_agents\iis_agent\instances\agent_1\conf\agent.conf"
+                   validationType="nonEmptyString" />
+    </sectionSchema>
+</configSchema>

@@ -1,0 +1,5 @@
+(block grafana-image-renderer
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process transproxy_port_t ( tcp_socket (  name_bind )))
+)

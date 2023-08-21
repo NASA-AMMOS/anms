@@ -1,0 +1,31 @@
+## [0.2.0] - 2022-06-10
+### Added
+- Build tab, which allows for building of ARIs
+- anms-core, centralized orchestration component which now all ANMS-developed components will use to retrieve data from other components
+- REST API documentation websites for anms-core in both OpenAPI (at /docs) and Redoc ( at /redoc) formats
+- Initial unit testing for anms-core and anms-ui
+- All components now support PostgreSQL and MySQL databases, with notional support for MariaDB.
+
+### Changed
+- anms-ui now makes no direct db requests, they all are directed through anms-core
+- Grafana now uses proxy authentication with nginx to secure all panels (visible inside of the monitor tab)
+- Removed unsupported/non-functional UI components including Networking and Alerts tabs
+- Fixed hard-coded and permanent admin and user accounts for UI, now only an admin is created on installation and can be disabled
+- Fixed password complexity validation issues with UI
+- Updated build.sh, configuration, and docker-compose files to support remote server deployment
+- Updated Agents table and initial Agent pages to move away from use of Grafana for simple CRUD operations
+- Removed incomplete user invitation system in lieu of server admin user account management
+- Initial REST API role-based access controls for user management endpoint
+
+## [0.1.1] - 2022-03-09
+### Added
+- Grafana panels and documentation for viewing report variables
+- Interface to help construct controls that set up TBRs for agents to send reports at intervals
+
+### Changed
+- Updated versions of npm module dependencies per vulnerability analysis
+- Fixed issues related to adding users
+
+## [0.0.1] - 2022-02-08
+### Added
+- Initial Release

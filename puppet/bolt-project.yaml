@@ -1,0 +1,28 @@
+---
+name: ammos_anms
+analytics: false
+log:
+  console:
+    level: warn
+apply-settings:
+  show_diff: true
+modules:
+- name: puppet/firewalld
+  version_requirement: ">=4.5.1"
+- name: puppet/openssl
+  version_requirement: ">= 2.0.1"
+- name: puppet/selinux
+  version_requirement: ">=3.4.1"
+- name: puppet/trusted_ca
+  version_requirement: ">=4.1.0"
+- name: puppetlabs/apt
+  version_requirement: ">=9.0.0"
+- name: puppetlabs/concat
+  version_requirement: ">=7.4.0 <8"
+- name: puppetlabs/docker
+  version_requirement: ">=5.0.0"
+- name: puppetlabs/java_ks
+  version_requirement: ">= 4.4.1"
+- name: simp/fips
+  version_requirement: ">=0.5.2"
+- name: simp/crypto_policy

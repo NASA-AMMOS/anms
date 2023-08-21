@@ -1,0 +1,64 @@
+##
+## Copyright (c) 2023 The Johns Hopkins University Applied Physics
+## Laboratory LLC.
+##
+## This file is part of the Asynchronous Network Managment System (ANMS).
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##     http://www.apache.org/licenses/LICENSE-2.0
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## This work was performed for the Jet Propulsion Laboratory, California
+## Institute of Technology, sponsored by the United States Government under
+## the prime contract 80NM0018D0004 between the Caltech and NASA under
+## subcontract 1658085.
+##
+
+# This configuration uses the environment variables:
+# DOCKER_CTR_PREFIX to contain a (default empty) container name prefix
+# DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
+# DOCKER_IMAGE_TAG to contain the image tag for custom images
+#
+version: '3.9'
+
+networks:
+  # This network is created by docker-compose.yml
+  default:
+    name: ${DOCKER_CTR_PREFIX}anms
+    external: true
+
+services:
+
+  ion-agent2: &ion-agent
+    container_name: ${DOCKER_CTR_PREFIX}ion-agent2
+    hostname: ion-agent2
+    image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
+    expose:
+      - 1113/udp
+      - 4556/udp
+    depends_on: []
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    environment:
+      container: docker
+      ION_NODE_NUM: 2
+      MGR_NODE_NUM: 1
+
+  ion-agent3:
+    <<: *ion-agent
+    container_name: ${DOCKER_CTR_PREFIX}ion-agent3
+    hostname: ion-agent3
+    environment:
+      container: docker
+      ION_NODE_NUM: 3
+      MGR_NODE_NUM: 1

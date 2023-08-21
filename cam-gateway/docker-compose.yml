@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+    image: cam-gateway:5.1.0
+    ports:
+      - "443:443"
+    environment:
+      CAM_SERVER_URL:     "https://camserver.example.com/cam"
+      CAM_ADMIN_USER:     "camadmin"
+      CAM_ADMIN_PASSWORD: "CAM_ADMIN_PW"
+      AGENT_NAME:         "gw-test-1"
+      AGENT_PASSWORD:     "ENCRYPTED_STRING"
+      CAM_GW_URL:         "https://gw-test-1.example.com:443/"
+      PROXY_URLS:         "https://test.exemple.com:8443/demoicmd https://test.example.com:8443/demoserver https://test.example.com/demoweb"
+      NOT_ENFORCED_URLS:  "https://test.example.com:443/favicon.ico https://test.example.com:443/demoserver/*"
+    volumes:
+      - /ammos/etc/pki/tls:/ammos/etc/pki/tls:ro
+

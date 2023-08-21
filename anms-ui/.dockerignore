@@ -1,0 +1,27 @@
+# SCM files
+.git
+.gitignore
+
+# Ignore IDE/IntelliJ Files
+.idea
+*.iml
+
+# Ignore Node Modules used locally
+public/node_modules
+server/node_modules
+
+# Ignore Compiled Vue App
+release
+
+# Ignore Data Directory
+logs
+
+
+# Ignore Other Specific Stuff
+docker-compose.yaml
+Dockerfile
+Makefile
+.dockerignore
+gl-sast-report.json
+.metrics-dashboard.yml
+CONTRIBUTING.md

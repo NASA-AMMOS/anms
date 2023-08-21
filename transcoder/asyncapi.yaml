@@ -1,0 +1,133 @@
+asyncapi: 2.4.0
+info:
+  title: ANMS Transcoder API
+  version: 1.0.0
+  description: |
+    Recieve and sendout transcoding requests 
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+servers:
+  production:
+    url: 'http://localhost:6379'
+    protocol: redis
+channels:
+  transcode/CoreFacing:
+    publish:
+      summary: Transcode amp URI
+      operationId: transcodeInPub
+      message:
+        name: ampURIStr
+        payload:
+          type: object
+          properties:
+            uri:
+              $ref: "#/components/schemas/AmpUri"
+    subscribe:
+      summary: Transcode amp URI
+      operationId: transcodeInSub
+      message:
+        name: ampAriObj
+        payload:
+          $ref: "#/components/schemas/AmpAriObj"
+  transcode/CodexFacing:
+    subscribe:
+      summary: send out a transcode amp URI obj
+      operationId: transcodeOutSub
+      message:
+        name: ampURIStr
+        payload:
+          $ref: "#/components/schemas/AmpUri"
+    publish:
+      summary: receive  a transcode amp URI
+      operationId: transcodeOutPub
+      message:
+        name: ampAriObj
+        payload:
+          $ref: "#/components/schemas/AmpAriObj"
+components:
+  schemas:
+      AmpUri:
+          type: object
+          required: 
+            - uri
+          properties:
+              uri:
+                  type: string
+                  description: URI for ARI
+          example:
+           uri: "ari:/IANA:amp_agent/Ctrl.gen_rpts([ari:/IANA:bp_agent/Rptt.full_report()],[])"
+      AmpAriObj:
+          type: object
+          required:
+            - input_string
+            - "Parsed As"
+            - JSON
+            - CBOR
+            - URI
+          properties:
+              input_string:
+                  type: string
+                  description: input string given to the transcoder to transcode
+              "Parsed As":
+                  type: string
+                  description: how the input string is parsed as CBOR or URI string  
+              ARI: 
+                  type: object
+              CBOR:
+                  type: string
+              URI:
+                  type: string
+      AriParameter:
+        type: object
+        properties:
+          paramType:
+            type: string
+          name:
+            type: string
+          type:
+            type: string
+          value:
+            type: string 
+      AmpAriObjParts:
+          type: object
+          properties:
+              Namespace:
+                  type: string
+                  description: 'AMM resources exist within namespaces to eliminate the chance of a
+   conflicting resource name, aid in the application of patterns, and
+   improve the compressibility of the ARI.  Namespaces MUST NOT be used
+   as a security mechanism.  An Agent or Manager MUST NOT infer security
+   information or access control based solely on namespace information
+   in an ARI.
+   The AMM defines two types of namespaces whose representation within
+   an ARI is slight different: Regular Namespaces and Anonymous
+   Namespaces.'
+              Objects:
+                  type: string
+                  description: 'An object is any one of a number of data elements defined for the
+   management of a given application or protocol that conforms to the
+   AMM logical schema.
+
+   Objects are identified in the ARI scheme by the catenation of their
+   AMM logical schema type and a string name.  Additionally, objects may
+   be further differentiated by any parameters defined for that object.'
+              Parameters: 
+                  type: array
+                  description: 'The AMM logical schema allows many object types to be parameterized
+   when defined in the context of an application or a protocol.
+
+   If two instances of an AMM resource have the same namespace and same
+   object type and object name but have different parameter values, then
+   those instances are unique and the ARIs for those instances MUST also
+   be unique.  Therefore, parameters are considered part of the ARI
+   syntax.
+
+   The AMM logical schema defines two types of parameters: Formal and
+   Actual.  The terms formal parameter and actual parameter follow
+   common computer programming vernacular for discussing function
+   declarations and function calls, respectively.'
+                  items:
+                    $ref: '#/components/schemas/AriParameter'
+      
+              

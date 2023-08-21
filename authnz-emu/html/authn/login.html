@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (c) 2023 The Johns Hopkins University Applied Physics
+-- Laboratory LLC.
+--
+-- This file is part of the Asynchronous Network Managment System (ANMS).
+--
+-- Licensed under the Apache License, Version 2.0 (the "License");
+-- you may not use this file except in compliance with the License.
+-- You may obtain a copy of the License at
+--     http://www.apache.org/licenses/LICENSE-2.0
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+--
+-- This work was performed for the Jet Propulsion Laboratory, California
+-- Institute of Technology, sponsored by the United States Government under
+-- the prime contract 80NM0018D0004 between the Caltech and NASA under
+-- subcontract 1658085.
+-->
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="style.css" rel="stylesheet">
+    <title>Login</title>
+  </head>
+  <body>
+    <h2>Login Form</h2>
+    <p>This is a CAM emulator, not the real thing.</p>
+
+    <form action="dologin.html" method="post">
+      <div class="container">
+	<label for="httpd_username"><b>Username</b></label>
+	<input type="text" placeholder="Enter Username" name="httpd_username" required>
+	
+	<label for="httpd_password"><b>Password</b></label>
+	<input type="password" placeholder="Enter Password" name="httpd_password" required>
+
+	<input type="hidden" name="httpd_location" value="/anms/index.html" />
+	<input type="hidden" name="httpd_method" />
+	<input type="hidden" name="httpd_mimetype" />
+        
+	<button type="submit">Login</button>
+      </div>
+    </form>
+  </body>
+</html>

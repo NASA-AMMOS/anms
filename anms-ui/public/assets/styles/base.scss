@@ -1,0 +1,69 @@
+/*
+Copyright (c) 2023 The Johns Hopkins University Applied Physics
+Laboratory LLC.
+
+This file is part of the Asynchronous Network Managment System (ANMS).
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+This work was performed for the Jet Propulsion Laboratory, California
+Institute of Technology, sponsored by the United States Government under
+the prime contract 80NM0018D0004 between the Caltech and NASA under
+subcontract 1658085.
+*/
+@import 'variables';
+
+/* Make sure html and body occupy full viewport */
+html, body {
+  margin:     0;
+  padding:    0;
+  height:     100%;
+  min-height: 100%;
+}
+
+// https://vuejs.org/v2/api/#v-cloak
+[v-cloak] {
+  display: none;
+}
+
+.flex-fill-100 {
+  // https://github.com/philipwalton/flexbugs#flexbug-11
+  // https://stackoverflow.com/a/44484486
+  flex:       1 1 100%;
+  // https://drafts.csswg.org/css-flexbox/#min-size-auto
+  min-height: 0;
+}
+
+// Copied from scss/_buttons.scss in bootstrap 4.3
+// Since cannot extend inside a media-breakpoint...
+// https://github.com/sass/sass/issues/1050
+@include media-breakpoint-only(xs) {
+
+  .btn-block-xs {
+    display: block;
+    width:   100%;
+
+    // Vertically space out multiple block buttons
+    + .btn-block {
+      margin-top: $btn-block-spacing-y;
+    }
+  }
+
+  // Specificity overrides
+  input[type="submit"],
+  input[type="reset"],
+  input[type="button"] {
+    &.btn-block-xs {
+      width: 100%;
+    }
+  }
+
+}

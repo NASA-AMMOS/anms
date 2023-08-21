@@ -1,0 +1,14 @@
+.modules/
+.resource_types/
+bolt-debug.log
+.plan_cache.json
+.plugin_cache.json
+.task_cache.json
+.rerun.json
+
+# Files replaced by prep.sh
+modules/anms/files/docker-compose.yml
+modules/anms/files/agent-compose.yml
+
+# Files replaced by apply_local.sh
+data/override.yaml

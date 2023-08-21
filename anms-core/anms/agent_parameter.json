@@ -1,0 +1,12 @@
+[
+  {
+    "name": "UDP CL",
+    "parameter": ["hostname", "port"],
+    "command": [
+      "ari:/IANA:ion_bp_admin/CTRL.outduct_add(\"udp\",\"<hostname>:<port>\",\"udpclo\", 0)",
+      "ari:/IANA:ion_bp_admin/CTRL.outduct_start(\"udp\",\"<hostname>:<port>\")",
+      "ari:/IANA:ion_bp_admin/CTRL.egress_plan_add(\"<eid>\", \"udp\", \"<hostname>:<port>\")",
+      "ari:/IANA:ion_bp_admin/CTRL.egress_plan_start(\"<eid>\", \"<hostname>:<port>\")"
+    ]}
+]
+

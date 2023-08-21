@@ -1,0 +1,11 @@
+[submodule "deps/anms-ace"]
+	path = deps/anms-ace
+	url = ../anms-ace.git
+[submodule "deps/anms-camp"]
+	path = deps/anms-camp
+	url = ../anms-camp.git
+[submodule "ion/src"]
+	path = ion/src
+	url = https://git.code.sf.net/p/ion-dtn/code
+	branch = stable
+

@@ -1,0 +1,6 @@
+(block transcoder
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process mqtt_port_t ( tcp_socket ( name_connect ))) 
+    (allow process ephemeral_port_t ( tcp_socket ( name_connect )))
+)

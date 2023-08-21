@@ -1,0 +1,8 @@
+(block opensearch-dashboards
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process http_port_t ( tcp_socket ( name_bind )))
+    (allow process opensearch_port_t ( tcp_socket ( name_bind name_connect )))
+    (allow process wap_wsp_port_t ( tcp_socket ( name_connect ))) ;FIXME: should be http
+    (allow process unreserved_port_t ( tcp_socket ( name_bind )))
+)

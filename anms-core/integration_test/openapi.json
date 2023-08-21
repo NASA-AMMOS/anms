@@ -1,0 +1,3870 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+      "title": "AMMOS-ANMS",
+      "description": "AMMOS-ANMS Docs",
+      "version": "0.1.0"
+  },
+  "paths": {
+      "/hello": {
+          "get": {
+              "tags": [
+                  "Examples"
+              ],
+              "summary": "Hello World",
+              "operationId": "hello_world_hello_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/agents": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Paged Registered Agents",
+              "operationId": "paged_registered_agents_agents_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_RegisteredAgent_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/agents/all": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "All Registered Agents",
+              "operationId": "all_registered_agents_agents_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Registered Agents Agents All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/RegisteredAgent"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/agents/id/{registered_agents_id}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Registered Agent By Id",
+              "operationId": "registered_agent_by_id_agents_id__registered_agents_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Registered Agents Id",
+                          "type": "integer"
+                      },
+                      "name": "registered_agents_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/RegisteredAgent"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/agents/name/{agent_id_string}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Registered Agent By Name",
+              "operationId": "registered_agent_by_name_agents_name__agent_id_string__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Agent Id String",
+                          "type": "string"
+                      },
+                      "name": "agent_id_string",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/RegisteredAgent"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/agents/search/{query}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Paged Registered Agents",
+              "operationId": "paged_registered_agents_agents_search__query__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Query",
+                          "type": "string"
+                      },
+                      "name": "query",
+                      "in": "path"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_RegisteredAgent_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/logging": {
+          "post": {
+              "tags": [
+                  "Logging"
+              ],
+              "summary": "Log",
+              "description": "This function allows for storing of logging messages and data to connected OpenSearch capabilities",
+              "operationId": "log_logging_post",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/LoggingMessageBase"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/logging/query": {
+          "post": {
+              "tags": [
+                  "Logging"
+              ],
+              "summary": "Get Logs",
+              "description": "This function allows for query of logged messages and returns results from connected OpenSearch capabilities",
+              "operationId": "get_logs_logging_query_post",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/LoggingQueryModel"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/version": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Version",
+              "operationId": "nm_get_version_nm_version_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Agents",
+              "operationId": "nm_get_agents_nm_agents_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  }
+              }
+          },
+          "post": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Register Agent",
+              "operationId": "nm_register_agent_nm_agents_post",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/anms__routes__network_manager__Data"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/idx/{idx}/hex": {
+          "put": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Put Hex Idx",
+              "operationId": "nm_put_hex_idx_nm_agents_idx__idx__hex_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Idx",
+                          "type": "string"
+                      },
+                      "name": "idx",
+                      "in": "path"
+                  }
+              ],
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/anms__routes__network_manager__Data"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{eid}/hex": {
+          "put": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Put Hex Eid",
+              "operationId": "nm_put_hex_eid_nm_agents_eid__eid__hex_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Eid",
+                          "type": "string"
+                      },
+                      "name": "eid",
+                      "in": "path"
+                  }
+              ],
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/anms__routes__network_manager__Data"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/clear_reports": {
+          "put": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Clear Reports",
+              "operationId": "nm_clear_reports_nm_agents_eid__addr__clear_reports_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/clear_tables": {
+          "put": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Clear Tables",
+              "operationId": "nm_clear_tables_nm_agents_eid__addr__clear_tables_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/reports/hex": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Reports Hex",
+              "operationId": "nm_get_reports_hex_nm_agents_eid__addr__reports_hex_get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/reports": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Reports",
+              "operationId": "nm_get_reports_nm_agents_eid__addr__reports_get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/reports/text": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Reports Text",
+              "operationId": "nm_get_reports_text_nm_agents_eid__addr__reports_text_get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/reports/json": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Reports Json",
+              "operationId": "nm_get_reports_json_nm_agents_eid__addr__reports_json_get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/reports/debug": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Reports Debug",
+              "operationId": "nm_get_reports_debug_nm_agents_eid__addr__reports_debug_get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/{addr}": {
+          "get": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Get Agents Info",
+              "operationId": "nm_get_agents_info_nm_agents__addr__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/nm/agents/eid/{addr}/reports/clear": {
+          "put": {
+              "tags": [
+                  "NM"
+              ],
+              "summary": "Nm Put Clear Reports",
+              "operationId": "nm_put_clear_reports_nm_agents_eid__addr__reports_clear_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/sys_status/version": {
+          "get": {
+              "tags": [
+                  "SYS_STATUS"
+              ],
+              "summary": "Sys Status Get Version",
+              "operationId": "sys_status_get_version_sys_status_version_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/sys_status/db_status": {
+          "get": {
+              "tags": [
+                  "SYS_STATUS"
+              ],
+              "summary": "Sys Status Get Db Status",
+              "operationId": "sys_status_get_db_status_sys_status_db_status_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/sys_status/services": {
+          "get": {
+              "tags": [
+                  "SYS_STATUS"
+              ],
+              "summary": "Sys Status Get Services Status",
+              "operationId": "sys_status_get_services_status_sys_status_services_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/sys_status/agents": {
+          "post": {
+              "tags": [
+                  "SYS_STATUS"
+              ],
+              "summary": "Nm Register Agent",
+              "operationId": "nm_register_agent_sys_status_agents_post",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/anms__routes__system_status__Data"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/sys_status/agents/eid/{addr}/clear_tables": {
+          "put": {
+              "tags": [
+                  "SYS_STATUS"
+              ],
+              "summary": "Nm Clear Tables",
+              "operationId": "nm_clear_tables_sys_status_agents_eid__addr__clear_tables_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Addr",
+                          "type": "string"
+                      },
+                      "name": "addr",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/users/{username}": {
+          "get": {
+              "tags": [
+                  "USER"
+              ],
+              "summary": "Get User",
+              "operationId": "get_user_users__username__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Username",
+                          "type": "string"
+                      },
+                      "name": "username",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/UserReturn"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          },
+          "put": {
+              "tags": [
+                  "USER"
+              ],
+              "summary": "Update User",
+              "operationId": "update_user_users__username__put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Username",
+                          "type": "string"
+                      },
+                      "name": "username",
+                      "in": "path"
+                  }
+              ],
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/UserUpdateBase"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "409": {
+                      "description": "Conflict",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Conflict"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/users": {
+          "post": {
+              "tags": [
+                  "USER"
+              ],
+              "summary": "Create User",
+              "operationId": "create_user_users_post",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "$ref": "#/components/schemas/UserBase"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "201": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/UserReturn"
+                              }
+                          }
+                      }
+                  },
+                  "409": {
+                      "description": "Conflict",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Conflict"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/ari": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Paged Ari",
+              "operationId": "paged_ARI_ari_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_ARI_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/ari/all": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "All Ari",
+              "operationId": "all_ARI_ari_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Ari Ari All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/ARI"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/ari/all/display": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "All Ari Display",
+              "operationId": "all_ARI_display_ari_all_display_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Ari Display Ari All Display Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/ARIDisplayAndParams"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/ari/id/display/{obj_metadata_id}/{obj_id}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Ari Display By Id",
+              "operationId": "ari_display_by_id_ari_id_display__obj_metadata_id___obj_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  },
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response Ari Display By Id Ari Id Display  Obj Metadata Id   Obj Id  Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/ARIDisplayAndParams"
+                                  }
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/ari/id/{obj_metadata_id}/{obj_id}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Ari By Id",
+              "operationId": "ari_by_id_ari_id__obj_metadata_id___obj_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  },
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ARI"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/ari/name/display/{obj_name}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Ari Display By Name",
+              "operationId": "ari_display_by_name_ari_name_display__obj_name__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Name",
+                          "type": "string"
+                      },
+                      "name": "obj_name",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response Ari Display By Name Ari Name Display  Obj Name  Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/ARIDisplayAndParams"
+                                  }
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/ari/name/{obj_name}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Ari By Name",
+              "operationId": "ari_by_name_ari_name__obj_name__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Name",
+                          "type": "string"
+                      },
+                      "name": "obj_name",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ARI"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/actual_objects": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Paged Actual Object",
+              "operationId": "paged_actual_object_actual_objects_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_ActualObject_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/actual_objects/all": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "All Actual Object",
+              "operationId": "all_actual_object_actual_objects_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Actual Object Actual Objects All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/ActualObject"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/actual_objects/id/{obj_metadata_id}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Actual Object By Id",
+              "operationId": "actual_object_by_id_actual_objects_id__obj_metadata_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ActualObject"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/actual_objects/name/{obj_name}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Actual Object By Name",
+              "operationId": "actual_object_by_name_actual_objects_name__obj_name__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Name",
+                          "type": "string"
+                      },
+                      "name": "obj_name",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ActualObject"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Paged Formal Object",
+              "operationId": "paged_formal_object_formal_objects_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_FormalObject_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/all": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "All Formal Object",
+              "operationId": "all_formal_object_formal_objects_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Formal Object Formal Objects All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/FormalObject"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/id/{obj_metadata_id}": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Formal Object By Id",
+              "operationId": "formal_object_by_id_formal_objects_id__obj_metadata_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/FormalObject"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/name/{obj_name}": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Formal Object By Name",
+              "operationId": "formal_object_by_name_formal_objects_name__obj_name__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Name",
+                          "type": "string"
+                      },
+                      "name": "obj_name",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/FormalObject"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/edd/all": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "All Edd Formal",
+              "operationId": "all_edd_formal_formal_objects_edd_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Edd Formal Formal Objects Edd All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/EddFormal"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/edd/id/{obj_metadata_id}": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Edd Formal By Id",
+              "operationId": "edd_formal_by_id_formal_objects_edd_id__obj_metadata_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/EddFormal"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/mac/all": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Mac Formal",
+              "operationId": "mac_formal_formal_objects_mac_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/MacFormal"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/mac/id/{obj_metadata_id}": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Mac Formal By Id",
+              "operationId": "mac_formal_by_id_formal_objects_mac_id__obj_metadata_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/MacFormal"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/rptt/all": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "All Rpt Formal",
+              "operationId": "all_rpt_formal_formal_objects_rptt_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Rpt Formal Formal Objects Rptt All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/RptFormal"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/rptt/id/{obj_metadata_id}": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Rpt Formal By Id",
+              "operationId": "rpt_formal_by_id_formal_objects_rptt_id__obj_metadata_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/RptFormal"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/ctrl/all": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "All Control",
+              "operationId": "all_control_formal_objects_ctrl_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Control Formal Objects Ctrl All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/Control"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/ctrl/id/{obj_metadata_id}": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Control By Id",
+              "operationId": "control_by_id_formal_objects_ctrl_id__obj_metadata_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Control"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_objects/ctrl/name/id/{obj_metadata_id}": {
+          "get": {
+              "tags": [
+                  "ARIs",
+                  "FORMAL"
+              ],
+              "summary": "Name Id Control",
+              "operationId": "name_id_control_formal_objects_ctrl_name_id__obj_metadata_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Metadata Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_metadata_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response Name Id Control Formal Objects Ctrl Name Id  Obj Metadata Id  Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/ControlNameId"
+                                  }
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/actual_parameter": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Paged Actualparameter",
+              "operationId": "paged_ActualParameter_actual_parameter_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_ActualParameter_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/actual_parameter/all": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "All Actualparameter",
+              "operationId": "all_ActualParameter_actual_parameter_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Actualparameter Actual Parameter All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/ActualParameter"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/actual_parameter/id/{ap_spec_id}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Actual Parameter By Id",
+              "operationId": "actual_parameter_by_id_actual_parameter_id__ap_spec_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Ap Spec Id",
+                          "type": "integer"
+                      },
+                      "name": "ap_spec_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/ActualParameter"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_parameter": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Paged Formal Parameter",
+              "operationId": "paged_formal_parameter_formal_parameter_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_FormalParameter_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_parameter/all": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "All Formal Parameter",
+              "operationId": "all_formal_parameter_formal_parameter_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Formal Parameter Formal Parameter All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/FormalParameter"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/formal_parameter/id/{fp_spec_id}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Formal Parameter By Id",
+              "operationId": "formal_parameter_by_id_formal_parameter_id__fp_spec_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Fp Spec Id",
+                          "type": "integer"
+                      },
+                      "name": "fp_spec_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/FormalParameter"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/literal_object": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Paged Literal Object",
+              "operationId": "paged_Literal_object_literal_object_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_LiteralObject_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/literal_object/all": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "All Literal Object",
+              "operationId": "all_literal_object_literal_object_all_get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "title": "Response All Literal Object Literal Object All Get",
+                                  "type": "array",
+                                  "items": {
+                                      "$ref": "#/components/schemas/LiteralObject"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/literal_object/id/{obj_actual_definition_id}": {
+          "get": {
+              "tags": [
+                  "ARIs"
+              ],
+              "summary": "Literal Object By Id",
+              "operationId": "literal_object_by_id_literal_object_id__obj_actual_definition_id__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Obj Actual Definition Id",
+                          "type": "integer"
+                      },
+                      "name": "obj_actual_definition_id",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/LiteralObject"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/transcoder/db/all": {
+          "get": {
+              "tags": [
+                  "Transcoder"
+              ],
+              "summary": "Paged Transcoder Log",
+              "operationId": "paged_transcoder_log_transcoder_db_all_get",
+              "parameters": [
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_TranscoderLog_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/transcoder/db/search/{query}": {
+          "get": {
+              "tags": [
+                  "Transcoder"
+              ],
+              "summary": "Paged Transcoder Log",
+              "operationId": "paged_transcoder_log_transcoder_db_search__query__get",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Query",
+                          "type": "string"
+                      },
+                      "name": "query",
+                      "in": "path"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Page",
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 1
+                      },
+                      "name": "page",
+                      "in": "query"
+                  },
+                  {
+                      "required": false,
+                      "schema": {
+                          "title": "Size",
+                          "maximum": 100.0,
+                          "minimum": 1.0,
+                          "type": "integer",
+                          "default": 50
+                      },
+                      "name": "size",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/Page_TranscoderLog_"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/transcoder/ui/incoming/{cbor}/hex": {
+          "put": {
+              "tags": [
+                  "Transcoder"
+              ],
+              "summary": "Transcoder Put Cbor",
+              "operationId": "transcoder_put_cbor_transcoder_ui_incoming__cbor__hex_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Cbor",
+                          "type": "string"
+                      },
+                      "name": "cbor",
+                      "in": "path"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/transcoder/ui/incoming/str": {
+          "put": {
+              "tags": [
+                  "Transcoder"
+              ],
+              "summary": "Transcoder Put Str",
+              "operationId": "transcoder_put_str_transcoder_ui_incoming_str_put",
+              "parameters": [
+                  {
+                      "required": true,
+                      "schema": {
+                          "title": "Ari",
+                          "type": "string"
+                      },
+                      "name": "ari",
+                      "in": "query"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      },
+      "/adms/": {
+          "get": {
+              "tags": [
+                  "ADM"
+              ],
+              "summary": "Getall",
+              "operationId": "getall_adms__get",
+              "responses": {
+                  "200": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/AdmView"
+                              }
+                          }
+                      }
+                  }
+              }
+          },
+          "post": {
+              "tags": [
+                  "ADM"
+              ],
+              "summary": "Update Adm",
+              "operationId": "update_adm_adms__post",
+              "requestBody": {
+                  "content": {
+                      "multipart/form-data": {
+                          "schema": {
+                              "$ref": "#/components/schemas/Body_update_adm_adms__post"
+                          }
+                      }
+                  },
+                  "required": true
+              },
+              "responses": {
+                  "201": {
+                      "description": "Successful Response",
+                      "content": {
+                          "application/json": {
+                              "schema": {}
+                          }
+                      }
+                  },
+                  "400": {
+                      "description": "Bad Request",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/RequestError"
+                              }
+                          }
+                      }
+                  },
+                  "405": {
+                      "description": "Method Not Allowed",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/RequestError"
+                              }
+                          }
+                      }
+                  },
+                  "500": {
+                      "description": "Internal Server Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/RequestError"
+                              }
+                          }
+                      }
+                  },
+                  "422": {
+                      "description": "Validation Error",
+                      "content": {
+                          "application/json": {
+                              "schema": {
+                                  "$ref": "#/components/schemas/HTTPValidationError"
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  },
+  "components": {
+      "schemas": {
+          "ARI": {
+              "title": "ARI",
+              "type": "object",
+              "properties": {
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "adm_name": {
+                      "title": "Adm Name",
+                      "type": "string"
+                  },
+                  "type_name": {
+                      "title": "Type Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "obj_id": {
+                      "title": "Obj Id",
+                      "type": "integer"
+                  },
+                  "parm_id": {
+                      "title": "Parm Id",
+                      "type": "integer"
+                  },
+                  "actual": {
+                      "title": "Actual",
+                      "type": "boolean"
+                  },
+                  "display": {
+                      "title": "Display",
+                      "type": "string"
+                  }
+              }
+          },
+          "ARIDisplayAndParams": {
+              "title": "ARIDisplayAndParams",
+              "type": "object",
+              "properties": {
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "adm_name": {
+                      "title": "Adm Name",
+                      "type": "string"
+                  },
+                  "type_name": {
+                      "title": "Type Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "obj_id": {
+                      "title": "Obj Id",
+                      "type": "integer"
+                  },
+                  "parm_id": {
+                      "title": "Parm Id",
+                      "type": "integer"
+                  },
+                  "actual": {
+                      "title": "Actual",
+                      "type": "boolean"
+                  },
+                  "display": {
+                      "title": "Display",
+                      "type": "string"
+                  },
+                  "param_names": {
+                      "title": "Param Names",
+                      "type": "array",
+                      "items": {}
+                  },
+                  "param_types": {
+                      "title": "Param Types",
+                      "type": "array",
+                      "items": {}
+                  }
+              }
+          },
+          "ActualObject": {
+              "title": "ActualObject",
+              "type": "object",
+              "properties": {
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "type_name": {
+                      "title": "Type Name",
+                      "type": "string"
+                  },
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "adm_name": {
+                      "title": "Adm Name",
+                      "type": "string"
+                  },
+                  "adm_enum": {
+                      "title": "Adm Enum",
+                      "type": "integer"
+                  },
+                  "adm_enum_label": {
+                      "title": "Adm Enum Label",
+                      "type": "integer"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  },
+                  "obj_actual_definition_id": {
+                      "title": "Obj Actual Definition Id",
+                      "type": "integer"
+                  },
+                  "actual_desc": {
+                      "title": "Actual Desc",
+                      "type": "string"
+                  },
+                  "is_actual": {
+                      "title": "Is Actual",
+                      "type": "boolean",
+                      "default": true
+                  }
+              }
+          },
+          "ActualParameter": {
+              "title": "ActualParameter",
+              "type": "object",
+              "properties": {
+                  "ap_spec_id": {
+                      "title": "Ap Spec Id",
+                      "type": "integer"
+                  },
+                  "tnvc_id": {
+                      "title": "Tnvc Id",
+                      "type": "integer"
+                  },
+                  "fp_spec_id": {
+                      "title": "Fp Spec Id",
+                      "type": "integer"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  },
+                  "fp_values": {
+                      "title": "Fp Values",
+                      "type": "string"
+                  },
+                  "str_values": {
+                      "title": "Str Values",
+                      "type": "string"
+                  },
+                  "uint_values": {
+                      "title": "Uint Values",
+                      "type": "string"
+                  },
+                  "int_values": {
+                      "title": "Int Values",
+                      "type": "string"
+                  },
+                  "obj_values": {
+                      "title": "Obj Values",
+                      "type": "string"
+                  },
+                  "ac_values": {
+                      "title": "Ac Values",
+                      "type": "string"
+                  },
+                  "tnvc_values": {
+                      "title": "Tnvc Values",
+                      "type": "string"
+                  },
+                  "real32_values": {
+                      "title": "Real32 Values",
+                      "type": "string"
+                  },
+                  "real64_values": {
+                      "title": "Real64 Values",
+                      "type": "string"
+                  },
+                  "uvast_values": {
+                      "title": "Uvast Values",
+                      "type": "string"
+                  },
+                  "vast_values": {
+                      "title": "Vast Values",
+                      "type": "string"
+                  }
+              }
+          },
+          "AdmView": {
+              "title": "AdmView",
+              "required": [
+                  "namespace_id"
+              ],
+              "type": "object",
+              "properties": {
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "adm_name": {
+                      "title": "Adm Name",
+                      "type": "string"
+                  },
+                  "adm_enum": {
+                      "title": "Adm Enum",
+                      "type": "integer"
+                  },
+                  "adm_enum_label": {
+                      "title": "Adm Enum Label",
+                      "type": "string"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  }
+              }
+          },
+          "Body_update_adm_adms__post": {
+              "title": "Body_update_adm_adms__post",
+              "required": [
+                  "file"
+              ],
+              "type": "object",
+              "properties": {
+                  "file": {
+                      "title": "File",
+                      "type": "string",
+                      "format": "binary"
+                  }
+              }
+          },
+          "Conflict": {
+              "title": "Conflict",
+              "required": [
+                  "field"
+              ],
+              "type": "object",
+              "properties": {
+                  "field": {
+                      "title": "Field",
+                      "type": "object",
+                      "example": {
+                          "email": "abcd@example.com"
+                      }
+                  }
+              }
+          },
+          "Control": {
+              "title": "Control",
+              "type": "object",
+              "properties": {
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "adm_name": {
+                      "title": "Adm Name",
+                      "type": "string"
+                  },
+                  "obj_formal_definition_id": {
+                      "title": "Obj Formal Definition Id",
+                      "type": "integer"
+                  },
+                  "fp_spec_id": {
+                      "title": "Fp Spec Id",
+                      "type": "integer"
+                  },
+                  "num_parms": {
+                      "title": "Num Parms",
+                      "type": "integer"
+                  },
+                  "parm_types": {
+                      "title": "Parm Types",
+                      "type": "string"
+                  },
+                  "parm_names": {
+                      "title": "Parm Names",
+                      "type": "string"
+                  },
+                  "parm_defaults": {
+                      "title": "Parm Defaults",
+                      "type": "string"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  },
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  }
+              }
+          },
+          "ControlNameId": {
+              "title": "ControlNameId",
+              "type": "object",
+              "properties": {
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "num_parms": {
+                      "title": "Num Parms",
+                      "type": "integer"
+                  }
+              }
+          },
+          "EddFormal": {
+              "title": "EddFormal",
+              "type": "object",
+              "properties": {
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "obj_formal_definition_id": {
+                      "title": "Obj Formal Definition Id",
+                      "type": "integer"
+                  },
+                  "fp_spec_id": {
+                      "title": "Fp Spec Id",
+                      "type": "integer"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  }
+              }
+          },
+          "FormalObject": {
+              "title": "FormalObject",
+              "type": "object",
+              "properties": {
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "type_name": {
+                      "title": "Type Name",
+                      "type": "string"
+                  },
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "adm_name": {
+                      "title": "Adm Name",
+                      "type": "string"
+                  },
+                  "adm_enum": {
+                      "title": "Adm Enum",
+                      "type": "integer"
+                  },
+                  "adm_enum_label": {
+                      "title": "Adm Enum Label",
+                      "type": "integer"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  },
+                  "obj_formal_definition_id": {
+                      "title": "Obj Formal Definition Id",
+                      "type": "integer"
+                  },
+                  "formal_desc": {
+                      "title": "Formal Desc",
+                      "type": "string"
+                  },
+                  "is_formal": {
+                      "title": "Is Formal",
+                      "type": "boolean",
+                      "default": false
+                  }
+              }
+          },
+          "FormalParameter": {
+              "title": "FormalParameter",
+              "type": "object",
+              "properties": {
+                  "fp_spec_id": {
+                      "title": "Fp Spec Id",
+                      "type": "integer"
+                  },
+                  "num_parms": {
+                      "title": "Num Parms",
+                      "type": "integer"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  },
+                  "parm_names": {
+                      "title": "Parm Names",
+                      "type": "string"
+                  },
+                  "parm_type_name": {
+                      "title": "Parm Type Name",
+                      "type": "string"
+                  },
+                  "parm_value_id": {
+                      "title": "Parm Value Id",
+                      "type": "string"
+                  }
+              }
+          },
+          "HTTPValidationError": {
+              "title": "HTTPValidationError",
+              "type": "object",
+              "properties": {
+                  "detail": {
+                      "title": "Detail",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/ValidationError"
+                      }
+                  }
+              }
+          },
+          "LiteralObject": {
+              "title": "LiteralObject",
+              "type": "object",
+              "properties": {
+                  "obj_actual_definition_id": {
+                      "title": "Obj Actual Definition Id",
+                      "type": "integer"
+                  },
+                  "data_type_id": {
+                      "title": "Data Type Id",
+                      "type": "integer"
+                  },
+                  "data_value": {
+                      "title": "Data Value",
+                      "type": "string"
+                  }
+              }
+          },
+          "LoggingMessageBase": {
+              "title": "LoggingMessageBase",
+              "type": "object",
+              "properties": {
+                  "component": {
+                      "title": "Component",
+                      "type": "string"
+                  },
+                  "level": {
+                      "title": "Level",
+                      "type": "string"
+                  },
+                  "message": {
+                      "title": "Message",
+                      "type": "string"
+                  },
+                  "data": {
+                      "title": "Data",
+                      "type": "object"
+                  },
+                  "datetime": {
+                      "title": "Datetime",
+                      "type": "string"
+                  }
+              }
+          },
+          "LoggingQueryModel": {
+              "title": "LoggingQueryModel",
+              "type": "object",
+              "properties": {
+                  "component": {
+                      "title": "Component",
+                      "type": "string"
+                  },
+                  "level": {
+                      "title": "Level",
+                      "type": "string"
+                  },
+                  "start_datetime": {
+                      "title": "Start Datetime",
+                      "type": "string",
+                      "format": "date-time"
+                  },
+                  "end_datetime": {
+                      "title": "End Datetime",
+                      "type": "string",
+                      "format": "date-time"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "type": "integer",
+                      "default": [
+                          10
+                      ]
+                  },
+                  "offset": {
+                      "title": "Offset",
+                      "type": "integer",
+                      "default": 0
+                  }
+              }
+          },
+          "MacFormal": {
+              "title": "MacFormal",
+              "type": "object",
+              "properties": {
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "obj_formal_definition_id": {
+                      "title": "Obj Formal Definition Id",
+                      "type": "integer"
+                  },
+                  "fp_spec_id": {
+                      "title": "Fp Spec Id",
+                      "type": "integer"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  }
+              }
+          },
+          "Page_ARI_": {
+              "title": "Page[ARI]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/ARI"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "Page_ActualObject_": {
+              "title": "Page[ActualObject]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/ActualObject"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "Page_ActualParameter_": {
+              "title": "Page[ActualParameter]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/ActualParameter"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "Page_FormalObject_": {
+              "title": "Page[FormalObject]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/FormalObject"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "Page_FormalParameter_": {
+              "title": "Page[FormalParameter]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/FormalParameter"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "Page_LiteralObject_": {
+              "title": "Page[LiteralObject]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/LiteralObject"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "Page_RegisteredAgent_": {
+              "title": "Page[RegisteredAgent]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/RegisteredAgent"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "Page_TranscoderLog_": {
+              "title": "Page[TranscoderLog]",
+              "required": [
+                  "items",
+                  "total",
+                  "page",
+                  "size"
+              ],
+              "type": "object",
+              "properties": {
+                  "items": {
+                      "title": "Items",
+                      "type": "array",
+                      "items": {
+                          "$ref": "#/components/schemas/TranscoderLog"
+                      }
+                  },
+                  "total": {
+                      "title": "Total",
+                      "minimum": 0.0,
+                      "type": "integer"
+                  },
+                  "page": {
+                      "title": "Page",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  },
+                  "size": {
+                      "title": "Size",
+                      "minimum": 1.0,
+                      "type": "integer"
+                  }
+              }
+          },
+          "RegisteredAgent": {
+              "title": "RegisteredAgent",
+              "type": "object",
+              "properties": {
+                  "agent_id_string": {
+                      "title": "Agent Id String",
+                      "type": "string"
+                  },
+                  "first_registered": {
+                      "title": "First Registered",
+                      "type": "string",
+                      "format": "date-time"
+                  },
+                  "last_registered": {
+                      "title": "Last Registered",
+                      "type": "string",
+                      "format": "date-time"
+                  },
+                  "registered_agents_id": {
+                      "title": "Registered Agents Id",
+                      "type": "integer"
+                  }
+              }
+          },
+          "RequestError": {
+              "title": "RequestError",
+              "type": "object",
+              "properties": {
+                  "message": {
+                      "title": "Message",
+                      "type": "string",
+                      "default": "Method is not allowed"
+                  }
+              }
+          },
+          "RptFormal": {
+              "title": "RptFormal",
+              "type": "object",
+              "properties": {
+                  "obj_metadata_id": {
+                      "title": "Obj Metadata Id",
+                      "type": "integer"
+                  },
+                  "obj_name": {
+                      "title": "Obj Name",
+                      "type": "string"
+                  },
+                  "namespace_id": {
+                      "title": "Namespace Id",
+                      "type": "integer"
+                  },
+                  "obj_formal_definition_id": {
+                      "title": "Obj Formal Definition Id",
+                      "type": "integer"
+                  },
+                  "fp_spec_id": {
+                      "title": "Fp Spec Id",
+                      "type": "integer"
+                  },
+                  "use_desc": {
+                      "title": "Use Desc",
+                      "type": "string"
+                  }
+              }
+          },
+          "TranscoderLog": {
+              "title": "TranscoderLog",
+              "type": "object",
+              "properties": {
+                  "transcoder_log_id": {
+                      "title": "Transcoder Log Id",
+                      "type": "integer"
+                  },
+                  "input_string": {
+                      "title": "Input String",
+                      "type": "string"
+                  },
+                  "parsed_as": {
+                      "title": "Parsed As",
+                      "type": "string"
+                  },
+                  "ari": {
+                      "title": "Ari",
+                      "type": "string"
+                  },
+                  "uri": {
+                      "title": "Uri",
+                      "type": "string"
+                  },
+                  "cbor": {
+                      "title": "Cbor",
+                      "type": "string"
+                  }
+              }
+          },
+          "UserBase": {
+              "title": "UserBase",
+              "type": "object",
+              "properties": {
+                  "first_name": {
+                      "title": "First Name",
+                      "type": "string",
+                      "example": "John"
+                  },
+                  "last_name": {
+                      "title": "Last Name",
+                      "type": "string",
+                      "example": "Doe"
+                  },
+                  "email": {
+                      "title": "Email",
+                      "type": "string",
+                      "format": "email",
+                      "example": "john.doe@example.com"
+                  },
+                  "username": {
+                      "title": "Username",
+                      "type": "string",
+                      "example": "johndoe"
+                  }
+              }
+          },
+          "UserReturn": {
+              "title": "UserReturn",
+              "required": [
+                  "id",
+                  "created_at",
+                  "updated_at"
+              ],
+              "type": "object",
+              "properties": {
+                  "first_name": {
+                      "title": "First Name",
+                      "type": "string",
+                      "example": "John"
+                  },
+                  "last_name": {
+                      "title": "Last Name",
+                      "type": "string",
+                      "example": "Doe"
+                  },
+                  "email": {
+                      "title": "Email",
+                      "type": "string",
+                      "format": "email",
+                      "example": "john.doe@example.com"
+                  },
+                  "username": {
+                      "title": "Username",
+                      "type": "string",
+                      "example": "johndoe"
+                  },
+                  "id": {
+                      "title": "Id",
+                      "type": "integer",
+                      "example": 1
+                  },
+                  "created_at": {
+                      "title": "Created At",
+                      "type": "string",
+                      "example": "2022-11-18T15:29:37.226127"
+                  },
+                  "updated_at": {
+                      "title": "Updated At",
+                      "type": "string",
+                      "example": "2022-11-18T15:29:37.226127"
+                  }
+              }
+          },
+          "UserUpdateBase": {
+              "title": "UserUpdateBase",
+              "type": "object",
+              "properties": {
+                  "first_name": {
+                      "title": "First Name",
+                      "type": "string",
+                      "example": "John"
+                  },
+                  "last_name": {
+                      "title": "Last Name",
+                      "type": "string",
+                      "example": "Doe"
+                  },
+                  "email": {
+                      "title": "Email",
+                      "type": "string",
+                      "format": "email",
+                      "example": "john.doe@example.com"
+                  }
+              }
+          },
+          "ValidationError": {
+              "title": "ValidationError",
+              "required": [
+                  "loc",
+                  "msg",
+                  "type"
+              ],
+              "type": "object",
+              "properties": {
+                  "loc": {
+                      "title": "Location",
+                      "type": "array",
+                      "items": {
+                          "anyOf": [
+                              {
+                                  "type": "string"
+                              },
+                              {
+                                  "type": "integer"
+                              }
+                          ]
+                      }
+                  },
+                  "msg": {
+                      "title": "Message",
+                      "type": "string"
+                  },
+                  "type": {
+                      "title": "Error Type",
+                      "type": "string"
+                  }
+              }
+          },
+          "anms__routes__network_manager__Data": {
+              "title": "Data",
+              "required": [
+                  "data"
+              ],
+              "type": "object",
+              "properties": {
+                  "data": {
+                      "title": "Data",
+                      "type": "string"
+                  }
+              }
+          },
+          "anms__routes__system_status__Data": {
+              "title": "Data",
+              "required": [
+                  "data"
+              ],
+              "type": "object",
+              "properties": {
+                  "data": {
+                      "title": "Data",
+                      "type": "string"
+                  }
+              }
+          }
+      }
+  }
+}
