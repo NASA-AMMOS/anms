@@ -28,12 +28,11 @@ set -e
 
 AUTHNZ_EMU=${AUTHNZ_EMU:=0}
 
+GITTAG=$(git describe --always --tags --dirty)
 GITBRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's/[^a-zA-Z0-9\-\._]/-/g')
 
-# Put the commit hash in the UI
-commit=$(git rev-parse --short HEAD)
 # Used by docker compose during up
-export ANMS_VERSION=$(git describe --always --tags --dirty)
+export ANMS_VERSION=${ANMS_VERSION:=${GITTAG}}
 export ANMS_GW_FQDN=$(hostname -f)
 
 mkdir -p grafana/plugins
@@ -78,11 +77,26 @@ done
 if [ "$1" = "buildonly" ]
 then
     exit 0
-fi
-if [ "$1" = "push" ]
+elif [ "$1" = "tar" ]
+then
+    IMGLIST=""
+    for IMGNAME in "${!IMAGES[@]}"; do
+        IMGLIST="${IMGLIST} ${DOCKER_IMAGE_PREFIX}${IMGNAME}:${DOCKER_IMAGE_TAG}"
+    done
+    # Images not built but part of the compose config
+    IMGLIST="${IMGLIST} opensearchproject/opensearch:2.0.0"
+    IMGLIST="${IMGLIST} opensearchproject/opensearch-dashboards:2.0.0"
+    IMGLIST="${IMGLIST} grafana/grafana-image-renderer:3.6.1"
+    IMGLIST="${IMGLIST} redis:6.0-alpine"
+    IMGLIST="${IMGLIST} adminer:latest"
+    OUTFILE="anms-${ANMS_VERSION}-images.tar.gz"
+    echo "Saving images to ${OUTFILE} from ${IMGLIST}"
+    docker save ${IMGLIST} | gzip -c >${OUTFILE} 
+    exit 0
+elif [ "$1" = "push" ]
 then
     for IMGNAME in "${!IMAGES[@]}"; do
-    docker image push "${DOCKER_IMAGE_PREFIX}${IMGNAME}:${DOCKER_IMAGE_TAG}"
+        docker image push "${DOCKER_IMAGE_PREFIX}${IMGNAME}:${DOCKER_IMAGE_TAG}"
     done
     exit 0
 fi
@@ -134,8 +148,6 @@ then
     echo "Stopping machines"
     docker stop $(docker ps -q)
 
-    echo "Saving images to tar"
-    docker save -o ammos-anms-$commit.tar anms-ui anms-core aricodec postgres nginx adminer grafana/grafana redis grafana/grafana-image-renderer
 else
     echo "The following containers are now running: "
     docker ps
