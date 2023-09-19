@@ -1,0 +1,377 @@
+##
+## Copyright (c) 2023 The Johns Hopkins University Applied Physics
+## Laboratory LLC.
+##
+## This file is part of the Asynchronous Network Managment System (ANMS).
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##     http://www.apache.org/licenses/LICENSE-2.0
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## This work was performed for the Jet Propulsion Laboratory, California
+## Institute of Technology, sponsored by the United States Government under
+## the prime contract 80NM0018D0004 between the Caltech and NASA under
+## subcontract 1658085.
+##
+
+# This pipeline requires from the group/runtime the environment:
+# DOCKER_REGISTRY, DOCKER_GROUP,
+# DOCKER_REGISTRY_USERNAME, DOCKER_REGISTRY_PASSWORD
+#
+# The "deploy" job also uses these variables:
+# DEPLOY_TARGET: The FQDN of the host to deploy onto.
+# DEPLOY_VOLS: Set to 1 to clear volumes (e.g. database) when deploying
+#  or set to 0 to keep volumes.
+
+default:
+  # All jobs run within a target-like environment
+  image: registry.access.redhat.com/ubi8/ubi:8.6
+
+include:
+  # Run pipeline only on branches, not MRs
+  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  DOCKER_BUILDKIT: 1
+  # for Python/PIP
+  PIP_CERT: /etc/pki/tls/certs/ca-bundle.crt
+  # for Ruby/bolt
+  SSL_CERT_FILE: /etc/pki/tls/certs/ca-bundle.crt
+  # Project-specific environment
+  DOCKER_IMAGE_TAG: $CI_COMMIT_REF_NAME
+  DOCKER_IMAGE_PREFIX: $DOCKER_REGISTRY/$DOCKER_GROUP/
+  AUTHNZ_EMU: 1
+  ANMS_COMPOSE_OPTS: -f docker-compose.yml -p anms
+  AGENT_COMPOSE_OPTS: -f agent-compose.yml -p agents
+
+stages:
+  - build
+  - test
+  - deploy
+
+.prep-install-ca: &prep-install-ca |
+  curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt
+  update-ca-trust # to /etc/pki/tls/certs/ca-bundle.crt
+
+.prep-install-python: &prep-install-python |
+  dnf install -y python39 python39-pip python39-wheel
+  dnf clean all && rm -rf /var/cache/yum
+  pip3 install --upgrade pip pip-tools && ln -s pip3 /usr/bin/pip
+
+.prep-install-docker: &prep-install-docker |
+  dnf remove -y docker \
+      docker-client \
+      docker-client-latest \
+      docker-common \
+      docker-latest \
+      docker-latest-logrotate \
+      docker-logrotate \
+      docker-engine \
+      podman \
+      runc
+  dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+  dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin
+  docker info
+  docker login -u $DOCKER_REGISTRY_USERNAME -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY
+
+.prep-install-compose: &prep-install-compose |
+  dnf install -y python39 python39-pip python39-wheel
+  pip3 install docker-compose
+  docker-compose version
+
+.cleanup-docker: &cleanup-docker |
+  for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+    docker-compose ${!OPTS_NAME} rm --stop --force
+  done
+  docker network prune -f
+  docker volume prune -f
+
+.prep-install-git: &prep-install-git |
+  dnf install -y git
+
+build:
+  stage: build
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+  before_script:
+    - *prep-install-ca
+    - *prep-install-docker
+    - *prep-install-compose
+    - *prep-install-git
+  script:
+    - ./build.sh buildonly
+
+checkout-test:
+  stage: test
+  needs:
+    - build
+  allow_failure: true
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+  before_script:
+    - *prep-install-ca
+    - *prep-install-docker
+    - *prep-install-compose
+    - *prep-install-git
+  script:
+    - ./build.sh buildonly
+    - *cleanup-docker
+    - ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls/
+    - echo "running services..."
+    - |
+      for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+        docker-compose ${!OPTS_NAME} up --detach --force-recreate
+      done
+    - sleep 5
+    - |
+      for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+        docker-compose ${!OPTS_NAME} ps
+      done
+    - |
+      for BADSTATUS in stopped restarting; do
+        docker-compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
+      done
+      # Show hints at what may be wrong
+      for SERVNAME in $(cat /tmp/notgood); do
+        docker-compose ${ANMS_COMPOSE_OPTS} logs --tail 50 ${SERVNAME}
+      done
+      # Fail if any names are in the file
+      ! grep '[^[:space:]]' /tmp/notgood
+    - |
+      # Checkout the running gateway+backend
+      docker build -t checkout-test checkout-test
+      docker run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
+  after_script:
+    - *cleanup-docker
+  artifacts:
+    when: always
+    reports:
+      junit: testresults.xml
+
+anms-core_unit-test:
+  stage: test
+  needs:
+    - build
+  allow_failure: true
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+      changes:
+        - ".gitlab-ci.yml"
+        - deps/**/*
+        - anms-core/**/*
+  variables:
+    PY_WHEEL_DIR: /tmp/wheels
+  before_script:
+    - *prep-install-ca
+    - *prep-install-python
+    - pip3 wheel deps/anms-ace -w ${PY_WHEEL_DIR} --no-deps
+    - pip3 wheel deps/anms-camp -w ${PY_WHEEL_DIR} --no-deps
+    - (cd anms-core &&
+        pip-compile --find-links ${PY_WHEEL_DIR} --extra test pyproject.toml &&
+        pip3 install --find-links ${PY_WHEEL_DIR} -r requirements.txt)
+  script:
+    - (cd anms-core &&
+        PYTHONPATH=src python3 -m pytest --junit-xml=testresults.xml --cov=anms test)
+  after_script:
+    - (cd anms-core &&
+        coverage xml)
+  coverage: /TOTAL\s+\d+\s+\d+\s+(\d+(?:.\d+)?)%/
+  artifacts:
+    when: always
+    reports:
+      junit: anms-core/testresults.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: anms-core/coverage.xml
+
+anms-core_integration-test:
+  stage: test
+  needs:
+    - build
+    - anms-core_unit-test
+  allow_failure: true
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+      changes:
+        - ".gitlab-ci.yml"
+        - deps/**/*
+        - anms-core/**/*
+  variables:
+    ANMS_COMPOSE_OPTS: -f anms-core/integration_test/docker-compose.yml -p test
+  before_script:
+    - *prep-install-ca
+    - *prep-install-docker
+    - *prep-install-compose
+    - *prep-install-git
+  script:
+    - ./build.sh buildonly
+    - docker-compose ${ANMS_COMPOSE_OPTS} build
+    - docker-compose ${ANMS_COMPOSE_OPTS} run test-fixture
+  after_script:
+    - |
+      if [ "${CI_JOB_STATUS}" = 'failed' ]; then
+        docker logs anms-core
+      fi
+    - *cleanup-docker
+
+anms-ui_unit-test:
+  stage: test
+  needs:
+    - build
+  allow_failure: true
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+      changes:
+        - ".gitlab-ci.yml"
+        - anms-ui/**/*
+  variables:
+    IMAGE_TAG: anms-ui-test:latest
+  before_script:
+    - *prep-install-ca
+    - *prep-install-docker
+    - *prep-install-compose
+  script:
+    - mkdir -p anms-ui/data
+    - docker build -t ${IMAGE_TAG} anms-ui
+    - |
+      docker run ${IMAGE_TAG}
+      bash -c 'cd server && yarn config set strict-ssl false -g && yarn install && yarn test --coverage'
+  after_script:
+    - *cleanup-docker
+
+transcoder_unit-test:
+  stage: test
+  needs:
+    - build
+  allow_failure: true
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+      changes:
+        - ".gitlab-ci.yml"
+        - transcoder/**/*
+  before_script:
+    - *prep-install-ca
+    - *prep-install-python
+    - (cd transcoder &&
+        pip3 install -r requirements.txt &&
+        pip3 install pytest pytest-cov coverage) #FIXME move to pyproject
+  script:
+    - (cd transcoder &&
+        PYTHONPATH=src python3 -m pytest --junit-xml=testresults.xml --cov=src)
+  after_script:
+    - (cd transcoder &&
+        coverage xml)
+  coverage: /TOTAL\s+\d+\s+\d+\s+(\d+(?:.\d+)?)%/
+  artifacts:
+    when: always
+    reports:
+      junit: transcoder/testresults.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: transcoder/coverage.xml
+
+puppet-lint:
+  stage: test
+  needs: []
+  allow_failure: true
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+      changes:
+        - ".gitlab-ci.yml"
+        - puppet/**/*
+  before_script:
+    - *prep-install-ca
+    - dnf module install -y ruby:2.7
+    - gem install puppet-lint
+  script:
+    - puppet-lint puppet
+
+# Pull in the latest commits from default submodule branches
+promote:
+  stage: build
+  rules:
+    - if: $TRY_LATEST_PROMOTE == "true"
+  variables:
+    GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: none
+  before_script:
+    - *prep-install-ca
+    - *prep-install-git
+  script:
+    - git switch --force-create ${CI_COMMIT_REF_NAME}-latest-submods
+    - git submodule sync --recursive
+    - git submodule update --init --remote --recursive
+    - git add -A
+    - |
+      git config --global user.email "${GITLAB_USER_EMAIL}"
+      git config --global user.name "${GITLAB_USER_NAME}"
+      git remote set-url origin "https://${CI_REGISTRY_USER}:${GITLAB_PUSH_TOKEN}@${CI_REPOSITORY_URL#*@}"
+    - git commit -m "Bump submodules to latest commits" || exit 0
+    - git push --force -o merge_request.create -o merge_request.target=${CI_COMMIT_REF_NAME} origin HEAD:${CI_COMMIT_REF_NAME}-latest-submods
+
+# Deploy a top-level branch to a target host.
+# The "git checkout" step is a fudge needed to have the version tag ID work.
+# This relies on the target being accessible by the CI account, which can be
+# enabled with a command (for Ubuntu) similar to:
+#  sudo useradd svc-dtn-anms --no-user-group --shell /bin/bash -p '*'
+#  sudo usermod -a -G sudo svc-dtn-anms
+# or group "wheel" for RedHat.
+# Additionally on RedHat need to edit to add "/usr/local/sbin:/usr/local/bin:"
+# to secure_path with:
+#  sudo sudoedit /etc/sudoers
+#
+deploy:
+  stage: deploy
+  needs:
+    - build
+  rules:
+    - if: $TRY_LATEST_PROMOTE != "true"
+      when: manual
+  allow_failure: true
+  variables:
+    DEPLOY_VOLS: 1
+    BOLT_OPTS: "--targets ${DEPLOY_TARGET} --user ${DOCKER_REGISTRY_USERNAME} --password ${DOCKER_REGISTRY_PASSWORD} --sudo-password ${DOCKER_REGISTRY_PASSWORD}"
+  before_script:
+    - *prep-install-ca
+    - *prep-install-docker
+    - *prep-install-git
+  script:
+    - dnf install -y hostname
+    - ./build.sh push
+    - |
+      dnf install -y https://yum.puppet.com/puppet-release-el-8.noarch.rpm
+      dnf install -y https://yum.puppet.com/puppet-tools-release-el-8.noarch.rpm
+      dnf install -y puppet-agent-7.24.0-1.el8 puppet-bolt
+      update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
+    - chmod +t /tmp # workaround ruby need within prep.sh
+    - ./puppet/prep.sh
+    - mkdir -p $HOME/.ssh && cat apl-known-hosts.txt >>$HOME/.ssh/known_hosts
+    - |-
+      ANMS_VERSION="$(git describe --always --tags --dirty) on ${CI_COMMIT_REF_NAME}"
+      mkdir -p puppet/data/fqdn/
+      cat <<EOF >puppet/data/override.yaml
+      anms::version: "${ANMS_VERSION}"
+      anms::docker_image_prefix: "${DOCKER_IMAGE_PREFIX}"
+      anms::docker_image_tag: "${DOCKER_IMAGE_TAG}"
+      anms::docker_registry_user: "${DOCKER_REGISTRY_USERNAME}"
+      anms::docker_registry_pass: "${DOCKER_REGISTRY_PASSWORD}"
+      selinux::mode: permissive
+      selinux::type: targeted
+      EOF
+    - |
+      # clear volumes conditionally
+      if [ ${DEPLOY_VOLS} -ne 0 ]; then
+        BOLT_PROJECT=puppet bolt ${BOLT_OPTS} command run 'docker rm -f $(docker ps --all -q); docker volume prune -f'
+      fi
+    - ./puppet/apply_remote.sh ${BOLT_OPTS}
+    - BOLT_PROJECT=puppet bolt ${BOLT_OPTS} command run 'docker exec ion-manager ion_ping_peers 1 2 3'
+    - *prep-install-python
+    - pip3 install -r checkout-test/requirements.txt
+    - CHECKOUT_BASE_URL=http://${DEPLOY_TARGET}/ ./checkout-test/run.sh
