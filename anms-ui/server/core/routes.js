@@ -71,6 +71,7 @@
         // Do something here in the future? Maybe...
         next(); // continue doing what we were doing and go to the route
       });
+      
 
       // Better Message
       router.all('/', function (req, res) {
@@ -86,70 +87,70 @@
 
        // ---- Core Routes ---- //
       const core = require('../components/core');
-      router.get('/core/service_status', userLimiter, core.getServiceStatus);
+      router.get('/core/service_status', core.getServiceStatus);
 
       // ---- User Routes ---- //
       const users = require('../components/users');
 
       router.get('/users/:userName', userLimiter, users.getUserByUsernameWebSafe);
-      router.post('/users', users.createUserProfile);
-      router.put('/users/:userName', users.updateUserProfile);
+      router.post('/users', userLimiter, users.createUserProfile);
+      router.put('/users/:userName', userLimiter, users.updateUserProfile);
 
        // ---- Adm Routes ---- //
        const adms = require('../components/adms');
 
       router.get('/core/adms', userLimiter, adms.getAll);
-      router.get('/core/adms/:adm_enum', userLimiter, adms.getOne);
-      router.post('/core/adms', upload.single('adm'), adms.upload);
+      router.get('/core/adms/:adm_enum', adms.getOne);
+      router.post('/core/adms', userLimiter, upload.single('adm'), adms.upload);
       
 
 
       // ---- Agents Routes ---- //
       const agents = require('../components/registeredAgents');
-      router.get('/agents', userLimiter, agents.getAgentsPaged);
-      router.get('/agents/id/:id', userLimiter, agents.getAgentById);
-      router.get('/agents/search/:query', userLimiter, agents.getAgentsPagedBySearch);
-      router.get('/agents/parameter/name/:id', userLimiter, agents.getAgentsOperations);
+      router.get('/agents', agents.getAgentsPaged);
+      router.get('/agents/id/:id', agents.getAgentById);
+      router.get('/agents/search/:query', agents.getAgentsPagedBySearch);
+      router.get('/agents/parameter/name/:id', agents.getAgentsOperations);
       router.put('/agents/parameter/send/:id/:optId', agents.putAgentsOperations);
 
       // alerts
       const alerts = require('../components/alerts');
       router.put('/alerts/incoming', alerts.putAlerts);
-      router.get('/alerts/incoming', userLimiter, alerts.getAlerts);
+      router.get('/alerts/incoming', alerts.getAlerts);
       router.put('/alerts/acknowledge/:index', alerts.acknowledgeAlert);
 
       // --- Builder Routes --- //
       const builder = require('../components/ariBuilder');
-      router.get('/build/ari/all', userLimiter, builder.getARIs);
-      router.get('/build/ari/id/:meta_id/:obj_id', userLimiter, builder.getARIParmInfo);
+      router.get('/build/ari/all', builder.getARIs);
+      router.get('/build/ari/id/:meta_id/:obj_id', builder.getARIParmInfo);
 
       // --Transcoder routes -- //
       const transcoder = require('../components/transcoder')
       router.put('/transcoder/ui/incoming/:cbor/hex', transcoder.putTranscodedHex)
       router.put('/transcoder/ui/incoming/str', transcoder.putTranscodedString)
-      router.get('/transcoder/ui/loguserLimiter, ', transcoder.getTranscoderPaged)
-      router.get('/transcoder/ui/log/search/:queryuserLimiter, ', transcoder.getTranscoderPagedBySearch)
+      router.get('/transcoder/ui/log', transcoder.getTranscoderPaged)
+      router.get('/transcoder/ui/log/search/:query', transcoder.getTranscoderPagedBySearch)
 
       // ---NM Routes ---///
       const networkManager = require('../components/networkManager')
-      router.get('/nm/versionuserLimiter, ', networkManager.getVersion)
+      router.get('/nm/version', networkManager.getVersion)
       router.post('/nm/agents', networkManager.nm_register_agent);
       router.put('/nm/agents/idx/:idx/hex', networkManager.nm_put_hex_idx);
       router.put('/nm/agents/eid/:eid/hex', networkManager.nm_put_hex_eid);
       router.put('/nm/agents/eid/:addr/clear_reports', networkManager.nm_clear_reports);
       router.put('/nm/agents/eid/:addr/clear_tables ', networkManager.nm_clear_tables);
-      router.get('/nm/agents/eid/:addr/reports/hex', userLimiter, networkManager.nm_get_reports_hex);
-      router.get('/nm/agents/eid/:addr/reports', userLimiter, networkManager.nm_get_reports);
-      router.get('/nm/agents/eid/:addr/reports/text', userLimiter, networkManager.nm_get_reports_text);
-      router.get('/nm/agents/eid/:addr/reports/json', userLimiter, networkManager.nm_get_reports_json);
-      router.get('/nm/agents/eid/:addr/reports/debug', userLimiter, networkManager.nm_get_reports_debug);
-      router.get('/nm/agents/eid/:addr', userLimiter, networkManager.nm_get_agents_info);
+      router.get('/nm/agents/eid/:addr/reports/hex', networkManager.nm_get_reports_hex);
+      router.get('/nm/agents/eid/:addr/reports', networkManager.nm_get_reports);
+      router.get('/nm/agents/eid/:addr/reports/text', networkManager.nm_get_reports_text);
+      router.get('/nm/agents/eid/:addr/reports/json', networkManager.nm_get_reports_json);
+      router.get('/nm/agents/eid/:addr/reports/debug', networkManager.nm_get_reports_debug);
+      router.get('/nm/agents/eid/:addr', networkManager.nm_get_agents_info);
       router.put('/nm/agents/eid/:addr/reports/clear', networkManager.nm_put_clear_reports);
 
       // --Reports Routes -- //
       const reports = require('../components/reports')
-      router.get('/report/entry/name/:obj_agent_id', userLimiter, reports.getReportNameByAgent);
-      router.get('/report/entries/table/:obj_agent_id/:adm/:report_name', userLimiter, reports.getReportEntriesByAgent);
+      router.get('/report/entry/name/:obj_agent_id', reports.getReportNameByAgent);
+      router.get('/report/entries/table/:obj_agent_id/:adm/:report_name', reports.getReportEntriesByAgent);
 
       //------------- Unknown API Routes -------------//
       router.all('/*', function (req, res, next) {
@@ -173,14 +174,14 @@
       const pageHandlers = require('../components/main');
 
       //------------- Main Page -------------//
-      router.get(indexPageMatches, pageHandlers.preMainPageHandler, userLimiter, pageHandlers.mainPageHandler);
+      router.get(indexPageMatches, pageHandlers.preMainPageHandler, pageHandlers.mainPageHandler);
 
       //------------- HTML5 Matcher -------------//
-      router.get('/*', pageHandlers.preMainPageHandler, userLimiter, pageHandlers.mainPageHandler);
+      router.get('/*', pageHandlers.preMainPageHandler, pageHandlers.mainPageHandler);
 
       //------------- Routes -------------//
 
-      router.all('/*', function (req, res) {
+      router.all('/*', userLimiter, function (req, res) {
         res.status(404);
         res.type('html').sendFile(config.client.error);
       });
