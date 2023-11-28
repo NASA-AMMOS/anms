@@ -1,0 +1,82 @@
+<template>
+  <div>
+    <b-modal id="agentModal"
+      ref="agentModal"
+      title="Agent Details"
+      size="lg"
+      ok-only
+      @hide="closeModal">
+      <div v-if="agentInfo">
+        <div>Registered Agents ID = {{ agentInfo.registered_agents_id }}</div>
+        <div>Agent ID String: {{ agentInfo.agent_id_string }}</div>
+        <div>First Registered: {{ agentInfo.first_registered }}</div>
+        <div>Last Registered: {{ agentInfo.last_registered }}</div>
+
+        <reports :agentName="agentInfo.agent_id_string"
+          :rptts="rptt" />
+
+        <crud :agentId="agentInfo.registered_agents_id"
+          :Operations="operations">
+        </crud>
+      </div>
+    </b-modal>
+  </div>
+</template>
+<script>
+import { mapActions, mapGetters } from "vuex";
+import Crud from './crud.vue';
+import reports from './reports.vue';
+export default {
+  name: "AgentModal",
+  components: {
+    Crud, reports
+  },
+  data() {
+    return {
+      currADM: "",
+      currReport: "",
+      reportOptions: "",
+      selected: {},
+      rptList: {},
+    }
+  },
+  props: {
+    showModal: {
+      type: Boolean,
+      default: false,
+    },
+    agentInfo: {
+      type: Object,
+      default: null,
+    }
+  },
+  watch: {
+    showModal(newValue, _) {
+      if (newValue === true) {
+        this.show();
+      }
+    }
+  },
+  computed: {
+    ...mapGetters("agents", {
+      rptt: "rptt",
+      operations: "operations",
+
+    }),
+  },
+  methods: {
+    ...mapActions("agents", {
+      reloadAgent: "reloadAgent",
+      setAgentId: "setAgentId"
+    }),
+    show() {
+      this.$refs['agentModal'].show();
+    },
+    closeModal() {
+      this.$emit("close");
+    }
+  },
+}
+</script>
+<style>
+</style>
