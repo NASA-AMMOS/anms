@@ -71,6 +71,7 @@
         // Do something here in the future? Maybe...
         next(); // continue doing what we were doing and go to the route
       });
+      
 
       // Better Message
       router.all('/', function (req, res) {
@@ -91,16 +92,16 @@
       // ---- User Routes ---- //
       const users = require('../components/users');
 
-      router.get('/users/:userName', users.getUserByUsernameWebSafe);
-      router.post('/users', users.createUserProfile);
-      router.put('/users/:userName', users.updateUserProfile);
+      router.get('/users/:userName', userLimiter, users.getUserByUsernameWebSafe);
+      router.post('/users', userLimiter, users.createUserProfile);
+      router.put('/users/:userName', userLimiter, users.updateUserProfile);
 
        // ---- Adm Routes ---- //
        const adms = require('../components/adms');
 
-      router.get('/core/adms', adms.getAll);
+      router.get('/core/adms', userLimiter, adms.getAll);
       router.get('/core/adms/:adm_enum', adms.getOne);
-      router.post('/core/adms', upload.single('adm'), adms.upload);
+      router.post('/core/adms', userLimiter, upload.single('adm'), adms.upload);
       
 
 
@@ -180,7 +181,7 @@
 
       //------------- Routes -------------//
 
-      router.all('/*', function (req, res) {
+      router.all('/*', userLimiter, function (req, res) {
         res.status(404);
         res.type('html').sendFile(config.client.error);
       });
