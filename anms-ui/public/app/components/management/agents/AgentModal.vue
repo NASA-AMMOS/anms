@@ -52,6 +52,10 @@ export default {
   },
   watch: {
     showModal(newValue, _) {
+      const vm = this;
+    vm.setAgentId(vm.agentInfo.registered_agents_id);
+    vm.reloadAgent();
+    console.log(vm.currentAgent)
       if (newValue === true) {
         this.show();
       }
@@ -59,6 +63,7 @@ export default {
   },
   computed: {
     ...mapGetters("agents", {
+      currentAgent: "currentAgent",
       rptt: "rptt",
       operations: "operations",
 
