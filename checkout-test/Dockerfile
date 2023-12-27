@@ -25,7 +25,7 @@ FROM anms-base
 
 COPY . /usr/src/checkout-test
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install python39 python39-pip python39-wheel
+    dnf -y install python3 python3-pip python3-wheel
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install -r /usr/src/checkout-test/requirements.txt
 

@@ -19,14 +19,8 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM anms-base
-
+FROM anms-acelib
 ENV APP_WORK_DIR /opt/app
-
-# Install System Level Dependencies
-RUN dnf -y install python39 python39-pip && \
-    dnf clean all && rm -rf /var/cache/yum && \
-    pip3 install --upgrade pip
 
 
 # Copy over all required content (source, data, etc.)
