@@ -2,16 +2,34 @@
 <template>
   <div>
     <p>Reports sent:</p>
-    <div v-if="loading" class="spinner-border text-primary" role="status">
+    <div v-if="loading"
+      class="spinner-border text-primary"
+      role="status">
       <span class="sr-only">Loading...</span>
     </div>
-    <select v-if="!loading" v-model="selected" @change="onReportSelect()">
-      <option disabled value="-1">-- Select Sent Reports --</option>
-      <option v-for="rpt, index in rptts" :key="index" :value="index">{{ rpt.adm }}.{{ rpt.name }}</option>
-    </select>
-    <b-table v-if="!loading" id="report-table" :items="reports[selected]" hover bordered>
+    <b-form-select v-if="!loading"
+      v-model="selected"
+      @change="onReportSelect()"
+      size="md"
+      class="select-max-width">
+      <b-form-select-option disabled
+        value="-1">-- Select Sent Reports --</b-form-select-option>
+      <b-form-select-option v-for="rpt, index in rptts"
+        :key="index"
+        :value="index">{{ rpt.adm }}.{{ rpt.name }}</b-form-select-option>
+    </b-form-select>
+    <b-table v-if="!loading && selected != -1"
+      id="report-table"
+      :fields="tableHeaders"
+      :items="tableItems"
+      class="spacing-table"
+      hover
+      bordered
+      responsive>
     </b-table>
   </div>
+
+      <!-- :items="reports[selected]" -->
 </template>
 
 <script>
@@ -23,7 +41,8 @@ export default {
   data() {
     return {
       selected: -1,
-      headers: [],
+      tableHeaders: [],
+      tableItems: [],
       title: "",
       reports: {},
       loading: true,
@@ -32,7 +51,7 @@ export default {
   methods: {
     async onReportSelect() {
       this.loading = true;
-      
+
       if (this.reports[this.selected] == undefined) {
         this.loading = true;
         let rpt_name = this.rptts[this.selected].name;
@@ -40,15 +59,25 @@ export default {
         await api.methods.apiEntriesForReport(this.agentName, rpt_adm, rpt_name)
           .then(res => {
             this.reports[this.selected] = res.data;
-            // this.headers = this.reports.shift()
+            this.processReport(res.data);
           }).catch(error => {
             // handle error
             console.error("reports error", error);
             console.info("error obj:", error);
           });
-        }
+      }
       this.loading = false;
     },
+    processReport(report) {
+      this.tableHeaders = report.shift();
+      for (let item of report) {
+        let row = {};
+        for (let i = 0; i < this.tableHeaders.length; i++) {
+          row[this.tableHeaders[i]] = item[i];
+        }
+        this.tableItems.push(row);
+      }
+    }
   },
   computed: {
   },
@@ -75,4 +104,12 @@ export default {
 
 
 </script>
-<style scoped></style>
+<style scoped>
+.spacing-table {
+  margin: 16px 0;
+}
+
+.select-max-width {
+  max-width: 600px;
+}
+</style>

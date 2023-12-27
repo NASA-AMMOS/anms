@@ -2,13 +2,12 @@
   <div>
     <b-modal id="agentModal"
       ref="agentModal"
-      title="Agent Details"
-      size="lg"
+      size="xl"
       ok-only
-      @hide="closeModal">
+      @hide="closeModal"
+      title="'Agent Details:' agentInfo.agent_id_string">
       <div v-if="agentInfo">
         <div>Registered Agents ID = {{ agentInfo.registered_agents_id }}</div>
-        <div>Agent ID String: {{ agentInfo.agent_id_string }}</div>
         <div>First Registered: {{ agentInfo.first_registered }}</div>
         <div>Last Registered: {{ agentInfo.last_registered }}</div>
 
@@ -53,9 +52,8 @@ export default {
   watch: {
     showModal(newValue, _) {
       const vm = this;
-    vm.setAgentId(vm.agentInfo.registered_agents_id);
-    vm.reloadAgent();
-    console.log(vm.currentAgent)
+      vm.setAgentId(vm.agentInfo.registered_agents_id);
+      vm.reloadAgent();
       if (newValue === true) {
         this.show();
       }
