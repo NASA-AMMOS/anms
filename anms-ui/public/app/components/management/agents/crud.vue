@@ -24,16 +24,12 @@
       </b-form-group>
       <b-button @click="onClick()">Send Parameter</b-button>
     </b-form>
-
-    <div>
-      [{{ results }}]
-    </div>
   </div>
 </template>
 
 <script>
-import { values } from 'lodash'
 import api from '../../../shared/api'
+import toastr from 'toastr';
 
 export default {
   name: "CRUD",
@@ -43,8 +39,6 @@ export default {
       selected: -1,
       headers: [],
       title: "",
-      results: "",
-      results2: "",
       params: [],
       final_values: {}
     }
@@ -53,11 +47,9 @@ export default {
 
     setParams(command_parameters) {
       command_parameters.forEach((value) => {
-        this.results2 = value;
         this.params.push({ "name": value, "value": "" });
       });
 
-      this.results = command_parameters;
     },
     onClick() {
       this.final_values = {}
@@ -67,13 +59,14 @@ export default {
       api.methods
         .apiPutCRUD(this.agentId, this.selected.agent_parameter_id, this.final_values)
         .then((response) => {
-          this.results = "SENT! " + response.data + " " + response.statusText;
+          console.log(response);
+          toastr.success(`${response.statusText} ${response.data}`);
           this.selected = -1;
           this.params = []
         })
         .catch((error) => {
-          this.results = "ERROR sending " + error
           console.error(error);
+          toastr.error(error);
         })
     },
   },
@@ -94,16 +87,23 @@ export default {
   margin: 16px 0;
 }
 
-.capitalize::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+.capitalize::-webkit-input-placeholder {
+  /* Chrome/Opera/Safari */
   text-transform: capitalize;
 }
-.capitalize::-moz-placeholder { /* Firefox 19+ */
+
+.capitalize::-moz-placeholder {
+  /* Firefox 19+ */
   text-transform: capitalize;
 }
-.capitalize:-ms-input-placeholder { /* IE 10+ */
+
+.capitalize:-ms-input-placeholder {
+  /* IE 10+ */
   text-transform: capitalize;
 }
-.capitalize:-moz-placeholder { /* Firefox 18- */
+
+.capitalize:-moz-placeholder {
+  /* Firefox 18- */
   text-transform: capitalize;
 }
 </style>

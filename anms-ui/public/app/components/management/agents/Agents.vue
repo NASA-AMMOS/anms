@@ -239,10 +239,6 @@ export default {
     goToAgentDetails(event) {
       this.agentInfo = event;
       this.showModal = true;
-      // this.$router.push({
-      //   name: "Agent Details",
-      //   params: { agentId: event['agent_id_string'] },
-      // });
     },
     handlePageChange(value) {
       const vm = this;
