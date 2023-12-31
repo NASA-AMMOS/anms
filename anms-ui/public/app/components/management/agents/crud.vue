@@ -1,9 +1,9 @@
 <template>
-  <div>
+  <div style="margin-top: 16px;">
     <!-- what are the inputs  -->
     <!-- request name -->
     <!-- request input -->
-    <p>Operation: </p>
+    <h5>Operation: </h5>
     <b-form-select v-model="selected"
       @change="setParams(selected.command_parameters)"
       size="md"

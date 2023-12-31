@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <p>Reports sent:</p>
+    <h5>Reports sent:</h5>
     <div v-if="loading"
       class="spinner-border text-primary"
       role="status">
@@ -29,7 +29,7 @@
     </b-table>
   </div>
 
-      <!-- :items="reports[selected]" -->
+  <!-- :items="reports[selected]" -->
 </template>
 
 <script>
