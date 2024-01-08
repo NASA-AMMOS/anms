@@ -29,7 +29,6 @@ import UserProfile from '@app/components/user/UserProfile';
 import UserAdmin from '@app/components/user/UserAdmin';
 import Dashboard from "../components/management/monitor/Monitor";
 import Agents from "../components/management/agents/Agents";
-import Agent from "../components/management/agents/Agent";
 import build_ari from "../components/management/builder/buildAri";
 import Status from "../components/status/Status";
 import Adm from "../components/adm/Adm";
@@ -79,14 +78,7 @@ export default new Router({
       name: 'Agents CBOR',
       component: Agents,
       props: true
-    },
-    {
-      path: '/agents/id/:agentId',
-      name: 'Agent Details',
-      component: Agent,
-      props: true
-    },
-    
+    },    
     {
       path: '/build',
       name: 'Build ari',
