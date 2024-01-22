@@ -20,9 +20,9 @@
 ## subcontract 1658085.
 ##
 
-# The base image is just RHEL-8 OS with configuration for all ANMS containers.
+# The base image is just RHEL-9 OS with configuration for all ANMS containers.
 #
-FROM registry.access.redhat.com/ubi9/ubi AS anms-base
+FROM registry.access.redhat.com/ubi9/ubi:9.2 AS anms-base
 
 # Optional APL network configuration from
 # https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34

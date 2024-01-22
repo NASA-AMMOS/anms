@@ -26,7 +26,8 @@ ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
 # Yarn cannot be installed via RPM because of FIPS-mode restrictions
-RUN dnf -y module install nodejs:16 && \
+RUN curl -sL https://rpm.nodesource.com/setup_16.x | bash -  && \
+    dnf -y install nodejs  && \
     dnf clean all && rm -rf /var/cache/yum && \
     npm install --global yarn && \
     yarn config set --global cafile ${PIP_CERT}
