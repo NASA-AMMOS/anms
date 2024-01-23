@@ -43,7 +43,7 @@ RUN groupadd -r -g 9999 ${APP_USER} && \
 # This image uses systemd init process to manage local services.
 # Derived image targets choose which servies are enabled.
 #
-FROM registry.access.redhat.com/ubi8/ubi-init:8.6 AS anms-init
+FROM registry.access.redhat.com/ubi9/ubi-init:9.2  AS anms-init
 
 # Optional APL network configuration from
 # https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
@@ -54,6 +54,7 @@ RUN ( \
     ) || true
 ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
+RUN dnf -y install container-tools
 # Container service config
 RUN systemctl disable dnf-makecache.timer
 

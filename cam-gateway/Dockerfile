@@ -1,6 +1,6 @@
 # Dockerfile to create docker image for ASEC CAM Gateway
 
-FROM redhat/ubi8
+FROM redhat/ubi9
 
 MAINTAINER "Kam Tso" <tso@jpl.nasa.gov>
 

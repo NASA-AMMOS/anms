@@ -4,7 +4,7 @@ This Git repo consists a Dockerfile, httpd config files, CAM web agent, and setu
 
 The Dockerfile is used to create the docker image of the 5.1.0 CAM Gateway.
 The image contains:
-- Redhat ubi8 (Universal Base Image 8)
+- Redhat ubi9 (Universal Base Image 9)
 - Apache httpd 2.4
 - CAM web agent 5.9.1
 - CAM Gateway setup scripts
