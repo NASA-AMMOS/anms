@@ -31,7 +31,7 @@
 
 default:
   # All jobs run within a target-like environment
-  image: registry.access.redhat.com/ubi8/ubi:8.6
+  image: registry.access.redhat.com/ubi9/ubi:9.2
 
 include:
   # Run pipeline only on branches, not MRs
@@ -61,7 +61,7 @@ stages:
   update-ca-trust # to /etc/pki/tls/certs/ca-bundle.crt
 
 .prep-install-python: &prep-install-python |
-  dnf install -y python39 python39-pip python39-wheel
+  dnf install -y python3 python3-pip python3-wheel
   dnf clean all && rm -rf /var/cache/yum
   pip3 install --upgrade pip pip-tools && ln -s pip3 /usr/bin/pip
 
@@ -82,7 +82,7 @@ stages:
   docker login -u $DOCKER_REGISTRY_USERNAME -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY
 
 .prep-install-compose: &prep-install-compose |
-  dnf install -y python39 python39-pip python39-wheel
+  dnf install -y python3 python3-pip python3-wheel
   pip3 install docker-compose
   docker-compose version
 
@@ -346,9 +346,9 @@ deploy:
     - dnf install -y hostname
     - ./build.sh push
     - |
-      dnf install -y https://yum.puppet.com/puppet-release-el-8.noarch.rpm
-      dnf install -y https://yum.puppet.com/puppet-tools-release-el-8.noarch.rpm
-      dnf install -y puppet-agent-7.24.0-1.el8 puppet-bolt
+      dnf install -y https://yum.puppet.com/puppet-release-el-9.noarch.rpm
+      dnf install -y https://yum.puppet.com/puppet-tools-release-el-9.noarch.rpm
+      dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt
       update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
     - chmod +t /tmp # workaround ruby need within prep.sh
     - ./puppet/prep.sh
