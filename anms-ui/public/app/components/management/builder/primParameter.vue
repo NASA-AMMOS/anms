@@ -13,7 +13,7 @@ import {integer, decimal, minValue, helpers } from 'vuelidate/lib/validators'
 import Vue from 'vue';
 import Vuelidate from 'vuelidate';
 Vue.use(Vuelidate);
-const ariRegex = helpers.regex('ariRegex',/^ari:\/[a-zA-z]+\.[a-zA-z]\w*$/);
+const ariRegex = helpers.regex('ariRegex',/^ari:\/[a-zA-Z]+\.\w+$/);
 export default {
   name: "prim",
   props: ["type", "name", "index"],
