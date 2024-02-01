@@ -22,7 +22,7 @@
 ##
 
 # Update yarn lockfiles from current package versions.
-# On RHEL8 the prerequites are:
+# On RHEL9 the prerequites are:
 #  dnf -y module install nodejs:16
 #  npm install --global yarn
 #

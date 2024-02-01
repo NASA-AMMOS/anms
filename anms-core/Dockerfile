@@ -33,7 +33,7 @@ COPY pyproject.toml ${APP_WORK_DIR}/
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd ${APP_WORK_DIR} && \
     pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml && \
-    pip3 install -r requirements.txt
+    pip3 install  --ignore-installed  -r requirements.txt
 # Actual main package
 COPY anms ${APP_WORK_DIR}/anms
 RUN --mount=type=cache,target=/root/.cache/pip \

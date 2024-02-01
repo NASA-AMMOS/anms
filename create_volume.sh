@@ -19,7 +19,7 @@ fi
 docker volume create ${VOLNAME}
 CTRNAME=$(docker run --detach --rm \
 		 -v ${VOLNAME}:${VOLPATH} -it \
-		 redhat/ubi8 tail -f /dev/null)
+		 redhat/ubi9 tail -f /dev/null)
 
 docker exec ${CTRNAME} rm -rf ${VOLPATH}/*
 for FN in ${SRCPATH}/*

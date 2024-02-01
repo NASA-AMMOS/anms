@@ -20,9 +20,9 @@
 ## subcontract 1658085.
 ##
 
-# The base image is just RHEL-8 OS with configuration for all ANMS containers.
+# The base image is just RHEL-9 OS with configuration for all ANMS containers.
 #
-FROM registry.access.redhat.com/ubi8/ubi:8.6 AS anms-base
+FROM registry.access.redhat.com/ubi9/ubi:9.2 AS anms-base
 
 # Optional APL network configuration from
 # https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
@@ -43,7 +43,7 @@ RUN groupadd -r -g 9999 ${APP_USER} && \
 # This image uses systemd init process to manage local services.
 # Derived image targets choose which servies are enabled.
 #
-FROM registry.access.redhat.com/ubi8/ubi-init:8.6 AS anms-init
+FROM registry.access.redhat.com/ubi9/ubi-init:9.2  AS anms-init
 
 # Optional APL network configuration from
 # https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
@@ -54,6 +54,7 @@ RUN ( \
     ) || true
 ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
+RUN dnf -y install container-tools
 # Container service config
 RUN systemctl disable dnf-makecache.timer
 
@@ -67,9 +68,9 @@ FROM anms-base AS anms-acelib
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/root/.cache/pip \
-    dnf -y install python39 python39-pip python39-wheel python39-setuptools && \
+    dnf -y install python3 python3-pip python3-wheel python3-setuptools && \
     dnf clean all && rm -rf /var/cache/yum && \
-    pip3 install --upgrade pip pip-tools && ln -s pip3 /usr/bin/pip
+    pip3 install --upgrade pip pip-tools 
 
 # Submodules with dependencies
 env PY_WHEEL_DIR=/usr/local/lib/wheels

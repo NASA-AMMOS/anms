@@ -12,6 +12,10 @@ __pycache__
 coverage.xml
 testresults.xml
 
+# local build files
+anms-core/build/
+anms-ui/release/
+
 # Javascript and ESLint related content to be ignored
 node_modules
 package-lock.json

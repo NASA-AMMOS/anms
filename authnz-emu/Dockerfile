@@ -26,8 +26,7 @@
 FROM anms-base
 
 # Install Apache
-RUN dnf -y module install httpd:2.4 && \
-    dnf -y install httpd-tools mod_ssl mod_session
+RUN dnf -y install httpd-tools mod_ssl mod_session
 
 # Update Apache Configuration
 COPY httpd.conf /etc/httpd/conf/httpd.conf

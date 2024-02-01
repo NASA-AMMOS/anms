@@ -28,7 +28,7 @@ RUN dnf -y install \
         perl-CPAN \
         gdb less && \
     dnf clean all && rm -rf /var/cache/yum && \
-    PERL_MM_USE_DEFAULT=1 cpan --notest JSON REST::Client Expect File::Slurp
+    PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
 
 # Build from added source
 COPY src *.patch /usr/src/ion-ios/
