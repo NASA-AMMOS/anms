@@ -36,6 +36,7 @@ RUN cd /usr/src/ion-ios && \
     patch -p1 <ion-4.1.1-anms-db.patch && \
     patch -p1 <ion-4.1.2-local-deliver.patch && \
     patch -p1 <ion-4.1.1-amp-filestructure.patch && \
+    patch -p1 <dtnma-tools-nm_rest.patch && \
     autoreconf -vif && \
     ./configure --with-postgresql --enable-nmrest && \
     make -j$(nproc) && \
