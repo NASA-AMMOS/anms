@@ -63,7 +63,7 @@ stages:
 .prep-install-python: &prep-install-python |
   dnf install -y python3 python3-pip python3-wheel
   dnf clean all && rm -rf /var/cache/yum
-  pip3 install --upgrade pip pip-tools && ln -s pip3 /usr/bin/pip
+  pip3 install --upgrade pip pip-tools
 
 .prep-install-docker: &prep-install-docker |
   dnf remove -y docker \
@@ -276,22 +276,6 @@ transcoder_unit-test:
       coverage_report:
         coverage_format: cobertura
         path: transcoder/coverage.xml
-
-puppet-lint:
-  stage: test
-  needs: []
-  allow_failure: true
-  rules:
-    - if: $TRY_LATEST_PROMOTE != "true"
-      changes:
-        - ".gitlab-ci.yml"
-        - puppet/**/*
-  before_script:
-    - *prep-install-ca
-    - dnf module install -y ruby:2.7
-    - gem install puppet-lint
-  script:
-    - puppet-lint puppet
 
 # Pull in the latest commits from default submodule branches
 promote:

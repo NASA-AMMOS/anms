@@ -1,0 +1,19 @@
+name: Puppet module
+on:
+  push:
+    paths:
+      - .github/workflows/puppet.yaml
+      - puppet
+
+jobs:
+  puppet-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+      - name: puppet-lint
+        uses: scottbrenner/puppet-lint-action@master
+        with:
+          args: puppet/
