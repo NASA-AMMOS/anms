@@ -16,7 +16,7 @@ jobs:
           submodules: false
       - name: Install dependencies
         run: |
-	  sudo apt-get update
+          sudo apt-get update
           wget https://apt.puppet.com/puppet-release-focal.deb
           sudo dpkg -i puppet-tools-release-focal.deb
           wget https://apt.puppet.com/puppet-tools-release-focal.deb
