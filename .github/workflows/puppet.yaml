@@ -18,9 +18,9 @@ jobs:
         run: |
           sudo apt-get update
           wget https://apt.puppet.com/puppet-release-focal.deb
-          sudo dpkg -i puppet-tools-release-focal.deb
+          sudo dpkg -i $PWD/puppet-tools-release-focal.deb
           wget https://apt.puppet.com/puppet-tools-release-focal.deb
-          sudo dpkg -i puppet-tools-release-focal.deb
+          sudo dpkg -i $PWD/puppet-tools-release-focal.deb
           sudo apt-get install -y puppet-agent-7.28.0-1.el9 puppet-bolt
           sudo update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
           sudo chmod +t /tmp # workaround ruby need within prep.sh
