@@ -6,6 +6,28 @@ on:
       - puppet
 
 jobs:
+  prep:
+    name: Download modules
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+      - name: Install dependencies
+        run: |
+	  sudo apt-get update
+          wget https://apt.puppet.com/puppet-release-focal.deb
+          sudo dpkg -i puppet-tools-release-focal.deb
+          wget https://apt.puppet.com/puppet-tools-release-focal.deb
+          sudo dpkg -i puppet-tools-release-focal.deb
+          sudo apt-get install -y puppet-agent-7.28.0-1.el9 puppet-bolt
+          sudo update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
+          sudo chmod +t /tmp # workaround ruby need within prep.sh
+      - name: Prep project
+        run: |
+          ./puppet/prep.sh
+
   puppet-lint:
     runs-on: ubuntu-latest
     steps:
