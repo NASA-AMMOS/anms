@@ -62,23 +62,23 @@ class apl_test::camserver(
 
   class { 'trusted_ca': }
   concat { '/ammos/etc/pki/tls/certs/ammos-ca-bundle.crt':
-    owner  => 'root',
-    group  => 'ammos-tls',
-    mode   => '0444',
+    owner   => 'root',
+    group   => 'ammos-tls',
+    mode    => '0444',
     require => Package[$cam_main_package], # for owner/group
   }
   file { '/ammos/etc/pki/tls/certs/ammos-server-cert.pem':
-    source => $tls_server_cert,
-    owner  => 'cam-srv',
-    group  => 'ammos-tls',
-    mode   => '0444',
+    source  => $tls_server_cert,
+    owner   => 'cam-srv',
+    group   => 'ammos-tls',
+    mode    => '0444',
     require => Package[$cam_main_package], # for owner/group
   }
   file { '/ammos/etc/pki/tls/private/ammos-server-key.pem':
-    source => $tls_server_key,
-    owner  => 'cam-srv',
-    group  => 'ammos-tls',
-    mode   => '0400',
+    source  => $tls_server_key,
+    owner   => 'cam-srv',
+    group   => 'ammos-tls',
+    mode    => '0400',
     require => Package[$cam_main_package], # for owner/group
   }
   openssl::export::pkcs12 { 'ammos-server-keystore':
@@ -121,9 +121,9 @@ class apl_test::camserver(
     }
   }
   file { '/ammos/etc/pki/tls/certs/ammos-truststore.jks':
-    owner   => 'cam-srv',
-    group   => 'ammos-tls',
-    mode    => '0444',
+    owner => 'cam-srv',
+    group => 'ammos-tls',
+    mode  => '0444',
   }
 
   file { '/ammos/cam-server/server':
