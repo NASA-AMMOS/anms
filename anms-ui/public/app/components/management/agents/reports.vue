@@ -1,7 +1,6 @@
 
 <template>
   <div>
-    {{ selected }}
     <h5>Reports sent:</h5>
     <div v-if="loading"
       class="spinner-border text-primary"
