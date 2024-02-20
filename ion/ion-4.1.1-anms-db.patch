@@ -278,15 +278,19 @@ diff -ur ion-open-source-4.1.1/nm/mgr/nm_mgr_rx.c ion-open-source-4.1.1_postgres
              /* Copy the message group to the database tables */
              uint32_t incoming_idx = db_incoming_initialize(grp->time, meta.senderEid);
              int32_t db_status = AMP_OK;
-@@ -348,7 +348,7 @@
+@@ -347,10 +347,10 @@ void *mgr_rx_thread(int *running)
+             		case MSG_TYPE_RPT_SET:
              		{
              			msg_rpt_t *rpt_msg = msg_rpt_deserialize(msg_data, &success);
+-            			rx_data_rpt(&meta, rpt_msg);
 -#ifdef HAVE_MYSQL
 +#if defined(HAVE_MYSQL) || defined(HAVE_POSTGRESQL)
                          db_insert_msg_rpt_set(incoming_idx, rpt_msg, &db_status);
  #endif
-									rx_data_rpt(&meta, rpt_msg);
-                  msg_rpt_release(rpt_msg, 1);
++                        rx_data_rpt(&meta, rpt_msg);
+                         msg_rpt_release(rpt_msg, 1);
+             			break;
+             		}
 @@ -358,7 +358,7 @@
              		{
              			msg_tbl_t *tbl_msg = msg_tbl_deserialize(msg_data, &success);
