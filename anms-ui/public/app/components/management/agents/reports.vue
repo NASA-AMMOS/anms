@@ -1,6 +1,7 @@
 
 <template>
   <div>
+    {{ selected }}
     <h5>Reports sent:</h5>
     <div v-if="loading"
       class="spinner-border text-primary"
@@ -45,27 +46,34 @@ export default {
       tableItems: [],
       title: "",
       reports: {},
+      reportsHeader: {},
       loading: true,
     }
   },
   methods: {
     async onReportSelect() {
       this.loading = true;
-
+      this.tableHeaders = [];
+      this.tableItems = [];
       if (this.reports[this.selected] == undefined) {
         this.loading = true;
         let rpt_name = this.rptts[this.selected].name;
         let rpt_adm = this.rptts[this.selected].adm;
         await api.methods.apiEntriesForReport(this.agentName, rpt_adm, rpt_name)
           .then(res => {
-            this.reports[this.selected] = res.data;
             this.processReport(res.data);
+            this.reports[this.selected] = this.tableItems;
+            this.reportsHeader[this.selected] = this.tableHeaders;
           }).catch(error => {
             // handle error
             console.error("reports error", error);
             console.info("error obj:", error);
           });
+      } else{
+        this.tableHeaders = this.reportsHeader[this.selected];
+        this.tableItems =  this.reports[this.selected];
       }
+      
       this.loading = false;
     },
     processReport(report) {
