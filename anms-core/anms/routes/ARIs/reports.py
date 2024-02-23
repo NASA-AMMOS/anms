@@ -161,7 +161,6 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
             for entry in entries:
                 curr_values = []
                 string_values = list(filter(None, re.split(r",|'(.*?)'", entry.string_values))) if entry.string_values else []
-                # string_values = entry.string_values.split('\',\'') if entry.string_values else []
                 uint_values = entry.uint_values.split(',') if entry.uint_values else []
                 int_values = entry.int_values.split(',') if entry.int_values else []
                 real32_values = entry.real32_values.split(',') if entry.real32_values else []
