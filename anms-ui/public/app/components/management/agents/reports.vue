@@ -28,8 +28,6 @@
       responsive>
     </b-table>
   </div>
-
-  <!-- :items="reports[selected]" -->
 </template>
 
 <script>

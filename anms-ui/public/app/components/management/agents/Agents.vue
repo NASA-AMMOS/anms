@@ -18,31 +18,55 @@
             </button>
           </div>
         </div>
-        <div class="mb-3">
-          Items per Page:
-          <select v-model="pageSize"
-            @change="handlePageSizeChange($event)">
-            <option v-for="size in pageSizes"
-              :key="size"
-              :value="size">
-              {{ size }}
-            </option>
-          </select>
-        </div>
-        <b-pagination v-model="page"
-          :total-rows="count"
-          :per-page="pageSize"
-          aria-controls="agents-table"
-          @change="handlePageChange"></b-pagination>
-        <p>Select Agent to view</p>
+        <b-row>
+          <b-col>
+            <p>Select Agent to view</p>
+          </b-col>
+          <b-col><button class="btn btn-outline-success float-right mb-2"
+              @click="onClickBuild">Build</button></b-col>
+        </b-row>
         <b-table id="agents-table"
+          ref="agentsTable"
           :items="currentAgents"
           :fields="fields"
           :per-page="pageSize"
           @row-clicked="goToAgentDetails"
+          primary-key="registered_agents_id"
           hover
           bordered>
+          <template #head(selected)="data">
+            <div style="text-align: center;">
+              <b-form-checkbox v-model="selectAll"
+                @change="toggleSelectAll">Select/Deselect All</b-form-checkbox>
+            </div>
+          </template>
+          <template #cell(selected)="{ item }">
+            <div style="text-align: center;">
+              <b-form-checkbox :checked="item.selected"
+                @change="selectAgent($event, item)"></b-form-checkbox>
+            </div>
+          </template>
         </b-table>
+        <div class="d-flex float-right">
+          <div class="my-2 mx-3">
+            Items per Page:
+            <select v-model="pageSize"
+              @change="handlePageSizeChange($event)">
+              <option v-for="size in pageSizes"
+                :key="size"
+                :value="size">
+                {{ size }}
+              </option>
+            </select>
+          </div>
+          <b-pagination v-model="page"
+            class="m-0"
+            :total-rows="count"
+            :per-page="pageSize"
+            aria-controls="agents-table"
+            @change="handlePageChange">
+          </b-pagination>
+        </div>
       </b-col>
     </b-row>
     <label for="node">Address of Agent to add:</label>
@@ -142,9 +166,13 @@
       <pre>{{ results }}</pre>
     </div>
 
-    <agent-modal @close="showModal = false"
-      :showModal="showModal"
+    <agent-modal @close="showAgentModal = false"
+      :showModal="showAgentModal"
       :agentInfo="agentInfo"></agent-modal>
+
+    <build-modal @close="showBuildModal = false"
+      :showModal="showBuildModal"
+      :agents="selectedAgents"></build-modal>
 
     <footer>
       <p>Amp Version: {{ info }}</p>
@@ -158,15 +186,21 @@ import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 
 import AgentModal from "./AgentModal.vue";
+import BuildModal from "./BuildModal.vue";
 
 export default {
   name: "Agents",
   components: {
     AgentModal,
+    BuildModal,
   },
   data() {
     return {
       fields: [
+        {
+          key: "selected",
+          sortable: false,
+        },
         {
           key: "agent_id_string",
           sortable: false,
@@ -198,8 +232,10 @@ export default {
       period: 1,
       nodes: "",
       selected: null,
-      showModal: false,
+      showAgentModal: false,
+      showBuildModal: false,
       agentInfo: null,
+      selectAll: false,
     };
   },
   props: {
@@ -228,6 +264,11 @@ export default {
       pageSize: "pageSize",
       searchString: "searchString",
     }),
+    selectedAgents() {
+      return this.currentAgents.filter((agent) => {
+        return agent.selected == true;
+      });
+    },
   },
   methods: {
     ...mapActions("agents", {
@@ -235,10 +276,14 @@ export default {
       setPage: "setPage",
       setPageSize: "setPageSize",
       setSearchString: "setSearchString",
+      updateAgent: "updateAgent",
     }),
     goToAgentDetails(event) {
       this.agentInfo = event;
-      this.showModal = true;
+      this.showAgentModal = true;
+    },
+    goToBuildModal() {
+      this.showBuildModal = true;
     },
     handlePageChange(value) {
       const vm = this;
@@ -387,6 +432,23 @@ export default {
         this.results = "error sending request to node! Missing Address of agent"
       }
       this.tbrCount = this.tbrCount + 0x01;
+    },
+    onClickBuild() {
+      this.showBuildModal = true;
+    },
+    getAgentIndexById(agentId) {
+      return this.currentAgents.findIndex(agent => agent.registered_agents_id === agentId);
+    },
+    selectAgent(event, agent) {
+      if (agent && event != agent.selected) {
+        let agentUpdated = { ...agent };
+        let agentIndex = this.getAgentIndexById(agentUpdated.registered_agents_id);
+        agentUpdated.selected = event;
+        this.updateAgent({ agentIndex, agent: agentUpdated });
+      }
+    },
+    toggleSelectAll() {
+      this.currentAgents.forEach((agent) => { this.selectAgent(this.selectAll, agent) });
     },
   },
 };
