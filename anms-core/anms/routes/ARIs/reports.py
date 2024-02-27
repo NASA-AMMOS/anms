@@ -29,6 +29,7 @@ from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
+import re 
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session, get_session
@@ -159,7 +160,7 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
 
             for entry in entries:
                 curr_values = []
-                string_values = entry.string_values.split(',') if entry.string_values else []
+                string_values = list(filter(None, re.split(r",|'(.*?)'", entry.string_values))) if entry.string_values else []
                 uint_values = entry.uint_values.split(',') if entry.uint_values else []
                 int_values = entry.int_values.split(',') if entry.int_values else []
                 real32_values = entry.real32_values.split(',') if entry.real32_values else []

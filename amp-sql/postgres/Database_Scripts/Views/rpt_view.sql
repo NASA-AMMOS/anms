@@ -141,7 +141,7 @@ FROM
         (((SELECT 
         ts,
             report_id,
-            str_value,
+            COALESCE('''' || str_value ||'''', NULL) as str_value,
             uint_value,
             int_value,
             obj_value,
@@ -155,7 +155,7 @@ FROM
             ari_id
     FROM
         report_definition
-    INNER JOIN vw_tnvc_entries ON report_definition.tnvc_id = vw_tnvc_entries.tnvc_id order by report_id , order_num) AS sel1
+    LEFT JOIN vw_tnvc_entries ON report_definition.tnvc_id = vw_tnvc_entries.tnvc_id order by report_id , order_num) AS sel1
     INNER JOIN obj_actual_definition ON sel1.ari_id = obj_actual_definition.obj_actual_definition_id)
     INNER JOIN vw_obj_metadata ON vw_obj_metadata.obj_metadata_id = obj_actual_definition.obj_metadata_id)
     GROUP BY report_id,ts,
