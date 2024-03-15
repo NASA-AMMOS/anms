@@ -6,6 +6,6 @@
 	url = ../anms-camp.git
 [submodule "ion/src"]
 	path = ion/src
-	url = https://git.code.sf.net/p/ion-dtn/code
-	branch = stable
+	url = https://github.com/JHUAPL/dtnma-tools.git
+
 
