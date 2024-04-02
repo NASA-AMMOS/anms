@@ -24,25 +24,65 @@ FROM anms-init AS ion-base
 
 # Dependencies for NM Mgr tests/dotest
 RUN dnf -y install \
-        patch autoconf libtool make gcc gcc-c++ libpq-devel \
-        perl-CPAN \
-        gdb less && \
+    cmake ninja-build \
+    ruby rsync  \
+    patch autoconf libtool \
+    make gcc gcc-c++ libpq-devel \
+    perl-CPAN \
+    gdb less && \
     dnf clean all && rm -rf /var/cache/yum && \
     PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
 
 # Build from added source
-COPY src *.patch /usr/src/ion-ios/
-RUN cd /usr/src/ion-ios && \
-    patch -p1 <ion-4.1.1-anms-db.patch && \
-    patch -p1 <ion-4.1.2-local-deliver.patch && \
-    patch -p1 <ion-4.1.1-amp-filestructure.patch && \
-    patch -p1 <dtnma-tools-nm_rest.patch && \
+# COPY src *.patch /usr/src/ion-ios/
+# RUN cd /usr/src/ion-ios && \
+    # patch -p1 <ion-4.1.1-anms-db.patch && \
+    # patch -p1 <ion-4.1.2-local-deliver.patch && \
+    # patch -p1 <ion-4.1.1-amp-filestructure.patch && \
+    # patch -p1 <dtnma-tools-nm_rest.patch && \
+    # autoreconf -vif && \
+    # ./prep.sh &&\
+    # ./build.sh install 
+    # ./configure --with-postgresql --enable-nmrest && \
+    # make -j$(nproc) && \
+    # make install && \
+    # ldconfig && \
+    # rm -rf /usr/src/ion-ios
+COPY src/deps/ion /usr/src/nm/deps/ion
+COPY src/deps/ion*.patch /usr/src/nm/deps/
+RUN cd /usr/src/nm/deps/ion && \
+    patch -p1 <../ion-4.1.2-remove-nm.patch && \
+    patch -p1 <../ion-4.1.2-local-deliver.patch && \
+    patch -p1 <../ion-4.1.2-private-headers.patch && \
     autoreconf -vif && \
-    ./configure --with-postgresql --enable-nmrest && \
+    ./configure && \
     make -j$(nproc) && \
     make install && \
-    ldconfig && \
-    rm -rf /usr/src/ion-ios
+    make -j$(nproc) clean
+
+COPY src/deps/QCBOR /usr/src/nm/deps/QCBOR
+COPY src/deps/qcbor*.patch /usr/src/nm/deps/
+RUN cd /usr/src/nm/deps/QCBOR && \
+    patch -p1 <../qcbor-install.patch && \
+    patch -p2 <../qcbor-expose-private.patch && \
+    make -j$(nproc) && \
+    make install && \
+    make -j$(nproc) clean
+
+COPY src/deps/mlib /usr/src/nm/deps/mlib
+RUN cd /usr/src/nm/deps/mlib && \
+    make -j$(nproc) && \
+    make install && \
+    make -j$(nproc) clean
+
+COPY src  /usr/src/ion-ios/
+RUN cd /usr/src/ion-ios && \
+    # ./build.sh install 
+    cmake -S . -B build/default \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -G Ninja && \
+    cmake --build build/default && \
+    cmake --install build/default
 
 RUN dnf -y install \
     python3 python3-pip \
