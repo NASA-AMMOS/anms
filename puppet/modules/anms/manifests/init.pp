@@ -75,8 +75,8 @@ class anms(
       anms::semodule_cil { 'anms-ports':
         source_cil => 'puppet:///modules/anms/selinux/anms-ports.cil',
         require    => Package['udica'],
-        before     => Docker_compose['anms'],
-        notify     => Docker_compose['anms'],
+        before     => Anms::Docker_compose['anms'],
+        notify     => Anms::Docker_compose['anms'],
       }
       $containers.each |$ctrname| {
         anms::semodule_cil { $ctrname:
@@ -89,8 +89,8 @@ class anms(
             Package['udica'],
             Anms::Semodule_cil['anms-ports'],
           ],
-          before     => Docker_compose['anms'],
-          notify     => Docker_compose['anms'],
+          before     => Anms::Docker_compose['anms'],
+          notify     => Anms::Docker_compose['anms'],
         }
       }
     }
@@ -115,7 +115,7 @@ class anms(
         File['/ammos/anms/docker-compose.yml'],
         File['/ammos/anms/.env'],
       ],
-      before  => Docker_compose['anms'],
+      before  => Anms::Docker_compose['anms'],
     }
     exec { 'agents-pull':
       command => 'docker-compose -f /ammos/anms/agent-compose.yml pull',
@@ -124,10 +124,10 @@ class anms(
         File['/ammos/anms/agent-compose.yml'],
         File['/ammos/anms/.env'],
       ],
-      before  => Docker_compose['agents'],
+      before  => Anms::Docker_compose['agents'],
     }
   }
-  docker_compose { 'anms':
+  anms::docker_compose { 'anms':
     ensure        => 'present',
     compose_files => ['/ammos/anms/docker-compose.yml'],
     up_args       => '--force-recreate',
@@ -141,12 +141,12 @@ class anms(
     ensure => 'file',
     source => 'puppet:///modules/anms/agent-compose.yml',
   }
-  docker_compose { 'agents':
+  anms::docker_compose { 'agents':
     ensure        => 'present',
     compose_files => ['/ammos/anms/agent-compose.yml'],
     up_args       => '--force-recreate',
     require       => [
-      Docker_compose['anms'], # for the anms network
+      Anms::Docker_compose['anms'], # for the anms network
     ],
     subscribe     => [
       File['/ammos/anms/agent-compose.yml'],
@@ -165,8 +165,8 @@ class anms(
       command => "docker exec ${ctrname} ion_restart_ducts",
       path    => $facts['path'],
       require => [
-        Docker_compose['anms'],
-        Docker_compose['agents'],
+        Anms::Docker_compose['anms'],
+        Anms::Docker_compose['agents'],
       ],
     }
   }

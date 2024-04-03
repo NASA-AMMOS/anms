@@ -105,7 +105,7 @@ echo "Running docker-compose up"
 ANMS_COMPOSE_OPTS="-f docker-compose.yml -p anms"
 AGENT_COMPOSE_OPTS="-f agent-compose.yml -p agents"
 for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
-    docker-compose ${!OPTS_NAME} up --detach
+    docker compose ${!OPTS_NAME} up --detach
 done
 
 if true; then
@@ -123,7 +123,7 @@ then
     TMPFILE=$(mktemp)
     for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
     for BADSTATUS in stopped restarting; do
-            docker-compose ${!OPTS_NAME} ps --services --filter status=${BADSTATUS} | tee -a "${TMPFILE}"
+            docker compose ${!OPTS_NAME} ps --services --filter status=${BADSTATUS} | tee -a "${TMPFILE}"
     done
     done
     # Show hints at what may be wrong
