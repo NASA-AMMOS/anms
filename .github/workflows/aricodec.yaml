@@ -3,8 +3,8 @@ on:
   push:
     paths:
       - .github/workflows/aricodec.yaml
-      - deps
-      - aricodec
+      - deps/**
+      - aricodec/**
 
 jobs:
   flake8:
