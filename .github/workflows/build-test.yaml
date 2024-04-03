@@ -19,9 +19,9 @@ jobs:
     steps:
       - name: Versions
         run: |
-	  docker -v
-	  docker ps
-	  docker compose ls
+          docker -v
+          docker ps
+          docker compose ls
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
