@@ -9,8 +9,8 @@ class anms::docker() {
         ensure => 'absent',
         before => Package['docker-ce'],
       }
-      
     }
+    default: {}
   }
 
   package { 'yum-utils':
@@ -20,7 +20,7 @@ class anms::docker() {
     ensure => 'absent',
   }
   exec { 'yum-repo-docker-ce':
-    path => $::path,
+    path    => $facts['path'],
     command => 'yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo',
     creates => '/etc/yum.repos.d/docker-ce.repo',
   }

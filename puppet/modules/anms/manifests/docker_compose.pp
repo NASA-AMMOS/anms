@@ -18,16 +18,19 @@ define anms::docker_compose(
   case $ensure {
     'present': {
       exec { "docker-compose-${title}-up":
-        path => $::path,
-	command => "docker compose -p ${title} -f ${files_args} up --detach --remove-orphans ${up_args}",
+        path => $facts['path'],
+  command    => "docker compose -p ${title} -f ${files_args} up --detach --remove-orphans ${up_args}",
       }
     }
     'absent': {
       exec { "docker-compose-${title}-up":
-        path => $::path,
+        path    => $facts['path'],
         command => "docker compose -p ${title} -f ${files_args} rm --force --stop",
-	onlyif => $is_running,
+  onlyif        => $is_running,
       }
+    }
+    default: {
+      fail("Invalid ensure argument: ${ensure}")
     }
   }
 }
