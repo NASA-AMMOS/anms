@@ -51,9 +51,9 @@ jobs:
 
       - name: Run puppet-lint
         run: puppet-lint . --sarif > puppet-lint-results.sarif
-        continue-on-error: true
 
       - name: Upload analysis results to GitHub
+        if: always()
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: puppet-lint-results.sarif
