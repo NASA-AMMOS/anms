@@ -2,7 +2,8 @@
 ## Copyright (c) 2023 The Johns Hopkins University Applied Physics
 ## Laboratory LLC.
 ##
-## This file is part of the Asynchronous Network Management System (ANMS).
+## This file is part of the Delay-Tolerant Networking Management
+## Architecture (DTNMA) Tools package.
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
 ## you may not use this file except in compliance with the License.
@@ -14,40 +15,42 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-## This work was performed for the Jet Propulsion Laboratory, California
-## Institute of Technology, sponsored by the United States Government under
-## the prime contract 80NM0018D0004 between the Caltech and NASA under
-## subcontract 1658085.
-##
+FROM ubuntu:22.04 AS systemd-base
+ENV DEBIAN_FRONTEND="noninteractive"
 
-FROM anms-init AS ion-base
+# APL network configuration from
+# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
+RUN apt-get update && apt-get install -y ca-certificates curl && \
+    (curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /usr/local/share/ca-certificates/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt || true) && \
+    update-ca-certificates
+ENV PIP_CERT=/etc/ssl/certs/ca-certificates.crt
+ENV PIP_DEFAULT_TIMEOUT=300
 
-# Dependencies for NM Mgr tests/dotest
-RUN dnf -y install \
-    cmake ninja-build \
-    ruby rsync  \
-    patch autoconf libtool \
-    make gcc gcc-c++ libpq-devel \
-    perl-CPAN \
-    gdb less && \
-    dnf clean all && rm -rf /var/cache/yum && \
-    PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
+# Distro upgrade for security patches
+RUN apt-get update && apt-get upgrade -y
 
-# Build from added source
-# COPY src *.patch /usr/src/ion-ios/
-# RUN cd /usr/src/ion-ios && \
-    # patch -p1 <ion-4.1.1-anms-db.patch && \
-    # patch -p1 <ion-4.1.2-local-deliver.patch && \
-    # patch -p1 <ion-4.1.1-amp-filestructure.patch && \
-    # patch -p1 <dtnma-tools-nm_rest.patch && \
-    # autoreconf -vif && \
-    # ./prep.sh &&\
-    # ./build.sh install 
-    # ./configure --with-postgresql --enable-nmrest && \
-    # make -j$(nproc) && \
-    # make install && \
-    # ldconfig && \
-    # rm -rf /usr/src/ion-ios
+# Use systemd as top-level process
+RUN apt-get update && apt-get install -y systemd systemd-sysv
+RUN systemctl mask systemd-logind && \
+    systemctl mask console-getty && \
+    systemctl disable getty@tty1 && \
+    systemctl disable apt-daily.timer apt-daily-upgrade.timer && \
+    systemctl disable systemd-timesyncd && \
+    systemctl disable systemd-networkd && \
+    echo "MulticastDNS=no" >>/etc/systemd/resolved.conf
+CMD [ "/sbin/init" ]
+
+# Testing utilities
+RUN apt-get update && apt-get install -y \
+    net-tools iproute2 iputils-ping \
+    lsof iftop gdb valgrind socat
+
+
+FROM ubuntu:22.04 as deps-local
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    autoconf libtool
 COPY src/deps/ion /usr/src/nm/deps/ion
 COPY src/deps/ion*.patch /usr/src/nm/deps/
 RUN cd /usr/src/nm/deps/ion && \
@@ -75,30 +78,60 @@ RUN cd /usr/src/nm/deps/mlib && \
     make install && \
     make -j$(nproc) clean
 
-COPY src  /usr/src/ion-ios/
-RUN cd /usr/src/ion-ios && \
-    # ./build.sh install 
+
+FROM systemd-base as ion-base
+COPY --from=deps-local /usr/local /usr/local
+
+# # Helper utilities
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip \
+    gcc python3-dev libsystemd-dev pkg-config && \
+    pip3 install --upgrade pip && \
+    pip3 install systemd-python
+# COPY --chmod=755 src/testenv/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
+# COPY --chmod=755 src/testenv/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
+# COPY --chmod=755 src/testenv/service_is_running.sh /usr/local/bin/service_is_running
+
+# Test tools
+RUN apt-get update && apt-get install -y \
+    curl git tshark && \
+    pip3 install git+https://github.com/NASA-AMMOS/anms-ace.git
+
+# Agent to test
+RUN apt-get update && apt-get install -y \
+    cmake ninja-build ruby \
+    civetweb libcivetweb-dev libssl-dev libcjson-dev
+COPY src/deps /usr/src/nm/deps
+COPY src/cmake /usr/src/nm/cmake
+COPY src/src /usr/src/nm/src
+COPY src/test /usr/src/nm/test
+COPY src/CMakeLists.txt /usr/src/nm/
+RUN ls -lt /usr/src/nm/
+RUN cd /usr/src/nm && \
     cmake -S . -B build/default \
       -DCMAKE_BUILD_TYPE=Debug \
       -G Ninja && \
     cmake --build build/default && \
     cmake --install build/default
 
-RUN dnf -y install \
+RUN apt-get update && apt-get -y install \
     python3 python3-pip \
-    gcc python3-devel systemd-devel && \
-    dnf clean all && rm -rf /var/cache/yum && \
+    gcc && \
     pip3 install systemd-python
 COPY --chmod=755 utils/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
 COPY --chmod=755 utils/service_is_running.sh /usr/local/bin/service_is_running
 COPY --chmod=755 utils/ion_restart_ducts.sh /usr/local/bin/ion_restart_ducts
 COPY --chmod=755 utils/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
 
-# Service configuration
+# Systemd services
 COPY tmpfiles.conf /etc/tmpfiles.d/ion.conf
-COPY --chmod=644 systemd/ion.service systemd/ion-stats.service systemd/bpecho@.service /usr/local/lib/systemd/system/
-COPY --chmod=644 systemd/ion-stats.timer /usr/local/lib/systemd/system/
-RUN systemctl enable ion bpecho@4
+COPY --chmod=644 systemd/ion.service systemd/ion-nm-*.service systemd/bpecho@.service /usr/local/lib/systemd/system/
+RUN systemctl enable ion bpecho@4 ion-nm-mgr ion-nm-agent && \
+    mkdir -p /var/run/ion
+
+# Runtime config for this container
+# COPY src/testenv/node-1.rc /etc/ion/
+COPY src/adms /usr/local/share/ace/adms
 
 FROM ion-base AS ion-manager
 COPY configs/simple-2-node/mgr.rc /etc/ion.rc
