@@ -15,42 +15,47 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-FROM ubuntu:22.04 AS systemd-base
+FROM anms-init AS systemd-base
 ENV DEBIAN_FRONTEND="noninteractive"
 
-# APL network configuration from
-# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
-RUN apt-get update && apt-get install -y ca-certificates curl && \
-    (curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /usr/local/share/ca-certificates/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt || true) && \
-    update-ca-certificates
-ENV PIP_CERT=/etc/ssl/certs/ca-certificates.crt
-ENV PIP_DEFAULT_TIMEOUT=300
-
-# Distro upgrade for security patches
-RUN apt-get update && apt-get upgrade -y
 
 # Use systemd as top-level process
-RUN apt-get update && apt-get install -y systemd systemd-sysv
-RUN systemctl mask systemd-logind && \
-    systemctl mask console-getty && \
-    systemctl disable getty@tty1 && \
-    systemctl disable apt-daily.timer apt-daily-upgrade.timer && \
-    systemctl disable systemd-timesyncd && \
-    systemctl disable systemd-networkd && \
-    echo "MulticastDNS=no" >>/etc/systemd/resolved.conf
-CMD [ "/sbin/init" ]
+RUN dnf install -y systemd systemd-sysv
+# RUN systemctl mask systemd-logind && \
+#     systemctl mask console-getty && \
+#     systemctl disable getty@tty1 && \
+#     systemctl disable apt-daily.timer apt-daily-upgrade.timer && \
+#     systemctl disable systemd-timesyncd && \
+#     systemctl disable systemd-networkd && \
+#     echo "MulticastDNS=no" >>/etc/systemd/resolved.conf
+# CMD [ "/sbin/init" ]
 
 # Testing utilities
-RUN apt-get update && apt-get install -y \
-    net-tools iproute2 iputils-ping \
-    lsof iftop gdb valgrind socat
+# RUN dnf install -y \
+#     net-tools iproute2 iputils-ping \
+#     lsof iftop gdb valgrind socat
 
 
-FROM ubuntu:22.04 as deps-local
+FROM registry.access.redhat.com/ubi9/ubi:9.2 as deps-local
+RUN ( \
+      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
+      update-ca-trust && \
+      echo "Root CA added" \
+    ) || true
+ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+ENV PIP_DEFAULT_TIMEOUT=300
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    autoconf libtool
+RUN dnf install -y \
+    autoconf libtool \
+    cmake ninja-build \
+    ruby rsync  \
+    systemd systemd-sysv \
+    patch autoconf libtool \
+    make gcc gcc-c++ libpq-devel \
+    perl-CPAN \
+    gdb less && \
+    dnf clean all && rm -rf /var/cache/yum && \
+    PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
 COPY src/deps/ion /usr/src/nm/deps/ion
 COPY src/deps/ion*.patch /usr/src/nm/deps/
 RUN cd /usr/src/nm/deps/ion && \
@@ -82,25 +87,35 @@ RUN cd /usr/src/nm/deps/mlib && \
 FROM systemd-base as ion-base
 COPY --from=deps-local /usr/local /usr/local
 
-# # Helper utilities
-RUN apt-get update && apt-get install -y \
+RUN dnf install -y \
+    autoconf libtool \
+    cmake ninja-build \
+    ruby rsync  \
+    systemd systemd-sysv \
+    patch autoconf libtool \
+    make gcc gcc-c++ libpq-devel \
+    perl-CPAN \
+    gdb less && \
+    dnf clean all && rm -rf /var/cache/yum && \
+    PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
+    
+# Helper utilities
+RUN dnf install -y \
     python3 python3-pip \
-    gcc python3-dev libsystemd-dev pkg-config && \
+    gcc systemd-devel pkg-config && \
+    dnf clean all && rm -rf /var/cache/yum && \
     pip3 install --upgrade pip && \
     pip3 install systemd-python
-# COPY --chmod=755 src/testenv/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
-# COPY --chmod=755 src/testenv/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
-# COPY --chmod=755 src/testenv/service_is_running.sh /usr/local/bin/service_is_running
 
-# Test tools
-RUN apt-get update && apt-get install -y \
-    curl git tshark && \
-    pip3 install git+https://github.com/NASA-AMMOS/anms-ace.git
+# # Test tools
+# RUN dnf install -y \
+#     curl git && \
+#     pip3 install git+https://github.com/NASA-AMMOS/anms-ace.git
 
 # Agent to test
-RUN apt-get update && apt-get install -y \
+RUN dnf install -y \
     cmake ninja-build ruby \
-    civetweb libcivetweb-dev libssl-dev libcjson-dev
+    patch autoconf libtool make gcc gcc-c++ libpq-devel 
 COPY src/deps /usr/src/nm/deps
 COPY src/cmake /usr/src/nm/cmake
 COPY src/src /usr/src/nm/src
@@ -114,10 +129,6 @@ RUN cd /usr/src/nm && \
     cmake --build build/default && \
     cmake --install build/default
 
-RUN apt-get update && apt-get -y install \
-    python3 python3-pip \
-    gcc && \
-    pip3 install systemd-python
 COPY --chmod=755 utils/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
 COPY --chmod=755 utils/service_is_running.sh /usr/local/bin/service_is_running
 COPY --chmod=755 utils/ion_restart_ducts.sh /usr/local/bin/ion_restart_ducts
