@@ -55,6 +55,7 @@ RUN dnf install -y \
     gdb less && \
     dnf clean all && rm -rf /var/cache/yum && \
     PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
+
 COPY src/deps/ion /usr/src/nm/deps/ion
 COPY src/deps/ion*.patch /usr/src/nm/deps/
 RUN cd /usr/src/nm/deps/ion && \
@@ -62,9 +63,11 @@ RUN cd /usr/src/nm/deps/ion && \
     patch -p1 <../ion-4.1.2-local-deliver.patch && \
     patch -p1 <../ion-4.1.2-private-headers.patch && \
     autoreconf -vif && \
-    ./configure && \
+    ./configure \
+        --prefix=/usr/local --libdir=/usr/local/lib64 && \
     make -j$(nproc) && \
     make install && \
+    echo /usr/local/lib64 > /etc/ld.so.conf.d/local.conf && \
     ldconfig && \
     rm -rf /usr/src/ion-ios
 
