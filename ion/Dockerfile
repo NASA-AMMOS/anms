@@ -15,12 +15,11 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-FROM anms-init AS systemd-base
-ENV DEBIAN_FRONTEND="noninteractive"
+FROM anms-init AS ion-base
 
 
 # Use systemd as top-level process
-RUN dnf install -y systemd systemd-sysv
+# RUN dnf install -y systemd systemd-sysv
 # RUN systemctl mask systemd-logind && \
 #     systemctl mask console-getty && \
 #     systemctl disable getty@tty1 && \
@@ -36,14 +35,14 @@ RUN dnf install -y systemd systemd-sysv
 #     lsof iftop gdb valgrind socat
 
 
-FROM registry.access.redhat.com/ubi9/ubi:9.2 as deps-local
-RUN ( \
-      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
-      update-ca-trust && \
-      echo "Root CA added" \
-    ) || true
-ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-ENV PIP_DEFAULT_TIMEOUT=300
+# FROM registry.access.redhat.com/ubi9/ubi:9.2 as deps-local
+# RUN ( \
+#       curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
+#       update-ca-trust && \
+#       echo "Root CA added" \
+#     ) || true
+# ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+# ENV PIP_DEFAULT_TIMEOUT=300
 
 RUN dnf install -y \
     autoconf libtool \
@@ -66,7 +65,8 @@ RUN cd /usr/src/nm/deps/ion && \
     ./configure && \
     make -j$(nproc) && \
     make install && \
-    make -j$(nproc) clean
+    ldconfig && \
+    rm -rf /usr/src/ion-ios
 
 COPY src/deps/QCBOR /usr/src/nm/deps/QCBOR
 COPY src/deps/qcbor*.patch /usr/src/nm/deps/
@@ -84,27 +84,26 @@ RUN cd /usr/src/nm/deps/mlib && \
     make -j$(nproc) clean
 
 
-FROM systemd-base as ion-base
-COPY --from=deps-local /usr/local /usr/local
+# FROM systemd-base as ion-base
+# COPY --from=deps-local /usr/local /usr/local
 
-RUN dnf install -y \
-    autoconf libtool \
-    cmake ninja-build \
-    ruby rsync  \
-    systemd systemd-sysv \
-    patch autoconf libtool \
-    make gcc gcc-c++ libpq-devel \
-    perl-CPAN \
-    gdb less && \
-    dnf clean all && rm -rf /var/cache/yum && \
-    PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
+# RUN dnf install -y \
+#     autoconf libtool \
+#     cmake ninja-build \
+#     ruby rsync  \
+#     systemd systemd-sysv \
+#     patch autoconf libtool \
+#     make gcc gcc-c++ libpq-devel \
+#     perl-CPAN \
+#     gdb less && \
+#     dnf clean all && rm -rf /var/cache/yum && \
+#     PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
     
 # Helper utilities
-RUN dnf install -y \
+RUN dnf -y install \
     python3 python3-pip \
-    gcc systemd-devel pkg-config && \
+    gcc python3-devel systemd-devel && \
     dnf clean all && rm -rf /var/cache/yum && \
-    pip3 install --upgrade pip && \
     pip3 install systemd-python
 
 # # Test tools
@@ -127,7 +126,8 @@ RUN cd /usr/src/nm && \
       -DCMAKE_BUILD_TYPE=Debug \
       -G Ninja && \
     cmake --build build/default && \
-    cmake --install build/default
+    cmake --install build/default && \
+    ldconfig 
 
 COPY --chmod=755 utils/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
 COPY --chmod=755 utils/service_is_running.sh /usr/local/bin/service_is_running
@@ -137,8 +137,8 @@ COPY --chmod=755 utils/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
 # Systemd services
 COPY tmpfiles.conf /etc/tmpfiles.d/ion.conf
 COPY --chmod=644 systemd/ion.service systemd/ion-nm-*.service systemd/bpecho@.service /usr/local/lib/systemd/system/
-RUN systemctl enable ion bpecho@4 ion-nm-mgr ion-nm-agent && \
-    mkdir -p /var/run/ion
+COPY --chmod=644 systemd/ion-stats.timer /usr/local/lib/systemd/system/
+RUN systemctl enable ion bpecho@4
 
 # Runtime config for this container
 # COPY src/testenv/node-1.rc /etc/ion/
@@ -149,6 +149,7 @@ COPY configs/simple-2-node/mgr.rc /etc/ion.rc
 
 COPY --chmod=644 systemd/ion-nm-mgr.service systemd/ion-nm-agent.service /usr/local/lib/systemd/system/
 RUN systemctl enable ion-nm-mgr ion-nm-agent
+
 
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
     CMD ["service_is_running", "ion", "ion-nm-mgr"]
