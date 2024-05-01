@@ -21,19 +21,19 @@
  */
 import Vue from "vue";
 import ari_parameter from "./ariParamter";
-import tnvc_parameter from "./tnvcParameter";
+import TypeNameValueCollectionParameter from "./TypeNameValueCollectionParameter.vue";
 import prim_parameter from "./primParameter.vue";
 import api from "../../../shared/api.js";
 import collect from "collect.js";
-import vSelect from "vue-select";
+import ActionParameter from "./ActionParameter";
 
 
 export default {
     components: {
         ari_parameter,
-        tnvc_parameter,
+        TypeNameValueCollectionParameter,
         prim_parameter,
-        vSelect,
+        ActionParameter,
     },
     data: function () {
         return {
@@ -397,7 +397,7 @@ export default {
                                     finResult.push({ "type": "TNVC", "value": [] });
 
                                     distParms.push({
-                                        type: tnvc_parameter,
+                                        type: TypeNameValueCollectionParameter,
                                         parameter: {
                                             result: [],
                                             types: this.types,

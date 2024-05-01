@@ -4,7 +4,7 @@
     <!-- add parameters  -->
     <!-- for gen report  -->
     <!-- need for AC -->
-    <label>{{ name }}({{ type }}):</label>
+    <!-- <label>{{ name }} ({{ type }}):</label>
     <b-form-group v-if="type == 'EXPR'">
       <label>EXPR Type:</label>
       <select id="exprType" v-model="exprType">
@@ -22,10 +22,15 @@
       <b-tooltip target="exprType">Expression object encapsulates a typed postfix expression in
         which each operator MUST be of type OPER and each operand MUST be the
         typed result of an operator or one of EDD, VAR, LIT, or CONST </b-tooltip>
-    </b-form-group>
+    </b-form-group> -->
 
     <div>
-      <b-row>
+      <b-form-group>
+        <v-select v-model="ariKey" label="display" :options="filtered" @input="addToList"></v-select>
+      </b-form-group>
+    </div>
+
+      <!-- <b-row>
         <b-col cols="5">
           <label>
             Select ARI
@@ -56,7 +61,7 @@
         </b-button>
       </b-row>
       <b-row align-h="center">
-      <label>AC:</label>  
+      <label>AC:</label>
         {{ currAc }}
       </b-row>
     </div>
@@ -66,7 +71,7 @@
     </div>
     <b-button v-b-tooltip.hover title="Send AC to be converted" :disabled="!ready" @click="submitAC()">
           Submit AC
-        </b-button>
+        </b-button> -->
   </div>
 
 </template>
@@ -114,6 +119,8 @@ export default {
   filters: {},
   computed: {
     filtered() {
+      console.log("ComputedAC")
+      console.log(this.computedAC);
       return this.computedAC.filter((ari) =>
         ari.display.toLocaleLowerCase().includes(this.search.toLocaleLowerCase())
       )
@@ -146,7 +153,7 @@ export default {
     submitNew(){
       let inputAri = {"display": this.search,"actual":true}
       this.ac.push(inputAri)
-      // this.lastKey = this.ariKey 
+      // this.lastKey = this.ariKey
       this.ariKey = null
       this.search = ""
     },
@@ -173,7 +180,7 @@ export default {
       if (this.ariKey != null) {
         this.ac.push(this.ariKey)
       }
-      this.lastKey = this.ariKey 
+      this.lastKey = this.ariKey
       this.ariKey = null
     },
     removeFrom: function (result, index) {
@@ -286,4 +293,3 @@ export default {
   vs-selected-color: #fff;
 }
 </style> -->
-

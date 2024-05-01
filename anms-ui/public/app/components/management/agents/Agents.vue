@@ -23,7 +23,7 @@
             <p>Select Agent to view</p>
           </b-col>
           <b-col><button class="btn btn-outline-success float-right mb-2"
-              @click="onClickBuild">Build</button></b-col>
+              @click="goToManageModal" :disabled="!selectedAgents.length">Manage</button></b-col>
         </b-row>
         <b-table id="agents-table"
           ref="agentsTable"
@@ -37,7 +37,7 @@
           <template #head(selected)="data">
             <div style="text-align: center;">
               <b-form-checkbox v-model="selectAll"
-                @change="toggleSelectAll">Select/Deselect All</b-form-checkbox>
+                @change="toggleSelectAll">Select All</b-form-checkbox>
             </div>
           </template>
           <template #cell(selected)="{ item }">
@@ -170,9 +170,9 @@
       :showModal="showAgentModal"
       :agentInfo="agentInfo"></agent-modal>
 
-    <build-modal @close="showBuildModal = false"
-      :showModal="showBuildModal"
-      :agents="selectedAgents"></build-modal>
+    <agents-manage-modal @close="showManageModal = false"
+      :showModal="showManageModal"
+      :agents="selectedAgents"></agents-manage-modal>
 
     <footer>
       <p>Amp Version: {{ info }}</p>
@@ -186,13 +186,13 @@ import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 
 import AgentModal from "./AgentModal.vue";
-import BuildModal from "./BuildModal.vue";
+import AgentsManageModal from "./AgentsManageModal.vue";
 
 export default {
   name: "Agents",
   components: {
     AgentModal,
-    BuildModal,
+    AgentsManageModal,
   },
   data() {
     return {
@@ -233,7 +233,7 @@ export default {
       nodes: "",
       selected: null,
       showAgentModal: false,
-      showBuildModal: false,
+      showManageModal: false,
       agentInfo: null,
       selectAll: false,
     };
@@ -282,8 +282,8 @@ export default {
       this.agentInfo = event;
       this.showAgentModal = true;
     },
-    goToBuildModal() {
-      this.showBuildModal = true;
+    goToManageModal() {
+      this.showManageModal = true;
     },
     handlePageChange(value) {
       const vm = this;
@@ -432,9 +432,6 @@ export default {
         this.results = "error sending request to node! Missing Address of agent"
       }
       this.tbrCount = this.tbrCount + 0x01;
-    },
-    onClickBuild() {
-      this.showBuildModal = true;
     },
     getAgentIndexById(agentId) {
       return this.currentAgents.findIndex(agent => agent.registered_agents_id === agentId);

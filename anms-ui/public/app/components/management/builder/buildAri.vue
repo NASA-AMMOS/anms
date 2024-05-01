@@ -20,7 +20,7 @@
           <p>Current URI = {{ finResultStr }}</p>
         </template>
       </div>
-      
+
       <template v-if="!stringMode">
         <label>Search for an Ari:</label>
         <div v-if="loading" class="loader">
@@ -52,7 +52,7 @@
 import Vue from "vue";
 import { reactive } from "vue";
 import ari_parameter from "./ariParamter";
-import tnvc_parameter from "./tnvcParameter";
+import TypeNameValueCollectionParameter from "./TypeNameValueCollectionParameter.vue";
 import prim_parameter from "./primParameter.vue";
 import ParameterView from "./parameterView.vue";
 import vSelect from "vue-select";
@@ -70,7 +70,7 @@ export default {
   name: "Build",
   components: {
     ari_parameter,
-    tnvc_parameter,
+    TypeNameValueCollectionParameter,
     prim_parameter,
     vSelect,
     ParameterView,

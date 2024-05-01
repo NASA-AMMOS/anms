@@ -1,10 +1,18 @@
 <template>
   <div>
-    <div class="form-group" :class="{ 'form-group--error': $v.res.$error }">
+    <b-form-group
+      :label="name + ' (' + type + '):'"
+      :label-for="name"
+      label-cols-sm="3"
+      label-align-sm="right">
+      <b-form-input :id="name" size="sm"></b-form-input>
+    </b-form-group>
+
+    <!-- <div class="form-group" :class="{ 'form-group--error': $v.res.$error }">
       <label class="form__label">{{ name }}({{ type }}): </label>
       <input class="form__input" v-model.trim="$v.res.$model"  @input="updateResults()"/>
     </div>
-      <div class="error" v-if="$v.res.$invalid">please enter a valid {{type}}</div>
+      <div class="error" v-if="$v.res.$invalid">please enter a valid {{type}}</div> -->
   </div>
 </template>
 
@@ -19,15 +27,14 @@ export default {
   props: ["type", "name", "index"],
   data() {
     return {
-    
       res: "",
       isInt: false,
       isDec: false,
-      isUnsigned: true, 
+      isUnsigned: true,
       result: { index: this.index, type: "null", value: "null" },
     };
   },
-  validations() {  
+  validations() {
       switch (this.type) {
         case "INT":
         case "VAST":
@@ -46,7 +53,6 @@ export default {
       return{res:{}}
     },
   methods: {
-    
     updateResults() {
       if(!this.$v.$invalid){
         this.result["type"] = this.type;
@@ -59,10 +65,4 @@ export default {
 </script>
 
 <style>
-.wrapper {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 100px 100px;
-  gap: 10px;
-}
 </style>

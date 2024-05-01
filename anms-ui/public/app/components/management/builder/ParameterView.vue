@@ -1,62 +1,89 @@
 <template>
   <div>
-    <b-form-row>
+    <b-card bg-variant="dark" class="my-3 border-grey">
+      <b-form-group :label="ariKey.adm_name + '/' + ariKey.obj_name"
+        label-cols-lg="3"
+        label-size="md"
+        label-class="font-weight-bold pt-0 label-color"
+        class="mb-0">
+        <div v-for="(parameter, index) in primParameters">
+          <component v-bind:is="parameter.type"
+            :listComponents="parameter.parameter.listComponents"
+            :type="parameter.parameter.type"
+            :types="parameter.parameter.types"
+            :name="parameter.parameter.name"
+            :result="parameter.parameter.result"
+            :index="parameter.parameter.index"
+            :key="index"></component>
+        </div>
+      </b-form-group>
+      <b-form-group>
+        <div v-for="(parameter, index) in tnvcParameters">
+          <component v-bind:is="parameter.type"
+            :listComponents="parameter.parameter.listComponents"
+            :type="parameter.parameter.type"
+            :types="parameter.parameter.types"
+            :name="parameter.parameter.name"
+            :result="parameter.parameter.result"
+            :index="parameter.parameter.index"
+            :key="index"></component>
+        </div>
+        <div v-for="(parameter, index) in exprParameters">
+          <component v-bind:is="parameter.type"
+            :listComponents="ACs"
+            :type="parameter.parameter.type"
+            :types="parameter.parameter.types"
+            :name="parameter.parameter.name"
+            :result="parameter.parameter.result"
+            :index="parameter.parameter.index"
+            :key="index"></component>
+        </div>
+        <div v-for="(parameter, index) in actions">
+          <component v-bind:is="parameter.type"
+            :listComponents="ACs"
+            :type="parameter.parameter.type"
+            :types="parameter.parameter.types"
+            :name="parameter.parameter.name"
+            :result="parameter.parameter.result"
+            :index="parameter.parameter.index"
+            :key="index"></component>
+        </div>
+      </b-form-group>
+    </b-card>
+
+    <!-- <b-form-row>
       <b-col>
         <p>Parameters for: {{ ariKey.adm_name }}.{{ ariKey.obj_name }}</p>
-        <div v-if="loading"
-          class="loader">
-          <b-spinner variant="info"
-            label="Loading..."
-            type="grow"></b-spinner>
+        <div v-if="loading" class="loader">
+          <b-spinner variant="info" label="Loading..." type="grow"></b-spinner>
         </div>
       </b-col>
     </b-form-row>
-    <b-form-row v-for="(parms, indexRow) in computedParmsList"
-      :key="indexRow">
-      <!-- <b-carousel id='categoryRoulette' controls indicators no-animation :interval='0' img-width="2024" img-height="3880"> -->
-      <!-- <b-carousel-slide class=" align-items-center" img-blank  > -->
-      <b-col class="border-class"
-        v-for="(parm, indexCol) in parms"
-        :key="indexCol">
+    <b-form-row  v-for="(parms, indexRow) in computedParmsList" :key="indexRow">
+      <b-col class="border-class" v-for="(parm, indexCol) in parms" :key="indexCol">
 
-        <component @updateResult="updateResults($event)"
-          v-bind:is="parm.type"
-          :listComponents="parm.parameter.listComponents"
-          :type="parm.parameter.type"
-          :types="parm.parameter.types"
-          :name="parm.parameter.name"
-          :result="parm.parameter.result"
-          :index="parm.parameter.index"></component>
+        <component @updateResult="updateResults($event)" v-bind:is="parm.type"
+          :listComponents="parm.parameter.listComponents" :type="parm.parameter.type" :types="parm.parameter.types"
+          :name="parm.parameter.name" :result="parm.parameter.result" :index="parm.parameter.index"></component>
       </b-col>
-
-      <!-- </b-carousel-slide> -->
-      <!-- </b-carousel> -->
     </b-form-row>
-    <b-button variant="info"
-      :disabled="this.ariKey.actual || this.ariKey.parm_id == null"
-      class
+    <b-button variant="info" :disabled="this.ariKey.actual || this.ariKey.parm_id == null" class
       @click="submitCommand()">
       SUBMIT for {{ ariKey.obj_name }}
-    </b-button>
+    </b-button> -->
   </div>
 </template>
 
 <script>
 
 import Vue from "vue";
-// import ari_parameter from "./ariParamter";
-// import TypeNameValueCollectionParameter from "./TypeNameValueCollectionParameter.vue";
-// import prim_parameter from "./primParameter.vue";
 import vSelect from "vue-select";
 import parameter_builder from "./ariBuilder"
 
 Vue.config.productionTip = false;
 export default {
-  name: "parameterBuilderView",
+  name: "ParameterView",
   components: {
-    // ari_parameter,
-    // TypeNameValueCollectionParameter,
-    // prim_parameter,
     vSelect,
   },
   props: ["ariKey", "ACs"],
@@ -79,11 +106,15 @@ export default {
       finResultStr: "",
       description: "",
       types: [],
+      primParameters: [],
+      actions: [],
+      tnvcParameters: [],
+      exprParameters: [],
     };
   },
 
   mounted() {
-    this.genParms();
+    this.generateParameters();
   },
   computed: {
     computedList: function () {
@@ -122,6 +153,26 @@ export default {
 
   },
   methods: {
+    generateParameters() {
+      parameter_builder.methods.genParms(this.ariKey, this.ARIs).then(response => {
+        this.parameters = response[0];
+        this.primParameters = this.getParametersByType("prim");
+        this.tnvcParameters = this.getParametersByType("TypeNameValueCollectionParameter");
+        this.exprParameters = this.getParametersByType("ExpressionParameter");
+        this.actions = this.getParametersByType("ActionParameter");
+      });
+    },
+    getParametersByType(type) {
+      let parametersByType = [];
+      for (let parameter of this.parameters) {
+        if (parameter.type.name == type) {
+          parametersByType.push(parameter);
+        }
+      }
+      return parametersByType;
+    },
+
+
     genParms: async function () {
       this.finResultStr = "";
       let distParms = [];
@@ -253,21 +304,12 @@ export default {
 </script>
 
 
-<style>
-.wrapper {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 100px 100px;
-  gap: 10px;
+<style scoped>
+.label-color {
+  color: white;
 }
 
-.carousel-item {
-  height: 600px;
-}
-
-.border-class {
-  border: thin #62c462 solid;
-  margin: 20px;
-  padding: 20px;
+.card.border-grey {
+  border-color: grey;
 }
 </style>
