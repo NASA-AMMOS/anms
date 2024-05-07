@@ -19,8 +19,6 @@ modules:
   version_requirement: ">=9.0.0"
 - name: puppetlabs/concat
   version_requirement: ">=7.4.0 <8"
-- name: puppetlabs/docker
-  version_requirement: ">=5.0.0"
 - name: puppetlabs/java_ks
   version_requirement: ">= 4.4.1"
 - name: simp/fips

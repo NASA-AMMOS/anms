@@ -6,8 +6,12 @@ class anms::hostenv() {
       # This halts on reboot_notify()
       # instead run with:
       #  bolt apply --execute 'class {"fips": }'
-      class { 'fips': }
+#      class { 'fips': }
 
+      file { '/var/cache/puppet':
+        ensure => 'directory',
+        before => Class['selinux'],
+      }
       class { 'selinux': }
       package { 'udica':
         ensure  => 'installed',
@@ -101,36 +105,7 @@ class anms::hostenv() {
     ],
   }
 
-  case $facts['os']['family'] {
-    'RedHat':  {
-      package { ['podman', 'runc']:
-        ensure => 'absent',
-        before => Class['docker'],
-      }
-      class { 'docker':
-        use_upstream_package_source => true,
-        require                     => Augeas['environment_ca'],
-      }
-      file { '/etc/docker/daemon.json':
-        source => 'puppet:///modules/anms/docker-daemon.json',
-        owner  => 'root',
-        group  => 'root',
-        mode   => '0644',
-        notify => Service['docker'],
-      }
-    }
-    'Debian', 'Ubuntu': {
-      class { 'docker':
-        use_upstream_package_source => true,
-        service_overrides_template  => false,
-        require                     => Augeas['environment_ca'],
-      }
-    }
-    default: {
-      fail("Unknown OS family ${facts['os']['family']}")
-    }
-  }
-  class { 'docker::compose':
+  class { 'anms::docker':
     require => Augeas['environment_ca'],
   }
 }

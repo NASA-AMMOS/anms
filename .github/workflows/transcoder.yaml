@@ -3,8 +3,8 @@ on:
   push:
     paths:
       - .github/workflows/transcoder.yaml
-      - deps
-      - transcoder
+      - deps/**
+      - transcoder/**
 
 jobs:
   flake8:
