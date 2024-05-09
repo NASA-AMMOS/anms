@@ -9,7 +9,7 @@ Type=notify
 PassEnvironment=ION_NODE_NUM DB_HOST DB_NAME DB_USER DB_PASSWORD
 EnvironmentFile=-/etc/ion/environment
 ExecStart=ion_nm_wrap --listen /var/run/nm_mgr.socket -- \
-    ion_nm_mgr -A ipn:${ION_NODE_NUM}.7 \
+    ion_nm_mgr -A ipn:${ION_NODE_NUM}.7  \
     --sql-host ${DB_HOST} \
     --sql-db ${DB_NAME} \
     --sql-user ${DB_USER} \

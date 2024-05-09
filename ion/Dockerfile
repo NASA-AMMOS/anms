@@ -16,13 +16,12 @@
 ## limitations under the License.
 ##
 
-FROM anms-base AS ion-base
-
-RUN dnf -y install container-tools
-RUN dnf -y install  \
+FROM anms-init AS ion-base
+RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+RUN dnf install  -y  \
     autoconf libtool \
     cmake ninja-build \
-    ruby rsync  \
+    ruby rsync  git \
     systemd systemd-sysv \
     patch autoconf libtool \
     make gcc gcc-c++ libpq-devel \
@@ -31,7 +30,6 @@ RUN dnf -y install  \
     gdb less && \
     dnf clean all && rm -rf /var/cache/yum && \
     PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
-
 
 COPY src/deps/ion /usr/src/nm/deps/ion
 COPY src/deps/ion*.patch /usr/src/nm/deps/
