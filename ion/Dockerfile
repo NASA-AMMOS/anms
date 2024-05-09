@@ -15,46 +15,23 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-FROM anms-init AS ion-base
 
+FROM anms-base AS ion-base
 
-# Use systemd as top-level process
-# RUN dnf install -y systemd systemd-sysv
-# RUN systemctl mask systemd-logind && \
-#     systemctl mask console-getty && \
-#     systemctl disable getty@tty1 && \
-#     systemctl disable apt-daily.timer apt-daily-upgrade.timer && \
-#     systemctl disable systemd-timesyncd && \
-#     systemctl disable systemd-networkd && \
-#     echo "MulticastDNS=no" >>/etc/systemd/resolved.conf
-# CMD [ "/sbin/init" ]
-
-# Testing utilities
-# RUN dnf install -y \
-#     net-tools iproute2 iputils-ping \
-#     lsof iftop gdb valgrind socat
-
-
-# FROM registry.access.redhat.com/ubi9/ubi:9.2 as deps-local
-# RUN ( \
-#       curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
-#       update-ca-trust && \
-#       echo "Root CA added" \
-#     ) || true
-# ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-# ENV PIP_DEFAULT_TIMEOUT=300
-
-RUN dnf install -y \
+RUN dnf -y install container-tools
+RUN dnf -y install  \
     autoconf libtool \
     cmake ninja-build \
     ruby rsync  \
     systemd systemd-sysv \
     patch autoconf libtool \
     make gcc gcc-c++ libpq-devel \
-    perl-CPAN \
+    civetweb-devel cjson-devel\ 
+    perl-CPAN  \
     gdb less && \
     dnf clean all && rm -rf /var/cache/yum && \
     PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
+
 
 COPY src/deps/ion /usr/src/nm/deps/ion
 COPY src/deps/ion*.patch /usr/src/nm/deps/
@@ -68,8 +45,7 @@ RUN cd /usr/src/nm/deps/ion && \
     make -j$(nproc) && \
     make install && \
     echo /usr/local/lib64 > /etc/ld.so.conf.d/local.conf && \
-    ldconfig && \
-    rm -rf /usr/src/ion-ios
+    ldconfig 
 
 COPY src/deps/QCBOR /usr/src/nm/deps/QCBOR
 COPY src/deps/qcbor*.patch /usr/src/nm/deps/
@@ -87,37 +63,8 @@ RUN cd /usr/src/nm/deps/mlib && \
     make -j$(nproc) clean
 
 
-# FROM systemd-base as ion-base
-# COPY --from=deps-local /usr/local /usr/local
-
-# RUN dnf install -y \
-#     autoconf libtool \
-#     cmake ninja-build \
-#     ruby rsync  \
-#     systemd systemd-sysv \
-#     patch autoconf libtool \
-#     make gcc gcc-c++ libpq-devel \
-#     perl-CPAN \
-#     gdb less && \
-#     dnf clean all && rm -rf /var/cache/yum && \
-#     PERL_MM_USE_DEFAULT=1 cpan -T JSON REST::Client Expect File::Slurp
-    
-# Helper utilities
-RUN dnf -y install \
-    python3 python3-pip \
-    gcc python3-devel systemd-devel && \
-    dnf clean all && rm -rf /var/cache/yum && \
-    pip3 install systemd-python
-
-# # Test tools
-# RUN dnf install -y \
-#     curl git && \
-#     pip3 install git+https://github.com/NASA-AMMOS/anms-ace.git
 
 # Agent to test
-RUN dnf install -y \
-    cmake ninja-build ruby \
-    patch autoconf libtool make gcc gcc-c++ libpq-devel 
 COPY src/deps /usr/src/nm/deps
 COPY src/cmake /usr/src/nm/cmake
 COPY src/src /usr/src/nm/src
@@ -126,12 +73,17 @@ COPY src/CMakeLists.txt /usr/src/nm/
 RUN ls -lt /usr/src/nm/
 RUN cd /usr/src/nm && \
     cmake -S . -B build/default \
-      -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_BUILD_TYPE=Debug \
       -G Ninja && \
     cmake --build build/default && \
-    cmake --install build/default && \
-    ldconfig 
+    cmake --install build/default 
 
+# Helper utilities
+RUN dnf -y install \
+    python3 python3-pip \
+    gcc python3-devel systemd-devel && \
+    dnf clean all && rm -rf /var/cache/yum && \
+    pip3 install systemd-python
 COPY --chmod=755 utils/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
 COPY --chmod=755 utils/service_is_running.sh /usr/local/bin/service_is_running
 COPY --chmod=755 utils/ion_restart_ducts.sh /usr/local/bin/ion_restart_ducts
@@ -139,20 +91,16 @@ COPY --chmod=755 utils/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
 
 # Systemd services
 COPY tmpfiles.conf /etc/tmpfiles.d/ion.conf
-COPY --chmod=644 systemd/ion.service systemd/ion-nm-*.service systemd/bpecho@.service /usr/local/lib/systemd/system/
+COPY --chmod=644 systemd/ion.service systemd/ion-stats.service systemd/bpecho@.service /usr/local/lib/systemd/system/
 COPY --chmod=644 systemd/ion-stats.timer /usr/local/lib/systemd/system/
 RUN systemctl enable ion bpecho@4
-
-# Runtime config for this container
-# COPY src/testenv/node-1.rc /etc/ion/
-COPY src/adms /usr/local/share/ace/adms
 
 FROM ion-base AS ion-manager
 COPY configs/simple-2-node/mgr.rc /etc/ion.rc
 
 COPY --chmod=644 systemd/ion-nm-mgr.service systemd/ion-nm-agent.service /usr/local/lib/systemd/system/
-RUN systemctl enable ion-nm-mgr ion-nm-agent
-
+RUN systemctl enable ion-nm-mgr ion-nm-agent && \
+    mkdir -p /var/run/ion
 
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
     CMD ["service_is_running", "ion", "ion-nm-mgr"]
@@ -162,7 +110,8 @@ FROM ion-base AS ion-agent
 COPY configs/simple-2-node/agent.rc.in /etc/ion.rc
 
 COPY --chmod=644 systemd/ion-nm-agent.service /usr/local/lib/systemd/system/
-RUN systemctl enable ion-nm-agent
+RUN systemctl enable ion-nm-agent && \
+    mkdir -p /var/run/ion
 
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
     CMD ["service_is_running", "ion", "ion-nm-agent"]
