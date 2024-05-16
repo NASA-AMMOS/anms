@@ -85,7 +85,7 @@
       :showModal="showManageModal"
       :agents="selectedAgents"></agents-manage-modal>
 
-    <footer>
+    <footer class="footer">
       <p>Amp Version: {{ info }}</p>
     </footer>
   </div>
@@ -224,5 +224,9 @@ export default {
 <style>
 .table-hover tbody tr:hover {
   cursor: pointer;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
 }
 </style>

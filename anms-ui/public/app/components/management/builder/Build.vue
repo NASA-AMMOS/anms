@@ -22,7 +22,6 @@ export default {
     vSelect,
     ParameterView,
   },
-  props: {},
   data() {
     return {
       ariKey: undefined,
