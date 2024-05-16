@@ -1,12 +1,11 @@
 <template>
   <div>
-    <b-modal id="buildModal"
-      ref="buildModal"
+    <b-modal id="manageAgentModal"
+      ref="manageAgentModal"
       size="xl"
       @hide="closeModal"
       title="Manage Agents"
-      hide-footer
-      scrollable>
+      hide-footer>
       <div v-if="agents">
         <b-row>
           <b-col cols="3">
@@ -16,24 +15,26 @@
                   variant="primary"> {{ agent.agent_id_string }} </b-badge>
               </div>
             </div>
+            <div v-if="this.ariString">
+              <h5>ARI String:</h5>
+              <p style="overflow-wrap: break-word;">{{ ariString }}</p>
+            </div>
+            <div v-if="this.ariCBOR">
+              <h5>ARI CBOR:</h5>
+              <p style="overflow-wrap: break-word;">{{ ariCBOR }}</p>
+            </div>
+            <b-button block
+              variant="outline-success"
+              :disabled="!ariString || this.loading"
+              @click="submitTranscodedString">
+              <b-spinner v-if="this.loading"
+                small
+                type="grow"> </b-spinner>
+              {{ this.sendButtonText }}
+            </b-button>
           </b-col>
           <b-col cols="9">
-            <build></build>
-
-                <!-- <label>Available Reports:</label>
-                    <select v-model="selected">
-                      <option disabled
-                        value="">Which Report?</option>
-                      <option>ltp_agent.endpointReport</option>
-                      <option>bp_agent.endpoint_report</option>
-                      <option>bp_agent.full_report</option>
-                      <option>amp_agent.full_report</option>
-                    </select>
-                  </b-form-group>
-                  <b-dropdown-item-button @click="onClickSendTBR(nodeMan, start, period, countTBR, selected)">Send Time
-                    Based
-                    Rule</b-dropdown-item-button>
-                </b-form-group> -->
+            <build @updateResult="updateResults($event)"></build>
           </b-col>
         </b-row>
       </div>
@@ -41,18 +42,19 @@
   </div>
 </template>
 <script>
-import { mapActions, mapGetters } from "vuex";
 import api from "../../../shared/api.js";
 import Build from "../builder/Build.vue";
+import toastr from "toastr"
 export default {
   name: "AgentsManageModal",
   components: { Build },
   data() {
     return {
-      startTime: null,
-      period: null,
-      reportCount: null,
-      raw: null,
+      ariString: undefined,
+      ariCBOR: undefined,
+      sendButtonText: "Send",
+      loading: false,
+      transcoderLogId: undefined,
     }
   },
   props: {
@@ -67,83 +69,72 @@ export default {
   },
   watch: {
     showModal(newValue, _) {
-      const vm = this;
       if (newValue === true) {
         this.show();
       }
     }
   },
-  computed: {},
   methods: {
     show() {
-      this.$refs['buildModal'].show();
+      this.$refs['manageAgentModal'].show();
     },
     closeModal() {
       this.$emit("close");
+      this.$refs['manageAgentModal'].hide();
+      this.ariCBOR = undefined;
+      this.ariString - undefined;
     },
-    sendTBR() {
-      this.agents.forEach((agent) => {
-        const response = api.methods.apiSendTBR(agent.agent_id_string, this.startTime, this.period, this.reportCount, null,)
-      });
+    updateResults(result) {
+      this.ariString = result;
     },
-    sendRawCommand() {
-
-    },
-    onClickSendTBR: function (nodes, start, period, count, report) {
-      if (nodes != null) {
-        let nodeList = nodes.split(",");
-        nodeList.forEach((node) => {
-          this.loading = true
-          const res = api.methods.apiSendTBR(
-            node.trim(),
-            start,
-            period,
-            count,
-            report,
-            this.tbrCount
-          );
-
-          // localStorage.tbrCount = this.tbrCount;
-
-          let prom = res[0];
-
-          prom.then((response) => {
-            this.loading = false
-            this.results = response.status + " " + response.statusText
-          })
-            .catch((error) => {
-              console.error(error);
-              this.errored = true;
-              this.results = "error sending request to node! (check node index) " + error.message;
-            })
-            .finally(() => (this.loading = false));
-          this.DisplayRaw = res[1];
-          this.loading = false
+    submitTranscodedString() {
+      this.loading = true;
+      this.sendButtonText = "Submitting ARI String";
+      api.methods
+        .apiPutTranscodedString(this.ariString)
+        .then((response) => {
+          this.transcoderLogId = response.data.id;
+          this.sendButtonText = "Transcoding ARI String";
+          this.queryTranscoderLog();
+        })
+        .catch((error) => {
+          console.error(error);
+          toastr.error(error.response.data);
         });
-      } else {
-        this.loading = false;
-        this.results = "error sending request to node! Missing Address of agent"
-      }
-      this.tbrCount = this.tbrCount + 0x01;
     },
-    onClickSendRawCommand: async function (nodes, raw) {
-      let nodeList = nodes.split(",");
-      this.DisplayRaw = raw;
-      await nodeList.forEach(async (node) => {
-        await api.methods
-          .apiSendRawCommand(node.trim(), raw)
+    queryTranscoderLog() {
+      api.methods
+        .apiGetTranscoderLogById(this.transcoderLogId)
+        .then((response) => {
+          if (response.data.parsed_as == "pending") {
+            setTimeout(() => this.queryTranscoderLog(), 5000);
+          } else {
+            this.ariCBOR = response.data.cbor;
+            this.submitRawCommand2Agents();
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          toastr.error(error.response.data);
+        });
+    },
+    submitRawCommand2Agents() {
+      this.sendButtonText = "Sending ARI CBOR to Agent(s)";
+      this.agents.forEach((agent) => {
+        api.methods
+          .apiSendRawCommand(agent.agent_id_string, this.ariCBOR)
           .then((response) => {
-            this.results = response.data + " " + response.statusText
-            this.loading = false
+            if (response.status == 200) {
+              toastr.success(`Submitted ARI CBOR to agent ${agent.agent_id_string}`);
+            }
           })
           .catch((error) => {
             console.error(error);
-            this.errored = true;
-            this.results = "error sending request to node! (check node index) " + error.message;
-            this.loading = false
+            toastr.error(error.response.data);
           })
-          .finally(() => (this.loading = false));
       });
+      this.loading = false;
+      this.closeModal();
     },
   },
 }
@@ -161,6 +152,5 @@ export default {
 
 .button-form-center {
   text-align: center;
-
 }
 </style>

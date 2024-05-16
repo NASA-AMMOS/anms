@@ -23,7 +23,7 @@
 
  (function () {
   'use strict';
-  
+
   const _ = require('lodash');
   const Boom = require('@hapi/boom');
   const axios = require('axios');
@@ -31,7 +31,6 @@
 
   exports.putTranscodedHex = async function(req,res,next){
     try {
-      
       // /transcoder/ui/incoming/{cbor}/hex
       const cbor = req.params.cbor
       const url = utils.generateAnmsCoreUrl(['transcoder','ui','incoming',cbor,'hex']);
@@ -65,13 +64,24 @@
       }
       const params = {'page': req.query.page, 'size': req.query.size };
       const url = utils.generateAnmsCoreUrl(['transcoder','db','all'], params);
-      
+
       const transcoderLog = await axios.get(url);
       return res.status(200).json(transcoderLog.data);
     } catch (err) {
       return next(Boom.badGateway('Error Getting Paged transcoderLog', err));
     }
   };
+
+  exports.getTranscoderById = async function (req, res, next) {
+    try {
+      const id = req.params.id;
+      const url = utils.generateAnmsCoreUrl(['transcoder', 'db', 'id', id]);
+      const transcoderLog = await axios.get(url);
+      return res.status(200).json(transcoderLog.data);
+    } catch (err) {
+      return next(Boom.badGateway("Error Getting Transcoder By Id", err));
+    }
+  }
 
   exports.getTranscoderPagedBySearch = async function (req, res, next) {
     try {
@@ -89,12 +99,10 @@
       const url = utils.generateAnmsCoreUrl(['transcoder', 'db', 'search', transcoderQuery], params);
       const transcoderLog = await axios.get(url);
       return res.status(200).json(transcoderLog.data);
-    } 
+    }
     catch (err) {
       return next(Boom.badGateway('Error Getting transcoderLog with search', err));
     }
   };
 
 })();
-
-

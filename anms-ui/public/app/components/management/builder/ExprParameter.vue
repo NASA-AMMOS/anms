@@ -9,7 +9,8 @@
       <b-form-select id="returnType"
         size="sm"
         v-model="selectedExpressionReturnType"
-        :options="expressionReturnTypes"></b-form-select>
+        :options="expressionReturnTypes"
+        @change="submitAC"></b-form-select>
     </b-form-group>
 
     <b-form-group label="Operations:"
@@ -37,13 +38,11 @@
     </b-list-group>
 
   </div>
-
 </template>
 
 <script>
 import ParameterView from "./ParameterView.vue";
 import vSelect from "vue-select";
-
 
 export default {
   name: "ExpressionParameter",
@@ -54,27 +53,12 @@ export default {
       expressionReturnTypes: ["BYTE", "INT", "UINT", "VAST", "UVAST", "REAL32", "REAL64", "STRING", "BOOLEAN"],
       selectedExpressionReturnType: undefined,
       expressionList: [],
-      removeKey: {},
       ariKey: undefined,
-      ready: false,
-      buttonON: false,
-      selected: "A",
       ac: [],
-      finResult: [],
-      parameters: [],
-      finResultStr: "",
-      loading: false,
       result: { index: this.index, type: "AC", value: [] },
-      currKey: "",
       keys: [],
       currAc: [],
-      currAcReady: [],
       keysRealIndex: [],
-      search: '',
-      offset: 0,
-      limit: 5,
-      inputAri: "",
-      lastKey: {},
     };
   },
   filters: {},
@@ -91,41 +75,16 @@ export default {
     }
   },
   methods: {
-    submitNew() {
-      let inputAri = { "display": this.search, "actual": true }
-      this.ac.push(inputAri)
-      // this.lastKey = this.ariKey
-      this.ariKey = null
-      this.search = ""
-    },
     addToList: function () {
       if (this.ariKey != null) {
         this.ac.push(this.ariKey)
       }
-      this.lastKey = this.ariKey;
       this.ariKey = null;
       this.createAC();
     },
     removeFrom: function (result, index) {
       this.ac.splice(index, 1)
       this.createAC();
-    },
-    updateResults: function (result, index) {
-
-      let value = result[0].value;
-      let head = value.includes("ari") ? "" : "ari:/";
-      let realIndex = this.keysRealIndex[index];
-      // let head = "ari:/";
-
-      this.currAc[realIndex] = head + value;
-      this.currAcReady[realIndex] = true;
-
-      this.ready = true;
-      this.currAcReady.findIndex((element) => {
-        if (element == false) {
-          this.ready = false;
-        }
-      });
     },
     submitAC: function () {
       if (this.type == "EXPR") {
@@ -135,7 +94,6 @@ export default {
         this.result["value"] = this.currAc;
       }
 
-      this.currAcReady = [];
       this.keysRealIndex = [];
       this.keys = [];
 
@@ -144,29 +102,22 @@ export default {
 
     // have to go through the AC and
     async createAC() {
-      let res = [];
-      this.ready = true;
       let currAc = [];
-      this.currAcReady = [];
       this.keysRealIndex = [];
-      this.parameters = [];
       this.keys = [];
 
       this.ac.forEach((ari, index) => {
-        this.finResultStr = "";
         if (ari.actual || Number.isNaN(ari.parm_id)) {
           currAc.push(ari.display);
-          this.currAcReady.push(true);
         } else {
           this.keys.push(ari);
           this.keysRealIndex.push(index);
-          this.ready = false;
-          this.currAcReady.push(false);
           currAc.push(ari.display);
         }
       });
 
       this.currAc = currAc;
+      this.submitAC();
     },
   },
 };

@@ -71,7 +71,7 @@
         // Do something here in the future? Maybe...
         next(); // continue doing what we were doing and go to the route
       });
-      
+
 
       // Better Message
       router.all('/', function (req, res) {
@@ -102,8 +102,6 @@
       router.get('/core/adms', userLimiter, adms.getAll);
       router.get('/core/adms/:adm_enum', adms.getOne);
       router.post('/core/adms', userLimiter, upload.single('adm'), adms.upload);
-      
-
 
       // ---- Agents Routes ---- //
       const agents = require('../components/registeredAgents');
@@ -130,6 +128,7 @@
       router.put('/transcoder/ui/incoming/str', transcoder.putTranscodedString)
       router.get('/transcoder/ui/log', transcoder.getTranscoderPaged)
       router.get('/transcoder/ui/log/search/:query', transcoder.getTranscoderPagedBySearch)
+      router.get('/transcoder/ui/log/id/:id', transcoder.getTranscoderById)
 
       // ---NM Routes ---///
       const networkManager = require('../components/networkManager')
@@ -193,4 +192,3 @@
   };
 
 })();
-

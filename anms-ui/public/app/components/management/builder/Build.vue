@@ -3,27 +3,31 @@
     <h5>ARI Builder</h5>
     <v-select v-model="ariKey"
       label="display"
-      :options="ARIs"
-      @input="generateParameters"></v-select>
+      :options="ARIs"></v-select>
 
-    <parameter-view v-if="ariKey" :ariKey="ariKey" :ACs="ARIs"></parameter-view>
+    <ParameterView v-if="ariKey"
+      :ariKey="ariKey"
+      :ACs="ARIs"
+      @updateResult="updateResults($event)"></ParameterView>
   </div>
 </template>
 <script>
-import { mapActions, mapGetters } from "vuex";
+import { mapGetters } from "vuex";
 import vSelect from "vue-select";
-import parameter_builder from "../builder/ariBuilder";
 import ParameterView from "./ParameterView.vue";
+
 export default {
   name: "Build",
-  components: { vSelect,
-    ParameterView
+  components: {
+    vSelect,
+    ParameterView,
   },
   props: {},
   data() {
     return {
       ariKey: undefined,
       parameters: undefined,
+      finResultStr: undefined,
     }
   },
   computed: {
@@ -32,12 +36,11 @@ export default {
     })
   },
   methods: {
-    generateParameters(ariKey) {
-      parameter_builder.methods.genParms(ariKey, this.ARIs).then(response => {
-        console.log(response);
-        this.parameters = response[0];
-      });
-    }
+    updateResults: function (result) {
+      let head = result[0].value.includes("ari") ? "" : "ari:/";
+      this.finResultStr = head + result[0].value;
+      this.$emit("updateResult", this.finResultStr);
+    },
   }
 }
 </script>

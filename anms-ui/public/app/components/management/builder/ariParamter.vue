@@ -79,7 +79,7 @@
 <script>
 import Vue from "vue";
 import vMultiselectListbox from "vue-multiselect-listbox";
-import ParameterView from "./parameterView.vue";
+import ParameterView from "./oldParameterView.vue";
 Vue.component("v-multiselect-listbox", vMultiselectListbox);
 import vSelect from "vue-select";
 

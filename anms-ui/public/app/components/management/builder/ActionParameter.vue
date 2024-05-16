@@ -29,52 +29,37 @@
         </b-list-group-item>
       </b-list-group>
 
-      <div v-for="(curr, index) in keys" :key="index">
-        <parameter-view :ariKey="curr" :ACs="listComponents"></parameter-view>
+      <div v-for="(curr, index) in keys"
+        :key="index">
+        <ParameterView :ariKey="curr"
+          :ACs="listComponents"
+          @updateResult="updateResults($event, index)"></ParameterView>
       </div>
     </div>
   </div>
-
 </template>
 
 <script>
-import ParameterView from "./ParameterView.vue";
 import vSelect from "vue-select";
-
 
 export default {
   name: "ActionParameter",
-  components: { ParameterView, vSelect, },
+  components: {
+    ParameterView: () => import("./ParameterView.vue"),
+    vSelect,
+  },
   props: ["listComponents", "name", "parms", "type", "index"],
   data() {
     return {
       ariKey: undefined,
-      ready: false,
       ac: [],
-      finResult: [],
-      parameters: [],
-      finResultStr: "",
       result: { index: this.index, type: "AC", value: [] },
       keys: [],
       currAc: [],
-      currAcReady: [],
       keysRealIndex: [],
-      exprType: null,
     };
   },
   methods: {
-    //   Literal, Constant, Externally Defined Data, or
-    //  Variable.  An operator MUST be an ARI of type Operator
-    createExpressionList: function (ARIs) {
-      let typeOptions = ["LIT", "CONST", "EDD", "VAR", "OPER"];
-      let results = [];
-      ARIs.forEach((ari) => {
-        if (typeOptions.includes(ari.type_name.toUpperCase())) {
-          results.push(ari);
-        }
-      });
-      return results;
-    },
     addARI(newARI) {
       this.ariKey = { "display": newARI, "actual": true }
       this.addToList();
@@ -91,62 +76,34 @@ export default {
       this.createAC();
     },
     updateResults: function (result, index) {
-
       let value = result[0].value;
       let head = value.includes("ari") ? "" : "ari:/";
       let realIndex = this.keysRealIndex[index];
-      // let head = "ari:/";
 
       this.currAc[realIndex] = head + value;
-      this.currAcReady[realIndex] = true;
-
-      this.ready = true;
-      this.currAcReady.findIndex((element) => {
-        if (element == false) {
-          this.ready = false;
-        }
-      });
+      this.submitAC();
     },
     submitAC: function () {
-      if (this.type == "EXPR") {
-        this.result["type"] = "EXPR"
-        this.result["value"] = "(" + this.exprType + ")%" + this.currAc;
-      } else {
-        this.result["value"] = this.currAc;
-      }
-
-      this.currAcReady = [];
-      this.keysRealIndex = [];
-      this.keys = [];
-
+      this.result["value"] = this.currAc;
       this.$emit("updateResult", this.result);
     },
-
-    // have to go through the AC and
-    async createAC() {
-      let res = [];
-      this.ready = true;
+    createAC() {
       let currAc = [];
-      this.currAcReady = [];
       this.keysRealIndex = [];
-      this.parameters = [];
       this.keys = [];
 
       this.ac.forEach((ari, index) => {
-        this.finResultStr = "";
         if (ari.actual || Number.isNaN(ari.parm_id)) {
           currAc.push(ari.display);
-          this.currAcReady.push(true);
+          this.keysRealIndex.push(index);
         } else {
           this.keys.push(ari);
           this.keysRealIndex.push(index);
-          this.ready = false;
-          this.currAcReady.push(false);
           currAc.push(ari.display);
         }
       });
-
       this.currAc = currAc;
+      this.submitAC();
     },
   },
 };

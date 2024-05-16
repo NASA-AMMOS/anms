@@ -29,7 +29,7 @@
       </b-col>
       <b-col cols="1">
         <b-button class="button-icon"
-          @click="addNewTnvc(TNVCType, TNVCName, TNVCValue)"><i class="fas fa-plus"></i></b-button>
+          @click="addNewTnvc"><i class="fas fa-plus"></i></b-button>
       </b-col>
     </b-row>
 
@@ -52,7 +52,6 @@
 </template>
 
 <script>
-
 export default {
   name: "TypeNameValueCollectionParameter",
   props: ["name", "type", "types", "index"],
@@ -61,36 +60,21 @@ export default {
       TNVCType: undefined,
       TNVCName: undefined,
       TNVCValue: undefined,
-      message: 'TNVC:',
-      result: [],
       final: { "index": this.index, "type": "TNVC", "value": [] },
       TNVCs: [],
     }
   },
   methods: {
-    addNewTnvc(type, name, value) {
-      type = type.trim();
-      name = name.trim();
-      value = value.trim();
-      if (value == "") {
-        // only care about if the V in TNVC is used
-        // "value" overloaded term here means the value of the return object which would be an empty array
-        this.final["value"] = this.result
-        this.$emit('updateResult', this.final)
-
-      } else {
-        var new_tnv = value
-        this.result.push(new_tnv);
-        this.final["value"] = this.result
-        // every time a new  entry is added the final TNVC list is updated
-        this.$emit('updateResult', this.final)
-      }
+    addNewTnvc() {
+      this.final["value"].push(this.TNVCValue.trim());
+      this.$emit('updateResult', this.final);
       this.TNVCs.push({ "Type": this.TNVCType.trim(), "Name": this.TNVCName.trim(), "Value": this.TNVCValue.trim() });
       this.clearInputs();
-
     },
     removeTNVC(index) {
       this.TNVCs.splice(index, 1);
+      this.final["value"].splice(index, 1);
+      this.$emit("updateResult", this.final);
     },
     clearInputs() {
       this.TNVCType = undefined;

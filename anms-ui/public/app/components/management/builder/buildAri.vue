@@ -51,10 +51,9 @@
 <script>
 import Vue from "vue";
 import { reactive } from "vue";
-import ari_parameter from "./ariParamter";
 import TypeNameValueCollectionParameter from "./TypeNameValueCollectionParameter.vue";
 import prim_parameter from "./primParameter.vue";
-import ParameterView from "./parameterView.vue";
+import ParameterView from "./oldParameterView.vue";
 import vSelect from "vue-select";
 import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
@@ -69,7 +68,6 @@ Vue.config.productionTip = false;
 export default {
   name: "Build",
   components: {
-    ari_parameter,
     TypeNameValueCollectionParameter,
     prim_parameter,
     vSelect,
