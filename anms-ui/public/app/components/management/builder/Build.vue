@@ -3,13 +3,13 @@
     <h5>ARI Builder</h5>
     <center>
       Input Style(CBOR Input/ARI Builder)<br>
-      <toggle-button id="tButton" v-model="stringMode" :labels="{ checked: 'String Input', unchecked: 'ARI Builder' }"
+      <toggle-button id="tButton" v-model="stringMode" :labels="{ checked: 'Text Input', unchecked: 'ARI Builder' }"
         :width="100" />
     </center>
     <div>
       <div class="wrapper-next">
         <template v-if="stringMode">
-          <label>Enter String to translate:</label>
+          <label>Enter Text to translate:</label>
           <div class="input-group mb-3">
             <input type="text" class="form-control" placeholder="ari:0x0" v-model="cborString"
               v-on:keyup.enter="handleCbor($event.target.value)" />

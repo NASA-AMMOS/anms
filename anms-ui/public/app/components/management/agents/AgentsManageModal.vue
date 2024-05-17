@@ -16,7 +16,7 @@
               </div>
             </div>
             <div v-if="this.ariString">
-              <h5>ARI String:</h5>
+              <h5>ARI Text:</h5>
               <p style="overflow-wrap: break-word;">{{ ariString }}</p>
             </div>
             <div v-if="this.ariCBOR">

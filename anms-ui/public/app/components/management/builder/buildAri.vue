@@ -1,10 +1,10 @@
 <template>
   <div>
     <center>
-      Input Style(String Input/ARI Builder)<br>
+      Input Style(Text Input/ARI Builder)<br>
       <toggle-button id="tButton"
         v-model="stringMode"
-        :labels="{ checked: 'String Input', unchecked: 'ARI Builder' }"
+        :labels="{ checked: 'Text Input', unchecked: 'ARI Builder' }"
         :width="100" />
     </center>
     <div>
