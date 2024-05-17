@@ -34,7 +34,7 @@
             </b-button>
           </b-col>
           <b-col cols="9">
-            <build @updateResult="updateResults($event)"></build>
+            <build :cbor="cbor" @updateResult="updateResults($event)"></build>
           </b-col>
         </b-row>
       </div>
@@ -66,6 +66,10 @@ export default {
       type: Array,
       default: [],
     },
+    cbor: {
+      type: String,
+      default: undefined
+    }
   },
   watch: {
     showModal(newValue, _) {
@@ -82,7 +86,7 @@ export default {
       this.$emit("close");
       this.$refs['manageAgentModal'].hide();
       this.ariCBOR = undefined;
-      this.ariString - undefined;
+      this.ariString = undefined;
     },
     updateResults(result) {
       this.ariString = result;
@@ -96,11 +100,13 @@ export default {
           this.transcoderLogId = response.data.id;
           this.sendButtonText = "Transcoding ARI String";
           this.queryTranscoderLog();
+
         })
         .catch((error) => {
           console.error(error);
           toastr.error(error.response.data);
         });
+        
     },
     queryTranscoderLog() {
       api.methods

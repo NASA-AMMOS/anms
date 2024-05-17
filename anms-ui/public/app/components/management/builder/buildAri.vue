@@ -190,4 +190,4 @@ export default {
 .a {
   vs-selected-color: #fff;
 }
-</style
+</style>

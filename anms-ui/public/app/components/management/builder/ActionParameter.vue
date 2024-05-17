@@ -1,6 +1,6 @@
 <template>
   <div>
-    <label>Actions:</label>
+    <label>ARIs:</label>
     <div>
       <b-form-group>
         <v-select v-model="ariKey"
@@ -15,7 +15,7 @@
         </v-select>
       </b-form-group>
 
-      <label v-if="ac.length">Selected Actions:</label>
+      <label v-if="ac.length">Selected ARIs:</label>
       <b-list-group>
         <b-list-group-item v-for="(curr, index) in ac"
           :key="index">

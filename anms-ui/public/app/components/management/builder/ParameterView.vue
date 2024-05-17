@@ -83,6 +83,9 @@ export default {
   },
   mounted() {
     this.generateParameters();
+    this.$emit("updateResult", [{ type: "ARI", value: this.ariKey.display }]);
+    this.finResult = this.finResultBase;
+    
   },
   methods: {
     generateParameters() {
@@ -192,7 +195,7 @@ export default {
               break;
           }
         });
-
+        
         if (this.ariKey.obj_metadata_id != null) {
           this.finResultStr =
             "ari:/IANA:" +
