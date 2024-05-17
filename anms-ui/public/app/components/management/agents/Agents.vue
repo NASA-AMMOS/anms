@@ -132,7 +132,7 @@ export default {
       showAgentModal: false,
       showManageModal: false,
       agentInfo: null,
-      selectAll: false
+      selectAll: false,
     };
   },
   props:{

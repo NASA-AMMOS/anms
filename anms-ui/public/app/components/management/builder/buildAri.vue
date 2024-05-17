@@ -1,7 +1,6 @@
 <template>
   <div>
     <center>
-      Input Style(Text Input/ARI Builder)<br>
       <toggle-button id="tButton"
         v-model="stringMode"
         :labels="{ checked: 'Text Input', unchecked: 'ARI Builder' }"

@@ -100,13 +100,11 @@ export default {
           this.transcoderLogId = response.data.id;
           this.sendButtonText = "Transcoding ARI String";
           this.queryTranscoderLog();
-
         })
         .catch((error) => {
           console.error(error);
           toastr.error(error.response.data);
         });
-        
     },
     queryTranscoderLog() {
       api.methods
