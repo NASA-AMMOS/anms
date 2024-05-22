@@ -1,18 +1,26 @@
 <template>
   <div>
     <center>
-      Input Style(String Input/ARI Builder)<br>
-      <toggle-button id="tButton" v-model="stringMode" :value="true"
-        :labels="{ checked: 'String Input', unchecked: 'ARI Builder' }" :width="100" />
+      <toggle-button id="tButton"
+        v-model="stringMode"
+        :labels="{ checked: 'Text Input', unchecked: 'ARI Builder' }"
+        :width="100" />
     </center>
-    <div >
+    <div>
       <div class="wrapper-next">
         <template v-if="stringMode">
           <label>Enter String to translate:</label>
           <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="ari:0x0" v-model="cborString" v-on:keyup.enter="handleCbor($event.target.value)" />
+            <input type="text"
+              class="form-control"
+              placeholder="ari:0x0"
+              v-model="cborString"
+              v-on:keyup.enter="handleCbor($event.target.value)" />
             <div class="input-group-append">
-              <b-button variant="info" class="btn btn-outline-secondary" type="button" @click="handleCbor(cborString)">
+              <b-button variant="info"
+                class="btn btn-outline-secondary"
+                type="button"
+                @click="handleCbor(cborString)">
                 SUBMIT
               </b-button>
             </div>
@@ -20,29 +28,34 @@
           <p>Current URI = {{ finResultStr }}</p>
         </template>
       </div>
-      
+
       <template v-if="!stringMode">
-        <label>Search for an Ari:</label>
-        <div v-if="loading" class="loader">
-          <b-spinner variant="info" label="Loading..." type="grow"></b-spinner>
-        </div>
-        <v-select v-if="!loading" @search="onSearch" @input="genParms" v-model="ariKey" style="background: #fff"
-          class="a" :options="ARIs" :get-option-label="(option) => option.display">
-        </v-select>
-        <p>{{ description }}</p>
-        <p>Current URI = {{ finResultStr }}</p>
 
+        <b-container>
+          <h5>ARI Builder</h5>
+          <v-select v-model="ariKey"
+            label="display"
+            :options="ARIs"></v-select>
 
-        <div  align="center">
-          <ParameterView @updateResult="updateResults($event, index)" @v-if="selected" :ariKey="ariKey" :ACs="ARIs">
-          </ParameterView>
-        </div>
+          <ParameterView v-if="ariKey"
+            :ariKey="ariKey"
+            :ACs="ARIs"
+            @updateResult="updateResults($event)"></ParameterView>
+
+          <div v-if="ariKey" class="text-center my-3">
+            <h5>ARI String</h5>
+            <p>{{ finResultStr }}</p>
+            <b-button class="my-3"
+              variant="outline-success"
+              @click="submitAriString">Submit ARI String</b-button>
+          </div>
+        </b-container>
       </template>
     </div>
-    <br/>
+    <br />
     <!-- the table for the translated -->
     <div>
-    <Transcoder ref="transcoder"></Transcoder>
+      <Transcoder ref="transcoder"></Transcoder>
     </div>
 
   </div>
@@ -50,11 +63,7 @@
 
 <script>
 import Vue from "vue";
-import { reactive } from "vue";
-import ari_parameter from "./ariParamter";
-import tnvc_parameter from "./tnvcParameter";
-import prim_parameter from "./primParameter.vue";
-import ParameterView from "./parameterView.vue";
+import ParameterView from "./ParameterView.vue";
 import vSelect from "vue-select";
 import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
@@ -69,19 +78,15 @@ Vue.config.productionTip = false;
 export default {
   name: "Build",
   components: {
-    ari_parameter,
-    tnvc_parameter,
-    prim_parameter,
     vSelect,
     ParameterView,
     Transcoder,
   },
   data() {
     return {
-      // loading: false,
       query: "",
       aris: [],
-      ariKey: {},
+      ariKey: undefined,
       options: [],
       mngs: [],
       parameters: null,
@@ -92,11 +97,8 @@ export default {
       selected: false,
       cborString: "",
       checkbox: false,
-      stringMode: true,
+      stringMode: false,
     };
-  },
-  async mounted() {
-
   },
   computed: {
     ...mapGetters("build", {
@@ -117,13 +119,10 @@ export default {
     },
   },
   methods: {
-
     ...mapActions("build", {
       reloadARIs: "reloadARIs",
       setSearchString: "setSearchString"
     }),
-
-
     onSearch(search, loading) {
       if (search.length) {
         loading(true);
@@ -144,12 +143,6 @@ export default {
       loading(false);
       vm.options = aris;
     }, 350),
-
-    genParms: async function () {
-      this.selected = true;
-      this.finResultStr = "";
-      return;
-    },
     handleCbor(inputString) {
       inputString = inputString.trim()
       api.methods
@@ -163,29 +156,15 @@ export default {
           this.results = "error translating " + error;
         })
         .finally(() => (this.loading = false));
-        this.finResultStr = inputString;
-        this.$refs.transcoder.reloadTranscoderLog();
-    },
-    updateResults: function (result, index) {
-      let head = result[0].value.includes("ari") ? "" : "ari:/";
-
-      this.finResultStr = head + result[0].value;
-
-      api.methods
-        .apiPutTranscodedString(this.finResultStr)
-        .then((response) => {
-
-          this.finResultCbor = response.data
-        })
-        .catch((error) => {
-          console.error(error);
-          this.errored = true;
-          this.results = "error translating " + error;
-        })
-        .finally(() => (this.loading = false));
-      wait
+      this.finResultStr = inputString;
       this.$refs.transcoder.reloadTranscoderLog();
-      return;
+    },
+    updateResults: function (result) {
+      let head = result[0].value.includes("ari") ? "" : "ari:/";
+      this.finResultStr = head + result[0].value;
+    },
+    submitAriString() {
+      this.handleCbor(this.finResultStr);
     },
   },
 };
@@ -206,8 +185,8 @@ export default {
 
 }
 </style>
-<style  src='vue-select/dist/vue-select.css'>
+<style src='vue-select/dist/vue-select.css'>
 .a {
   vs-selected-color: #fff;
 }
-</style
+</style>

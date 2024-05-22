@@ -19,19 +19,19 @@
  * the prime contract 80NM0018D0004 between the Caltech and NASA under
  * subcontract 1658085.
  */
-import ari_parameter from "./ariParamter";
-import tnvc_parameter from "./tnvcParameter";
-import prim_parameter from "./primParameter.vue";
 import collect from "collect.js";
-import vSelect from "vue-select";
 import api from "../../../shared/api";
+import ActionParameter from "./ActionParameter";
+import prim_parameter from "./primParameter.vue";
+import TypeNameValueCollectionParameter from "./TypeNameValueCollectionParameter.vue";
+import ExpressionParameter from "./ExprParameter.vue";
 
 export default {
     components: {
-        ari_parameter,
-        tnvc_parameter,
+        TypeNameValueCollectionParameter,
         prim_parameter,
-        vSelect,
+        ActionParameter,
+        ExpressionParameter,
     },
     data: function () {
         return {
@@ -159,7 +159,7 @@ export default {
                             finResult.push({ "index": index, "type": "TNVC", "value": [] });
 
                             distParms.push({
-                                type: tnvc_parameter,
+                                type: TypeNameValueCollectionParameter,
                                 parameter: {
                                     index: index,
 
@@ -183,7 +183,7 @@ export default {
                             finResult.push({ "index": index, "type": "AC", "value": [] });
 
                             distParms.push({
-                                type: ari_parameter,
+                                type: ActionParameter,
                                 parameter: {
                                     index: index,
                                     result: [],
@@ -197,7 +197,7 @@ export default {
                             finResult.push({ "index": index, "type": "EXPR", "value": [] });
 
                             distParms.push({
-                                type: ari_parameter,
+                                type: ExpressionParameter,
                                 parameter: {
                                     index: index,
                                     result: [],

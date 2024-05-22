@@ -19,8 +19,8 @@
  * the prime contract 80NM0018D0004 between the Caltech and NASA under
  * subcontract 1658085.
  */
-import api from '../../shared/api';
 import Vue from "vue";
+import api from '../../shared/api';
 
 export default {
   namespaced: true,
@@ -70,7 +70,11 @@ export default {
       const params = { 'searchString': state.searchString, 'page': state.page, 'size': state.pageSize }
       api.methods.apiQueryForAgents(params)
         .then(res => {
-          commit('agents', res.data.items);
+          var agents = res.data.items;
+          agents.forEach((agent) => {
+            agent["selected"] = false;
+          });
+          commit('agents', agents);
           commit('count', res.data.total);
         })
     },
@@ -112,6 +116,11 @@ export default {
     },
     setAgentId({ state }, agentId) {
       Vue.set(state, 'agentId', agentId);
+    },
+    updateAgent({ state, commit }, {agentIndex, agent}) {
+      var agents = state.agents.slice();
+      agents[agentIndex] = agent;
+      commit('agents', agents);
     },
     setSearchString({ state }, searchString) {
       Vue.set(state, 'searchString', searchString);

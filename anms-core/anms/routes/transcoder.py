@@ -56,6 +56,10 @@ async def paged_transcoder_log(query: str, params: Params = Depends()):
             TranscoderLog.cbor.ilike(query)
         )).order_by(desc(TranscoderLog.transcoder_log_id)), params)
 
+@router.get("/db/id/{id}", status_code=status.HTTP_200_OK, response_model=TL)
+async def transcoder_log_by_id(id: str):
+    with get_session() as session:
+        return TranscoderLog.query.filter_by(transcoder_log_id=id).first()
 
 # PUT 	/ui/incoming/{cbor}/hex
 @router.put("/ui/incoming/{cbor}/hex", status_code=status.HTTP_200_OK)
@@ -81,13 +85,20 @@ def transcoder_put_str(ari: str):
     ari = ari.strip()
     msg = json.dumps({"uri": ari})
     logger.info(ari)
+    transcoder_log_id = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter_by(input_string=ari).first()
         if curr_uri is None:
             c1 = TranscoderLog(input_string=ari, parsed_as='pending')
             session.add(c1)
+            session.flush()
+            session.refresh(c1)
+            transcoder_log_id = c1.transcoder_log_id
             session.commit()
+        else:
+            transcoder_log_id = curr_uri.transcoder_log_id
 
     logger.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
     MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
-    return status.HTTP_200_OK
+
+    return {"id": transcoder_log_id}

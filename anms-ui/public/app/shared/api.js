@@ -19,16 +19,15 @@
  * the prime contract 80NM0018D0004 between the Caltech and NASA under
  * subcontract 1658085.
  */
-import axios from 'axios';
 import Constants from '@app/shared/constants';
-import CBOR from "cbor"; 
+import axios from 'axios';
+import CBOR from "cbor";
 export default {
   data() {
     return {
     }
   },
   methods: {
-
     createAuthenticationHeader() {
       return {
         Authorization: 'Bearer ' + Constants.USER_DETAILS.token
@@ -75,8 +74,6 @@ export default {
           headers: this.createAuthenticationHeader()
         })
     },
-
-
 
     apiPutUserProfile(userId, payload) {
       return axios.put(Constants.BASE_API_URL + 'users/' + encodeURIComponent(userId) + '/profile',
@@ -134,10 +131,11 @@ export default {
         return axios.get(Constants.BASE_API_URL + `agents/search/${searchString}`, { params: params });
       }
     },
+
     apiGetAgent(agentId){
       return axios.get(Constants.BASE_API_URL +  `agents/id/${agentId}`)
     },
-    
+
     // ari all
     apiQueryForARIs() {
       return axios.get(Constants.BASE_API_URL + 'build/ari/all');
@@ -164,10 +162,11 @@ export default {
     apiEntriesForReportTemplate(agentId){
       return axios.get(Constants.BASE_API_URL+`report/entry/name/${agentId}`)
     },
-    apiEntriesForOperations(agentId){ // get the names of crude operations 
+
+    apiEntriesForOperations(agentId){ // get the names of crude operations
       return axios.get(Constants.BASE_API_URL+`agents/parameter/name/${agentId}`)
     },
-    
+
     apiPutCRUD(agentId, optId, params){
       return axios.put(Constants.BASE_API_URL+`agents/parameter/send/${agentId}/${optId}`,params)
     },
@@ -178,7 +177,6 @@ export default {
     },
 
     apiSendRawCommand(nodeEID, command) {
-
       return axios.put(Constants.BASE_API_URL+'nm/agents/eid/' + nodeEID + '/hex', {"data":command})
     },
 
@@ -210,18 +208,19 @@ export default {
       console.log("Called getDbStatus!!!", Constants.BASE_API_URL);
       return axios.get(Constants.BASE_API_URL + 'sys_status/db_status')
     },
+
     apiGetAlerts() {
       return axios.get(Constants.BASE_API_URL +'alerts/incoming', {headers: {accept: 'application/json'}})
     },
+
     apiAcknowledgeAlerts(index) {
       return axios.put(Constants.BASE_API_URL +'alerts/acknowledge/'+index)
     },
 
     apiGetServiceStatus() {
-      console.info("Called get Services!!!", Constants.BASE_API_URL);
-      console.info("Called get Services!!!", Constants.BASE_URL);
       return axios.get(Constants.BASE_API_URL +'core/service_status', {headers: {accept: 'application/json'}})
     },
+
     apiPutTranscodedHex(cbor){
       return axios.put(Constants.BASE_API_URL+'transcoder/ui/incoming/'+ cbor +'/hex')
     },
@@ -229,6 +228,11 @@ export default {
     apiPutTranscodedString(ari){
       return axios.put(Constants.BASE_API_URL+'transcoder/ui/incoming/str', {"ari":ari})
     },
+
+    apiGetTranscoderLogById(id) {
+      return axios.get(Constants.BASE_API_URL+`transcoder/ui/log/id/${id}`);
+    },
+
     apiQueryForTranscoderLog(payload) {
       let params = {};
       if (payload.page) {
