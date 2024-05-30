@@ -24,9 +24,9 @@ class anms(
   file { '/ammos/anms/.env':
     ensure  => 'file',
     content => epp('anms/env.epp'),
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0644',
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
   }
   file { ['/ammos/etc', '/ammos/etc/pki', '/ammos/etc/pki/tls',
           '/ammos/etc/pki/tls/private', '/ammos/etc/pki/tls/certs']:
