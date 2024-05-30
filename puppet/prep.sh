@@ -28,8 +28,11 @@ set -e
 SELFDIR=$(dirname "${BASH_SOURCE[0]}")
 source ${SELFDIR}/getenv.sh
 
-rm -f ${SELFDIR}/modules/anms/files/*-compose.yml
-cp "${SELFDIR}/../docker-compose.yml" "${SELFDIR}/../agent-compose.yml" "${SELFDIR}/modules/anms/files/"
+rm -f "${SELFDIR}"/modules/anms/files/*-compose.yml
+cp "${SELFDIR}/../docker-compose.yml" \
+   "${SELFDIR}/../agent-compose.yml" \
+   "${SELFDIR}/../create_volume.sh" \
+   "${SELFDIR}/modules/anms/files/"
 
 export BOLT_PROJECT="${SELFDIR}"
 bolt module install --force

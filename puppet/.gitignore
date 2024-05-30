@@ -9,6 +9,7 @@ bolt-debug.log
 # Files replaced by prep.sh
 modules/anms/files/docker-compose.yml
 modules/anms/files/agent-compose.yml
+modules/anms/files/create_volume.sh
 
 # Files replaced by apply_local.sh
 data/override.yaml

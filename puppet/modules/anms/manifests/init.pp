@@ -12,9 +12,9 @@ class anms(
   String $cam_admin_password = '',
   String $cam_agent_name = $facts['networking']['fqdn'],
   String $cam_agent_password = '',
-#  String $tls_server_key,
-#  String $tls_server_cert,
-#  String $tls_server_ca,
+  Optional[String] $tls_server_key = undef,
+  Optional[String] $tls_server_cert = undef,
+  Optional[String] $tls_server_ca = undef,
 ) {
   require Class['anms::hostenv']
 
@@ -24,10 +24,9 @@ class anms(
   file { '/ammos/anms/.env':
     ensure  => 'file',
     content => epp('anms/env.epp'),
-  }
-  file { '/ammos/anms/docker-compose.yml':
-    ensure => 'file',
-    source => 'puppet:///modules/anms/docker-compose.yml',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0644',
   }
   file { ['/ammos/etc', '/ammos/etc/pki', '/ammos/etc/pki/tls',
           '/ammos/etc/pki/tls/private', '/ammos/etc/pki/tls/certs']:
@@ -35,18 +34,21 @@ class anms(
   }
   file { '/ammos/etc/pki/tls/private/ammos-server-key.pem':
     ensure => 'file',
+    source => $tls_server_key,
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
   }
   file { '/ammos/etc/pki/tls/certs/ammos-server-cert.pem':
     ensure => 'file',
+    source => $tls_server_cert,
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
   }
   file { '/ammos/etc/pki/tls/certs/ammos-ca-bundle.crt':
     ensure => 'file',
+    source => $tls_server_ca,
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
@@ -101,31 +103,47 @@ class anms(
   # Images pulled from remote registry
   if !empty($docker_image_prefix) and !empty($docker_registry_user) and !empty($docker_registry_pass) {
     exec { 'docker-login':
+      path    => $facts['path'],
       command => "docker login ${docker_image_prefix} --username \"${docker_registry_user}\" --password \"${docker_registry_pass}\"",
-      path    => $facts['path'],
+      require => Service['docker'],
       before  => [
-        Exec['anms-pull'],
-        Exec['agents-pull'],
+        Anms::Docker_compose['anms'],
+        Anms::Docker_compose['agents'],
       ],
     }
-    exec { 'anms-pull':
-      command => 'docker-compose -f /ammos/anms/docker-compose.yml pull',
-      path    => $facts['path'],
-      require => [
-        File['/ammos/anms/docker-compose.yml'],
-        File['/ammos/anms/.env'],
-      ],
-      before  => Anms::Docker_compose['anms'],
-    }
-    exec { 'agents-pull':
-      command => 'docker-compose -f /ammos/anms/agent-compose.yml pull',
-      path    => $facts['path'],
-      require => [
-        File['/ammos/anms/agent-compose.yml'],
-        File['/ammos/anms/.env'],
-      ],
-      before  => Anms::Docker_compose['agents'],
-    }
+  }
+
+  # volume for TLS-related PKIX files
+  file { '/ammos/anms/create_volume.sh':
+    ensure => 'file',
+    source => 'puppet:///modules/anms/create_volume.sh',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+  }
+  exec { 'volume-ammos-tls':
+    path      => $facts['path'],
+    command   => '/ammos/anms/create_volume.sh',
+    unless    => 'docker volume inspect ammos-tls',
+    require   => [
+      Service['docker'],
+      File['/ammos/anms/create_volume.sh'],
+    ],
+    subscribe => [
+      File['/ammos/etc/pki/tls/private/ammos-server-key.pem'],
+      File['/ammos/etc/pki/tls/certs/ammos-server-cert.pem'],
+      File['/ammos/etc/pki/tls/certs/ammos-ca-bundle.crt'],
+    ],
+    before    => Anms::Docker_compose['anms'],
+    notify    => Anms::Docker_compose['anms'],
+  }
+
+  file { '/ammos/anms/docker-compose.yml':
+    ensure => 'file',
+    source => 'puppet:///modules/anms/docker-compose.yml',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0644',
   }
   anms::docker_compose { 'anms':
     ensure        => 'present',
@@ -140,6 +158,9 @@ class anms(
   file { '/ammos/anms/agent-compose.yml':
     ensure => 'file',
     source => 'puppet:///modules/anms/agent-compose.yml',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0644',
   }
   anms::docker_compose { 'agents':
     ensure        => 'present',
