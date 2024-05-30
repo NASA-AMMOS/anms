@@ -8,6 +8,7 @@
 define anms::docker_compose(
   Enum['present','absent'] $ensure,
   Array[String] $compose_files,
+  Boolean $pull_first = true,
   String $up_args = '',
 ) {
   require anms::docker
@@ -17,16 +18,23 @@ define anms::docker_compose(
 
   case $ensure {
     'present': {
+      if $pull_first {
+        exec { "docker-compose-${title}-pull":
+          path    => $facts['path'],
+          command => "docker compose -p ${title} -f ${files_args} pull",
+          before  => Exec["docker-compose-${title}-up"],
+        }
+      }
       exec { "docker-compose-${title}-up":
-        path => $facts['path'],
-  command    => "docker compose -p ${title} -f ${files_args} up --detach --remove-orphans ${up_args}",
+        path    => $facts['path'],
+        command => "docker compose -p ${title} -f ${files_args} up --detach --remove-orphans ${up_args}",
       }
     }
     'absent': {
-      exec { "docker-compose-${title}-up":
+      exec { "docker-compose-${title}-rm":
         path    => $facts['path'],
         command => "docker compose -p ${title} -f ${files_args} rm --force --stop",
-  onlyif        => $is_running,
+        onlyif  => $is_running,
       }
     }
     default: {

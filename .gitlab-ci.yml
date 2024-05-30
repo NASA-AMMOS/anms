@@ -42,6 +42,7 @@ variables:
   DOCKER_BUILDKIT: 1
   # for Python/PIP
   PIP_CERT: /etc/pki/tls/certs/ca-bundle.crt
+  PIP_DEFAULT_TIMEOUT: 300
   # for Ruby/bolt
   SSL_CERT_FILE: /etc/pki/tls/certs/ca-bundle.crt
   # Project-specific environment
@@ -346,6 +347,10 @@ deploy:
       anms::docker_image_tag: "${DOCKER_IMAGE_TAG}"
       anms::docker_registry_user: "${DOCKER_REGISTRY_USERNAME}"
       anms::docker_registry_pass: "${DOCKER_REGISTRY_PASSWORD}"
+      anms::tls_server_key: 'puppet:///modules/apl_test/anms/tls/private/ammos-server-key.pem'
+      anms::tls_server_cert: 'puppet:///modules/apl_test/anms/tls/certs/ammos-server-cert.pem'
+      anms::tls_server_ca: 'puppet:///modules/apl_test/anms/tls/certs/ammos-ca-bundle.crt'
+      anms::hostenv::use_fips: false
       selinux::mode: permissive
       selinux::type: targeted
       EOF

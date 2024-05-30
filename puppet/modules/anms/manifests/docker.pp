@@ -5,9 +5,9 @@
 class anms::docker() {
   case $facts['os']['family'] {
     'RedHat':  {
-      package { ['podman', 'runc']:
+      package { ['podman-docker', 'podman', 'runc']:
         ensure => 'absent',
-        before => Package['docker-ce'],
+        before => [Package['docker-ce'], Package['docker-ce-cli']],
       }
       package { 'yum-utils':
         ensure => 'installed',
@@ -30,6 +30,8 @@ class anms::docker() {
     ensure => 'installed',
   }
   service { 'docker':
+    ensure  => 'running',
+    enable  => true,
     require => Package['docker-ce'],
   }
 
@@ -37,10 +39,11 @@ class anms::docker() {
     ensure => 'absent',
   }
   file { '/etc/docker/daemon.json':
-    source => 'puppet:///modules/anms/docker-daemon.json',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0644',
-    notify => Service['docker'],
+    source  => 'puppet:///modules/anms/docker-daemon.json',
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => Package['docker-ce'],
+    notify  => Service['docker'],
   }
 }

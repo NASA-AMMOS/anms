@@ -1,12 +1,16 @@
 # Define host environment configuration for ANMS installation.
 #
-class anms::hostenv() {
+class anms::hostenv(
+  Boolean $use_fips = true,
+) {
   case $facts['os']['family'] {
     'RedHat':  {
       # This halts on reboot_notify()
       # instead run with:
       #  bolt apply --execute 'class {"fips": }'
-#      class { 'fips': }
+      if $use_fips {
+        class { 'fips': }
+      }
 
       file { '/var/cache/puppet':
         ensure => 'directory',
@@ -60,20 +64,22 @@ class anms::hostenv() {
     'Debian': {
       case $facts['os']['distro']['codename'] {
         'focal':  {
-          # Based on guidance at: https://aplwiki.jhuapl.edu/confluence/pages/viewpage.action?spaceKey=LAPLKEY&title=Ubuntu+FIPS+Packages
-          apt::source { 'focal-fips':
-            location => 'https://apllinuxdepot.jhuapl.edu/linux/apl-software/focal-fips/',
-            release  => '',
-            repos    => '/',
-            key      => {
-              id     => '6F6B15509CF8E59E6E469F327F438280EF8D349F',
-              server => 'https://apllinuxdepot.jhuapl.edu/linux/apl-software/focal-fips/apl-software-repo.gpg',
-            },
-          }
+          if $use_fips {
+            # Based on guidance at: https://aplwiki.jhuapl.edu/confluence/pages/viewpage.action?spaceKey=LAPLKEY&title=Ubuntu+FIPS+Packages
+            apt::source { 'focal-fips':
+              location => 'https://apllinuxdepot.jhuapl.edu/linux/apl-software/focal-fips/',
+              release  => '',
+              repos    => '/',
+              key      => {
+                id     => '6F6B15509CF8E59E6E469F327F438280EF8D349F',
+                server => 'https://apllinuxdepot.jhuapl.edu/linux/apl-software/focal-fips/apl-software-repo.gpg',
+              },
+            }
 
-          package { 'ubuntu-fips':
-            ensure  => 'installed',
-            require => Apt::Source['focal-fips'],
+            package { 'ubuntu-fips':
+              ensure  => 'installed',
+              require => Apt::Source['focal-fips'],
+            }
           }
         }
         default: {
