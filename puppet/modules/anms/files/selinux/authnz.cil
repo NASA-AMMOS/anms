@@ -1,6 +1,7 @@
 (block authnz
     (blockinherit container)
     (blockinherit restricted_net_container)
+    (allow process container_file_t ( chr_file ( map )))
     (allow process http_port_t ( tcp_socket ( name_bind )))
     (allow process http_port_t ( tcp_socket ( name_connect )))
 )

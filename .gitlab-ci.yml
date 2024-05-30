@@ -349,6 +349,7 @@ deploy:
       anms::tls_server_key: 'puppet:///modules/apl_test/anms/tls/private/ammos-server-key.pem'
       anms::tls_server_cert: 'puppet:///modules/apl_test/anms/tls/certs/ammos-server-cert.pem'
       anms::tls_server_ca: 'puppet:///modules/apl_test/anms/tls/certs/ammos-ca-bundle.crt'
+      anms::hostenv::use_fips: false
       selinux::mode: permissive
       selinux::type: targeted
       EOF
