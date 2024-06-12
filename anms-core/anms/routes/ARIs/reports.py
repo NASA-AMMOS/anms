@@ -30,6 +30,7 @@ from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
 import re 
+from datetime import datetime
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session, get_session
@@ -132,7 +133,7 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
             ac_id = result.one_or_none()
 
         # get AC
-        ac_names = []
+        ac_names = ["time"]
         ac_types_and_id = []
         ac_stmt = select(ARICollection).where(ARICollection.ac_id == ac_id).order_by(ARICollection.order_num)
         async with get_async_session() as session:
@@ -147,7 +148,10 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
 
                 ac_names.append(curr_name)
                 ac_types_and_id.append((entry.data_type_id, entry.obj_metadata_id))
-
+            # unknown template
+            if ac_names == []:
+                ac_names = ["time","string_values", "uint_values", "int_values", "real32_values", "real64_values", "uvast_values","vast_values"]
+                
         stmt = select(Report).where(Report.agent_id == agent_id , Report.ADM == adm_name
                                                                , Report.report_name == report_name)
         # find the type of ari
@@ -160,6 +164,8 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
 
             for entry in entries:
                 curr_values = []
+                time = datetime.fromtimestamp(int(entry.time)).strftime('%Y-%m-%d %H:%M:%S')
+
                 string_values = list(filter(None, re.split(r",|'(.*?)'", entry.string_values))) if entry.string_values else []
                 uint_values = entry.uint_values.split(',') if entry.uint_values else []
                 int_values = entry.int_values.split(',') if entry.int_values else []
@@ -169,7 +175,7 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
                 vast_values = entry.vast_values.split(',') if entry.vast_values else []
                 value_matchup = {18: string_values, 19: int_values, 20: uint_values, 21: vast_values, 22: uvast_values,
                                  23: real32_values, 24: real64_values}
-                
+                curr_values.append(time)
                 for type_id, obj_id in ac_types_and_id:
                     if type_id in type_matchup:
                         curr_type = await type_matchup[type_id](obj_id)
@@ -177,6 +183,14 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
                         curr_type = type_id
                     if value_matchup[curr_type]:
                             curr_values.append(value_matchup[curr_type].pop(0))
+                if ac_types_and_id is []:
+                    curr_values.append(','.join(string_values))
+                    curr_values.append(','.join(uint_values))
+                    curr_values.append(','.join(int_values))
+                    curr_values.append(','.join(real32_values))
+                    curr_values.append(','.join(real64_values))
+                    curr_values.append(','.join(uvast_values))
+                    curr_values.append(','.join(vast_values))
             
                 final_values.append(curr_values)
 

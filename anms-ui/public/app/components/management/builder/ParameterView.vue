@@ -179,7 +179,7 @@ export default {
                 currValue.push(ari.replaceAll('"', "'"));
               });
 
-              testResult.push(JSON.stringify(currValue).replaceAll('"', ""));
+              testResult.push(JSON.stringify(currValue).replaceAll('"', "").replaceAll("'",'"'));
 
               break;
 

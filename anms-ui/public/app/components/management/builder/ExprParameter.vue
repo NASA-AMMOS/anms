@@ -50,7 +50,7 @@ export default {
   props: ["listComponents", "name", "parms", "type", "index"],
   data() {
     return {
-      expressionReturnTypes: ["BYTE", "INT", "UINT", "VAST", "UVAST", "REAL32", "REAL64", "STRING", "BOOLEAN"],
+      expressionReturnTypes: ["BYTE", "INT", "UINT", "VAST", "UVAST", "REAL32", "REAL64", "STRING", "BOOL"],
       selectedExpressionReturnType: undefined,
       expressionList: [],
       ariKey: undefined,

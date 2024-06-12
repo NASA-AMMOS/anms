@@ -32,7 +32,6 @@
           @click="addNewTnvc"><i class="fas fa-plus"></i></b-button>
       </b-col>
     </b-row>
-
     <b-list-group class="my-2">
       <b-list-group-item v-for="(TNVC, index) in TNVCs"
         :key="index">
@@ -57,11 +56,12 @@ export default {
   props: ["name", "type", "types", "index"],
   data() {
     return {
-      TNVCType: undefined,
-      TNVCName: undefined,
-      TNVCValue: undefined,
+      TNVCType: "",
+      TNVCName: "",
+      TNVCValue: "",
       final: { "index": this.index, "type": "TNVC", "value": [] },
       TNVCs: [],
+      test: {},
     }
   },
   methods: {
@@ -77,9 +77,9 @@ export default {
       this.$emit("updateResult", this.final);
     },
     clearInputs() {
-      this.TNVCType = undefined;
-      this.TNVCName = undefined;
-      this.TNVCValue = undefined;
+      this.TNVCType = "";
+      this.TNVCName = "";
+      this.TNVCValue = "";
     }
   }
 }

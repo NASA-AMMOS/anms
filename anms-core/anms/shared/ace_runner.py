@@ -38,4 +38,37 @@ def get_adms():
     if not hasattr(LOCALDATA, 'adms'):
         LOCALDATA.adms = ace.AdmSet(cache_dir=False)
         LOCALDATA.adms.load_default_dirs()
+        _adm_reload(None)
     return LOCALDATA.adms
+
+
+def _adm_reload(adm_name):
+    with get_session() as db_conn:
+        if adm_name:
+            LOGGER.info('Reloading one ADM: %s', adm_name)
+            curs = db_conn.execute('''\
+SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+FROM adm_data 
+INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
+WHERE adm_name = ?
+''', [adm_name])
+            for row in curs.all():
+                _handle_adm(*row)
+
+        else:
+            LOGGER.info('Reloading all ADMS...')
+
+            curs = db_conn.execute('''\
+SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+FROM adm_data 
+INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
+''')
+            for row in curs.all():
+                _handle_adm(*row)
+
+    LOGGER.info('ADMS present for: %s', LOCALDATA.adms.names())
+                
+def _handle_adm(adm_name, timestamp, data):
+    LOGGER.info('Handling ADM: %s', adm_name)
+    LOCALDATA.adms.load_from_data(io.BytesIO(data))
+    LOGGER.info('Handling finished')
