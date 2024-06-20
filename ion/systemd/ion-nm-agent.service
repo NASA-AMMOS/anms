@@ -1,7 +1,7 @@
 [Unit]
 Description=ION NM Agent
 After=network-online.target ion.service ion-nm-mgr.service
-Wants=network-online.target
+Wants=network-online.target ion-nm-mgr.service
 Requires=ion.service
 
 [Service]
