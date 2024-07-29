@@ -20,7 +20,7 @@
 -- subcontract 1658085.
 --
 CREATE OR REPLACE VIEW vw_obj_metadata AS
-       SELECT om.*, adm.adm_name, adm.adm_enum, adm.adm_enum_label, adm.use_desc
+       SELECT om.obj_metadata_id, om.data_type_id, om.obj_name, adm.adm_name, adm.adm_enum, adm.adm_enum_label, adm.use_desc
        FROM obj_metadata om
        LEFT JOIN adm ON adm.namespace_id=om.namespace_id;
 
