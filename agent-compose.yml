@@ -36,9 +36,12 @@ networks:
 services:
 
   ion-agent2: &ion-agent
-    container_name: ${DOCKER_CTR_PREFIX}ion-agent2
     hostname: ion-agent2
     image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
+    build:
+      context: ion
+      dockerfile: Dockerfile
+      target: ion-agent
     expose:
       - 1113/udp
       - 4556/udp
@@ -56,7 +59,6 @@ services:
 
   ion-agent3:
     <<: *ion-agent
-    container_name: ${DOCKER_CTR_PREFIX}ion-agent3
     hostname: ion-agent3
     environment:
       container: docker

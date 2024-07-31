@@ -42,9 +42,29 @@ volumes:
     external: true
 
 services:
+  builder-base:
+    image: anms-base
+    build:
+      dockerfile: base.Dockerfile
+      target: anms-base
+    command: echo "Base image built" # Prevent it from running
+  builder-init:
+    image: anms-init
+    build:
+      dockerfile: base.Dockerfile
+      target: anms-base
+    command: echo "Base-init image built" # Prevent it from running
+  builder-acelib:
+    image: anms-acelib
+    build:
+      dockerfile: base.Dockerfile
+      target: anms-acelib
+    command: echo "Base-acelib image built" # Prevent it from running
   authnz:
-    container_name: authnz
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
+    build:
+      context: ${AUTHNZ_EMU}
+      dockerfile: Dockerfile
     hostname: authnz
     restart: unless-stopped
     security_opt:
@@ -54,6 +74,7 @@ services:
       - "443:443"
     depends_on:
       - nginx
+      - builder-base
     environment:
       CAM_SERVER_URL: ${CAM_SERVER_URL}
       CAM_ADMIN_USER: ${CAM_ADMIN_USER}
@@ -67,10 +88,17 @@ services:
       - ammos-tls:/ammos/etc/pki/tls:ro
 
   nginx:
-    container_name: ${DOCKER_CTR_PREFIX}nginx
     hostname: nginx
-    image: ${DOCKER_IMAGE_PREFIX}anms-nginx:${DOCKER_IMAGE_TAG}
+    image: nginx:1.23
     restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    healthcheck:
+      test: curl -sq -o/dev/null http://localhost:80
+      interval: 60s
+      start_period: 10s
+      timeout: 60s
+      retries: 20
     security_opt:
       - "label=type:nginx.process"
     depends_on:
@@ -80,7 +108,6 @@ services:
       - adminer
 
   opensearch:
-    container_name: ${DOCKER_CTR_PREFIX}opensearch
     hostname: opensearch
     image: opensearchproject/opensearch:2.0.0
     restart: unless-stopped
@@ -104,7 +131,6 @@ services:
       - "9600:9600" # required for Performance Analyzer
 
   opensearch-dashboards:
-    container_name: ${DOCKER_CTR_PREFIX}opensearch-dashboards
     hostname: opensearch-dashboards
     image: opensearchproject/opensearch-dashboards:2.0.0
     restart: unless-stopped
@@ -116,9 +142,8 @@ services:
       OPENSEARCH_HOSTS: '["https://opensearch:9200"]' # must be a string with no spaces when specified as an environment variable
 
   postgres:
-    container_name: ${DOCKER_CTR_PREFIX}postgres
     hostname: postgres
-    image: ${DOCKER_IMAGE_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    image: postgres:14
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -128,34 +153,81 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
+      - ./postgres/Database_Scripts/Tables/amp_core_create_database.sql:/docker-entrypoint-initdb.d/00-amp_core_create_database.sql
+      - ./postgres/Database_Scripts/Tables/transcoder.sql:/docker-entrypoint-initdb.d/00-transcoder.sql
+      - ./postgres/Database_Scripts/Tables/adm_data.sql:/docker-entrypoint-initdb.d/01-adm_data.sql
+
+      - ./postgres/Database_Scripts/Views/obj_view.sql:/docker-entrypoint-initdb.d/01-obj_view.sql
+      - ./postgres/Database_Scripts/Views/ari_view.sql:/docker-entrypoint-initdb.d/14-ari_view.sql
+      - ./postgres/Database_Scripts/Views/ctrl_view.sql:/docker-entrypoint-initdb.d/04-ctrl_view.sql
+      - ./postgres/Database_Scripts/Views/edd_view.sql:/docker-entrypoint-initdb.d/05-edd_view.sql
+      - ./postgres/Database_Scripts/Views/mac_view.sql:/docker-entrypoint-initdb.d/06-mac_view.sql
+      - ./postgres/Database_Scripts/Views/oper_view.sql:/docker-entrypoint-initdb.d/07-oper_view.sql
+      - ./postgres/Database_Scripts/Views/message_view.sql:/docker-entrypoint-initdb.d/08-message_view.sql
+      - ./postgres/Database_Scripts/Views/rpt_view.sql:/docker-entrypoint-initdb.d/13-rpt_view.sql
+      - ./postgres/Database_Scripts/Views/sbr_view.sql:/docker-entrypoint-initdb.d/09-sbr_view.sql
+      - ./postgres/Database_Scripts/Views/tbr_view.sql:/docker-entrypoint-initdb.d/10-tbr_view.sql
+      - ./postgres/Database_Scripts/Views/tblt_view.sql:/docker-entrypoint-initdb.d/11-tblt_view.sql
+      - ./postgres/Database_Scripts/Views/tnvc_view.sql:/docker-entrypoint-initdb.d/12-tnvc_view.sql
+      - ./postgres/Database_Scripts/Views/parm_view.sql:/docker-entrypoint-initdb.d/13-parm_view.sql
+      - ./postgres/Database_Scripts/Views/var_view.sql:/docker-entrypoint-initdb.d/13-var_view.sql
+      - ./postgres/Database_Scripts/Views/namespace_view.sql:/docker-entrypoint-initdb.d/13-namespace_view.sql
+
+      - ./postgres/Database_Scripts/Routines/all_routines.sql:/docker-entrypoint-initdb.d/16-all_routines.sql
+      - ./postgres/Database_Scripts/Tables/healthcheck_roles.sql:/docker-entrypoint-initdb.d/17-healthcheck_roles.sql
+      - ./postgres/Database_Scripts/amp_core_functions.sql:/docker-entrypoint-initdb.d/17-amp_core_functions.sql
+      # This is used for testing, it is easier to delete the amp_agent after inserting it using adm_amp_agent.sql instead of removing the script since other scripts are also relying on amp_agent
+      # - ./postgres/Database_Scripts/Routines/amp_agent_delete.sql:/docker-entrypoint-initdb.d/31-amp_agent_delete.sql
+    healthcheck:
+      test: pg_isready -U healthcheck
+      interval: 10s
+      start_period: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "${DB_PORT-5432}:5432"
 
   mqtt-broker:
-    container_name: ${DOCKER_CTR_PREFIX}mqtt-broker
     hostname: mqtt-broker
-    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
+    image: eclipse-mosquitto:2.0
     restart: unless-stopped
+    volumes:
+      - ./mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
     security_opt:
       - "label=type:mqtt-broker.process"
     ports:
       - "1883:1883"
-
+# $SYS variable not defined
+    healthcheck:
+      test: echo "Healthcheck disabled"
+#      test: mosquitto_sub -t $SYS/broker/version -C 1
+#      interval: 10s
+#      start_period: 5s
+#      timeout: 1s
+#      retries: 5
+      
   transcoder:
-    container_name: ${DOCKER_CTR_PREFIX}transcoder
     hostname: transcoder
     image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
+    build:
+      context: transcoder
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:transcoder.process"
     depends_on:
+      builder-acelib:
+          # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       mqtt-broker:
         condition: service_healthy
 
   grafana:
-    container_name: ${DOCKER_CTR_PREFIX}grafana
     hostname: grafana
     image: ${DOCKER_IMAGE_PREFIX}grafana:${DOCKER_IMAGE_TAG}
+    build:
+      # NOTE: Custom image currently needed only for SSL-cert purposes
+      context: grafana
     restart: unless-stopped
     security_opt:
       - "label=type:grafana.process"
@@ -171,7 +243,6 @@ services:
       - "grafana-data:/var/lib/grafana"
 
   grafana-image-renderer:
-    container_name: ${DOCKER_CTR_PREFIX}grafana-image-renderer
     hostname: grafana-image-renderer
     image: grafana/grafana-image-renderer:3.6.1
     restart: unless-stopped
@@ -181,7 +252,6 @@ services:
       - "${RENDERER_PORT:-8081}:8081"
 
   redis:
-    container_name: ${DOCKER_CTR_PREFIX}redis
     hostname: redis
     image: redis:6.0-alpine
     restart: unless-stopped
@@ -197,9 +267,11 @@ services:
     command: redis-server --databases 1 --bind 0.0.0.0 --port ${REDIS_PORT:-6379}
 
   aricodec:
-    container_name: ${DOCKER_CTR_PREFIX}aricodec
     hostname: aricodec
     image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG}
+    build:
+      context: aricodec
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:aricodec.process"
@@ -207,15 +279,20 @@ services:
       DB_URI: postgresql://${DB_USER}:${DB_PASSWORD}@postgres/${DB_NAME}
       MQTT_HOST: mqtt-broker
     depends_on:
+      builder-acelib:
+          # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       postgres:
         condition: service_healthy
       mqtt-broker:
         condition: service_healthy
 
   anms-ui:
-    container_name: ${DOCKER_CTR_PREFIX}anms-ui
     hostname: anms-ui
     image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
+    build:
+      context: anms-ui
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:anms-ui.process"
@@ -223,6 +300,9 @@ services:
       - "${ANMS_UI_HTTP_PORT:-9030}:9030"
       - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
     depends_on:
+      builder-base:
+        # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       redis:
         condition: service_healthy
       postgres:
@@ -237,9 +317,11 @@ services:
       REDIS_URI_HOSTNAME: redis
 
   anms-core:
-    container_name: ${DOCKER_CTR_PREFIX}anms-core
     hostname: anms-core
     image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
+    build:
+      context: anms-core
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:anms-core.process"
@@ -254,13 +336,15 @@ services:
     ports:
       - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
     depends_on:
+      builder-acelib:
+        # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       postgres:
         condition: service_healthy
       mqtt-broker:
         condition: service_healthy
 
   adminer:
-    container_name: ${DOCKER_CTR_PREFIX}adminer
     hostname: adminer
     image:  adminer:latest
     restart: unless-stopped
@@ -270,9 +354,12 @@ services:
       - "${ADMINER_PORT:-8080}:8080"
 
   ion-manager:
-    container_name: ${DOCKER_CTR_PREFIX}ion-manager
     hostname: ion-manager
     image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+    build:
+      context: ion
+      dockerfile: Dockerfile
+      target: ion-manager
     restart: unless-stopped
     security_opt:
       - "label=type:ion-manager.process"
@@ -281,6 +368,9 @@ services:
       - "4556:4556/udp"
       - "${ION_MGR_PORT:-8089}:8089"
     depends_on:
+      builder-init:
+          # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       postgres:
         condition: service_healthy
     privileged: true
