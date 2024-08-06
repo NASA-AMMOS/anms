@@ -94,7 +94,7 @@
       :cbor="cbor"></agents-manage-modal>
 
     <footer class="footer">
-      <p><a :href="info.split(' - ')[1]">Amp Version: {{ info.split(" - ")[0] }}</a></p>
+      <p><a :href="info.split(' - ')[1]" target="_blank">Amp Version: {{ info.split(" - ")[0] }}</a></p>
     </footer>
   </div>
 </template>
