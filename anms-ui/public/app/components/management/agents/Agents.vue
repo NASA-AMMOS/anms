@@ -48,34 +48,41 @@
             </div>
           </template>
         </b-table>
-        <div class="d-flex float-right">
-          <div class="my-2 mx-3">
-            Items per Page:
-            <select v-model="pageSize"
-              @change="handlePageSizeChange($event)">
-              <option v-for="size in pageSizes"
-                :key="size"
-                :value="size">
-                {{ size }}
-              </option>
-            </select>
-          </div>
-          <b-pagination v-model="page"
-            class="m-0"
-            :total-rows="count"
-            :per-page="pageSize"
-            aria-controls="agents-table"
-            @change="handlePageChange">
-          </b-pagination>
-        </div>
+        <b-row>
+          <b-col>
+            <b-input-group prepend="Agent Address">
+              <b-form-input v-model="node"></b-form-input>
+              <b-input-group-append>
+                <b-button variant="outline-success"
+                  @click="onClick(node.trim())">Add</b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </b-col>
+          <b-col>
+            <div class="d-flex float-right">
+              <div class="my-2 mx-3">
+                Items per Page:
+                <select v-model="pageSize"
+                  @change="handlePageSizeChange($event)">
+                  <option v-for="size in pageSizes"
+                    :key="size"
+                    :value="size">
+                    {{ size }}
+                  </option>
+                </select>
+              </div>
+              <b-pagination v-model="page"
+                class="m-0"
+                :total-rows="count"
+                :per-page="pageSize"
+                aria-controls="agents-table"
+                @change="handlePageChange">
+              </b-pagination>
+            </div>
+          </b-col>
+        </b-row>
       </b-col>
     </b-row>
-    <label for="node">Address of Agent to add:</label>
-    <input name="node"
-      v-model="node"
-      placeholder="ipn:2.2" />
-    <p>Agent address is: {{ node }}</p>
-    <button @click="onClick(node.trim())">Add Node</button>
 
     <agent-modal @close="showAgentModal = false"
       :showModal="showAgentModal"
@@ -83,10 +90,11 @@
 
     <agents-manage-modal @close="showManageModal = false"
       :showModal="showManageModal"
-      :agents="selectedAgents" :cbor="cbor"></agents-manage-modal>
+      :agents="selectedAgents"
+      :cbor="cbor"></agents-manage-modal>
 
     <footer class="footer">
-      <p>Amp Version: {{ info }}</p>
+      <p><a :href="info.split(' - ')[1]" target="_blank">Amp Version: {{ info.split(" - ")[0] }}</a></p>
     </footer>
   </div>
 </template>
@@ -135,10 +143,10 @@ export default {
       selectAll: false,
     };
   },
-  props:{
+  props: {
     cbor: {
-      type:String,
-      default:undefined
+      type: String,
+      default: undefined
     }
   },
   mounted() {
@@ -231,8 +239,9 @@ export default {
 .table-hover tbody tr:hover {
   cursor: pointer;
 }
+
 .footer {
-  position: absolute;
+  position: fixed;
   bottom: 0;
 }
 </style>
