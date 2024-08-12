@@ -32,6 +32,7 @@ from sqlalchemy.engine import Result
 import re 
 from datetime import datetime
 import multiprocessing as mp 
+import asyncio
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session, get_session
@@ -121,23 +122,17 @@ async def _process_report_entries(x):
     curr_values.append(time)
     for type_id, obj_id in ac_types_and_id:
         # find the type of ari
-        if type_id == 2: 
-            curr_type = await find_edd_type(obj_id)
-        elif type_id == 12:
-            curr_type = await find_var_type(obj_id)
-        else:
-            curr_type = type_id
+        curr_type = type_id
         if value_matchup[curr_type]:
-                curr_values.append(value_matchup[curr_type].pop(0))
-    if ac_types_and_id is []:
-        curr_values.append(','.join(string_values))
-        curr_values.append(','.join(uint_values))
-        curr_values.append(','.join(int_values))
-        curr_values.append(','.join(real32_values))
-        curr_values.append(','.join(real64_values))
-        curr_values.append(','.join(uvast_values))
-        curr_values.append(','.join(vast_values))
-
+                curr_values.append(value_matchup[curr_type].pop(0))        
+    if not ac_types_and_id:
+        if string_values: curr_values.append(','.join(string_values))
+        if uint_values: curr_values.append(','.join(uint_values))
+        if int_values: curr_values.append(','.join(int_values))
+        if real32_values: curr_values.append(','.join(real32_values))
+        if real64_values: curr_values.append(','.join(real64_values))
+        if uvast_values: curr_values.append(','.join(uvast_values))
+        if vast_values: curr_values.append(','.join(vast_values))
     return curr_values
     
 
@@ -185,27 +180,30 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
                     curr_name = result.one_or_none()
 
                 ac_names.append(curr_name)
-                ac_types_and_id.append((entry.data_type_id, entry.obj_metadata_id))
-            # unknown template
-            if ac_names == []:
-                ac_names = ["time","string_values", "uint_values", "int_values", "real32_values", "real64_values", "uvast_values","vast_values"]
-                
+                curr_type = entry.data_type_id
+                if curr_type == 2: 
+                    curr_type = await find_edd_type(entry.obj_metadata_id)
+                elif curr_type == 12:
+                    curr_type = await find_var_type(entry.obj_metadata_id)
+                ac_types_and_id.append((curr_type, entry.obj_metadata_id))
+        
         stmt = select(Report).where(Report.agent_id == agent_id , Report.ADM == adm_name
                                                                , Report.report_name == report_name)
-        
+        # if a none formal report 
+        if ac_id == None: 
+            ac_names.append(report_name)
+            
         final_values = []
         final_values.append(ac_names)
         async with get_async_session() as session:
             result: Result = await session.scalars(stmt)
             entries = result.all()
-            pool = mp.Pool(mp.cpu_count())
-            args_to_use = []
+            args_to_use = []    
             for entry in entries:
-                args_to_use.append([entry, ac_types_and_id])
-            res = pool.map_async(_process_report_entries, args_to_use)
-            for result in res.get():
-                final_values.append(result)
+                args_to_use.append(_process_report_entries([entry, ac_types_and_id]))
+            result = await asyncio.gather(*args_to_use)
+            for res in result:
+                final_values.append(res)
 
-    logger.info(f"{final_values}")
     return  final_values
 
