@@ -70,8 +70,8 @@ services:
     security_opt:
       - "label=type:authnz.process"
     ports:
-      - "80:80"
-      - "443:443"
+      - "${AUTHNZ_PORT:-80}:80"
+      - "${AUTHNZ_HTTPS_PORT:-8443}:443"
     depends_on:
       - nginx
       - builder-base
@@ -117,18 +117,19 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
-        hard: 65536
+    # privileged: true # doesn't work
+    # ulimits: # acuses permission error
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
+    #   nofile:
+    #     soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+    #     hard: 65536
     volumes:
       - "opensearch:/usr/share/opensearch/data"
     ports:
-      - "9200:9200"
-      - "9600:9600" # required for Performance Analyzer
+      - "${OPENSEARCH_PORT1:-9200}:9200"
+      - "${OPENSEARCH_PORT2:-9600}:9600" # required for Performance Analyzer
 
   opensearch-dashboards:
     hostname: opensearch-dashboards
@@ -137,7 +138,7 @@ services:
     security_opt:
       - "label=type:opensearch-dashboards.process"
     ports:
-      - "5601:5601"
+      - "${OPENSEARCH_DASH_PORT:-5601}:5601"
     environment:
       OPENSEARCH_HOSTS: '["https://opensearch:9200"]' # must be a string with no spaces when specified as an environment variable
 
@@ -153,31 +154,31 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
-      - ./postgres/Database_Scripts/Tables/amp_core_create_database.sql:/docker-entrypoint-initdb.d/00-amp_core_create_database.sql
-      - ./postgres/Database_Scripts/Tables/transcoder.sql:/docker-entrypoint-initdb.d/00-transcoder.sql
-      - ./postgres/Database_Scripts/Tables/adm_data.sql:/docker-entrypoint-initdb.d/01-adm_data.sql
+      - ./amp-sql/postgres/Database_Scripts/Tables/amp_core_create_database.sql:/docker-entrypoint-initdb.d/00-amp_core_create_database.sql
+      - ./amp-sql/postgres/Database_Scripts/Tables/transcoder.sql:/docker-entrypoint-initdb.d/00-transcoder.sql
+      - ./amp-sql/postgres/Database_Scripts/Tables/adm_data.sql:/docker-entrypoint-initdb.d/01-adm_data.sql
 
-      - ./postgres/Database_Scripts/Views/obj_view.sql:/docker-entrypoint-initdb.d/01-obj_view.sql
-      - ./postgres/Database_Scripts/Views/ari_view.sql:/docker-entrypoint-initdb.d/14-ari_view.sql
-      - ./postgres/Database_Scripts/Views/ctrl_view.sql:/docker-entrypoint-initdb.d/04-ctrl_view.sql
-      - ./postgres/Database_Scripts/Views/edd_view.sql:/docker-entrypoint-initdb.d/05-edd_view.sql
-      - ./postgres/Database_Scripts/Views/mac_view.sql:/docker-entrypoint-initdb.d/06-mac_view.sql
-      - ./postgres/Database_Scripts/Views/oper_view.sql:/docker-entrypoint-initdb.d/07-oper_view.sql
-      - ./postgres/Database_Scripts/Views/message_view.sql:/docker-entrypoint-initdb.d/08-message_view.sql
-      - ./postgres/Database_Scripts/Views/rpt_view.sql:/docker-entrypoint-initdb.d/13-rpt_view.sql
-      - ./postgres/Database_Scripts/Views/sbr_view.sql:/docker-entrypoint-initdb.d/09-sbr_view.sql
-      - ./postgres/Database_Scripts/Views/tbr_view.sql:/docker-entrypoint-initdb.d/10-tbr_view.sql
-      - ./postgres/Database_Scripts/Views/tblt_view.sql:/docker-entrypoint-initdb.d/11-tblt_view.sql
-      - ./postgres/Database_Scripts/Views/tnvc_view.sql:/docker-entrypoint-initdb.d/12-tnvc_view.sql
-      - ./postgres/Database_Scripts/Views/parm_view.sql:/docker-entrypoint-initdb.d/13-parm_view.sql
-      - ./postgres/Database_Scripts/Views/var_view.sql:/docker-entrypoint-initdb.d/13-var_view.sql
-      - ./postgres/Database_Scripts/Views/namespace_view.sql:/docker-entrypoint-initdb.d/13-namespace_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/obj_view.sql:/docker-entrypoint-initdb.d/01-obj_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/ari_view.sql:/docker-entrypoint-initdb.d/14-ari_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/ctrl_view.sql:/docker-entrypoint-initdb.d/04-ctrl_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/edd_view.sql:/docker-entrypoint-initdb.d/05-edd_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/mac_view.sql:/docker-entrypoint-initdb.d/06-mac_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/oper_view.sql:/docker-entrypoint-initdb.d/07-oper_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/message_view.sql:/docker-entrypoint-initdb.d/08-message_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/rpt_view.sql:/docker-entrypoint-initdb.d/13-rpt_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/sbr_view.sql:/docker-entrypoint-initdb.d/09-sbr_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/tbr_view.sql:/docker-entrypoint-initdb.d/10-tbr_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/tblt_view.sql:/docker-entrypoint-initdb.d/11-tblt_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/tnvc_view.sql:/docker-entrypoint-initdb.d/12-tnvc_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/parm_view.sql:/docker-entrypoint-initdb.d/13-parm_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/var_view.sql:/docker-entrypoint-initdb.d/13-var_view.sql
+      - ./amp-sql/postgres/Database_Scripts/Views/namespace_view.sql:/docker-entrypoint-initdb.d/13-namespace_view.sql
 
-      - ./postgres/Database_Scripts/Routines/all_routines.sql:/docker-entrypoint-initdb.d/16-all_routines.sql
-      - ./postgres/Database_Scripts/Tables/healthcheck_roles.sql:/docker-entrypoint-initdb.d/17-healthcheck_roles.sql
-      - ./postgres/Database_Scripts/amp_core_functions.sql:/docker-entrypoint-initdb.d/17-amp_core_functions.sql
+      - ./amp-sql/postgres/Database_Scripts/Routines/all_routines.sql:/docker-entrypoint-initdb.d/16-all_routines.sql
+      - ./amp-sql/postgres/Database_Scripts/Tables/healthcheck_roles.sql:/docker-entrypoint-initdb.d/17-healthcheck_roles.sql
+      - ./amp-sql/postgres/Database_Scripts/amp_core_functions.sql:/docker-entrypoint-initdb.d/17-amp_core_functions.sql
       # This is used for testing, it is easier to delete the amp_agent after inserting it using adm_amp_agent.sql instead of removing the script since other scripts are also relying on amp_agent
-      # - ./postgres/Database_Scripts/Routines/amp_agent_delete.sql:/docker-entrypoint-initdb.d/31-amp_agent_delete.sql
+      # - ./amp-sql/postgres/Database_Scripts/Routines/amp_agent_delete.sql:/docker-entrypoint-initdb.d/31-amp_agent_delete.sql
     healthcheck:
       test: pg_isready -U healthcheck
       interval: 10s
@@ -196,7 +197,7 @@ services:
     security_opt:
       - "label=type:mqtt-broker.process"
     ports:
-      - "1883:1883"
+      - "${MQTT_PORT:-1883}:1883"
 # $SYS variable not defined
     healthcheck:
       test: echo "Healthcheck disabled"
@@ -325,8 +326,9 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:anms-core.process"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+#    volumes:
+# VERIFY: Is this needed?
+#      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres
@@ -387,3 +389,6 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+    command: "/sbin/init"
+    # TODO: Above command is a workaround. Can likely be removed after fixing base.Dockerfile (done, but not rebuilt)
+    

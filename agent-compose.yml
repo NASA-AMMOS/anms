@@ -56,7 +56,7 @@ services:
       container: docker
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
-
+    command: "/sbin/init"
   ion-agent3:
     <<: *ion-agent
     hostname: ion-agent3
