@@ -53,7 +53,7 @@ export default {
       this.loading = true;
       this.tableHeaders = [];
       this.tableItems = [];
-      if (this.reports[this.selected] == undefined) {
+      // if (this.reports[this.selected] == undefined) {
         this.loading = true;
         let rpt_name = this.rptts[this.selected].name;
         let rpt_adm = this.rptts[this.selected].adm;
@@ -67,10 +67,10 @@ export default {
             console.error("reports error", error);
             console.info("error obj:", error);
           });
-      } else{
-        this.tableHeaders = this.reportsHeader[this.selected];
-        this.tableItems =  this.reports[this.selected];
-      }
+      // } else{
+      //   this.tableHeaders = this.reportsHeader[this.selected];
+      //   this.tableItems =  this.reports[this.selected];
+      // }
       
       this.loading = false;
     },
