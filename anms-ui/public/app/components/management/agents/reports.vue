@@ -18,14 +18,15 @@
         :key="index"
         :value="index">{{ rpt.adm }}.{{ rpt.name }}</b-form-select-option>
     </b-form-select>
-    <b-table v-if="!loading && selected != -1"
+    <b-table sticky-header
+      hover
+      bordered
+      responsive
+      v-if="!loading && selected != -1"
       id="report-table"
       :fields="tableHeaders"
       :items="tableItems"
-      class="spacing-table"
-      hover
-      bordered
-      responsive>
+      >
     </b-table>
   </div>
 </template>
@@ -74,11 +75,15 @@ export default {
       this.loading = false;
     },
     processReport(report) {
-      this.tableHeaders = report.shift();
+      let holdHeader = report.shift();
+      this.tableHeaders = [];
+      for (let i = 0; i < holdHeader.length; i++) {
+        this.tableHeaders.push({"key":holdHeader[i]});
+        }
       for (let item of report) {
         let row = {};
-        for (let i = 0; i < this.tableHeaders.length; i++) {
-          row[this.tableHeaders[i]] = item[i];
+        for (let i = 0; i < holdHeader.length; i++) {
+          row[holdHeader[i]] = item[i];
         }
         this.tableItems.push(row);
       }
@@ -116,5 +121,8 @@ export default {
 
 .select-max-width {
   max-width: 600px;
+}
+.b-table-sticky-header > .table.b-table > thead > tr > th {
+  position: sticky !important;
 }
 </style>
