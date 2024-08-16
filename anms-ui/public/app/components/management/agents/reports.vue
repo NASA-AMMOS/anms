@@ -53,25 +53,20 @@ export default {
       this.loading = true;
       this.tableHeaders = [];
       this.tableItems = [];
-      // if (this.reports[this.selected] == undefined) {
-        this.loading = true;
-        let rpt_name = this.rptts[this.selected].name;
-        let rpt_adm = this.rptts[this.selected].adm;
-        await api.methods.apiEntriesForReport(this.agentName, rpt_adm, rpt_name)
-          .then(res => {
-            this.processReport(res.data);
-            this.reports[this.selected] = this.tableItems;
-            this.reportsHeader[this.selected] = this.tableHeaders;
-          }).catch(error => {
-            // handle error
-            console.error("reports error", error);
-            console.info("error obj:", error);
-          });
-      // } else{
-      //   this.tableHeaders = this.reportsHeader[this.selected];
-      //   this.tableItems =  this.reports[this.selected];
-      // }
-      
+      this.loading = true;
+      let rpt_name = this.rptts[this.selected].name;
+      let rpt_adm = this.rptts[this.selected].adm;
+      await api.methods.apiEntriesForReport(this.agentName, rpt_adm, rpt_name)
+        .then(res => {
+          this.processReport(res.data);
+          this.reports[this.selected] = this.tableItems;
+          this.reportsHeader[this.selected] = this.tableHeaders;
+        }).catch(error => {
+          // handle error
+          console.error("reports error", error);
+          console.info("error obj:", error);
+        });
+    
       this.loading = false;
     },
     processReport(report) {
@@ -93,14 +88,10 @@ export default {
   },
   mounted() {
     this.loading = true;
-
-    // this.title = this.adm + "." + this.reportName
     this.rptts.forEach((rpt, index) => {
       api.methods.apiEntriesForReport(this.agentName, rpt.adm, rpt.name)
         .then(res => {
-
           this.reports[index] = res.data
-          // this.headers = this.reports.shift()
         }).catch(error => {
           // handle error
           console.error("reports error", error);
