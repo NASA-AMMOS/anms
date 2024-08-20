@@ -51,6 +51,7 @@ async def paged_transcoder_log(query: str, params: Params = Depends()):
         query = '%' + query + '%'
 
         return await paginate(session, select(TranscoderLog).where(or_(
+            TranscoderLog.transcoder_log_id.ilike(query),
             TranscoderLog.input_string.ilike(query),
             TranscoderLog.uri.ilike(query),
             TranscoderLog.cbor.ilike(query)
