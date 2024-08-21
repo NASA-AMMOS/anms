@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: "1"
-      DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+      DOCKER_IMAGE_TAG: ${{ env.CI_COMMIT_REF_SLUG }}
       AUTHNZ_EMU: "1"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
       AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
