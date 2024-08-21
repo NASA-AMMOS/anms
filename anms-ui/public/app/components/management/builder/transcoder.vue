@@ -141,8 +141,7 @@ export default {
     handlePageSizeChange(event) {
       const vm = this;
       vm.setPageSize(event.target.value);
-      // vm.setPage(1);
-      // vm.reloadTranscoderLog();
+      handlePageChange(1);
     },
     handleSearchStringChange(event) {
       const vm = this;
