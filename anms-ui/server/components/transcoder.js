@@ -96,7 +96,7 @@
         return next(Boom.badData('Invalid size=' + req.query.size));
       }
       const params = {'page': req.query.page, 'size': req.query.size };
-      const url = utils.generateAnmsCoreUrl(['transcoder', 'db', 'search', transcoderQuery], params);
+      const url = utils.generateAnmsCoreUrl(['transcoder', 'db', 'search', encodeURIComponent(transcoderQuery)], params);
       console.log("[getTranscoderPagedBySearch]: url");
       console.log(url);
       const transcoderLog = await axios.get(url);

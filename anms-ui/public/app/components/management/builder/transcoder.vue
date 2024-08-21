@@ -12,7 +12,7 @@
           <input
             type="text"
             class="form-control"
-            placeholder="Search by ID String, URI, or CBOR"
+            placeholder="Search by ID, Input String, URI, or CBOR"
             v-model="searchString"
             @change="handleSearchStringChange($event)"
             v-on:keyup.enter="handlePageChange(1)"
@@ -142,7 +142,6 @@ export default {
       // vm.setPage(1);
       // vm.reloadTranscoderLog();
     },
-    
     handleSearchStringChange(event) {
       const vm = this;
       vm.setSearchString(event.target.value);
