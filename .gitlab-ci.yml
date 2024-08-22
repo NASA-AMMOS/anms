@@ -46,7 +46,7 @@ variables:
   # for Ruby/bolt
   SSL_CERT_FILE: /etc/pki/tls/certs/ca-bundle.crt
   # Project-specific environment
-  DOCKER_IMAGE_TAG: $CI_COMMIT_REF_NAME
+  DOCKER_IMAGE_TAG: $CI_COMMIT_REF_SLUG
   DOCKER_IMAGE_PREFIX: $DOCKER_REGISTRY/$DOCKER_GROUP/
   AUTHNZ_EMU: 1
   ANMS_COMPOSE_OPTS: -f docker-compose.yml -p anms
