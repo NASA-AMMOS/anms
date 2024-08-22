@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: "1"
-      DOCKER_IMAGE_TAG: ${{ github.head_ref || github.ref_name }}
       AUTHNZ_EMU: "1"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
       AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
@@ -26,6 +25,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      - name: Tag name env
+        run: |
+          DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
+          echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
       - name: Build
         run: |
           ./build.sh buildonly

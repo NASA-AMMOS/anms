@@ -31,6 +31,8 @@ from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
 import re 
 from datetime import datetime
+import multiprocessing as mp 
+import asyncio
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session, get_session
@@ -102,6 +104,37 @@ async def find_var_type(obj_metadata):
 
     return data_type_id
 
+async def _process_report_entries(x):
+    entry, ac_types_and_id = x
+    # for entry in entries:
+    curr_values = []
+    time = datetime.fromtimestamp(int(entry.time)).strftime('%Y-%m-%d %H:%M:%S')
+
+    string_values = list(filter(None, re.split(r",|'(.*?)'", entry.string_values))) if entry.string_values else []
+    uint_values = entry.uint_values.split(',') if entry.uint_values else []
+    int_values = entry.int_values.split(',') if entry.int_values else []
+    real32_values = entry.real32_values.split(',') if entry.real32_values else []
+    real64_values = entry.real64_values.split(',') if entry.real64_values else []
+    uvast_values = entry.uvast_values.split(',') if entry.uvast_values else []
+    vast_values = entry.vast_values.split(',') if entry.vast_values else []
+    value_matchup = {18: string_values, 19: int_values, 20: uint_values, 21: vast_values, 22: uvast_values,
+                        23: real32_values, 24: real64_values}
+    curr_values.append(time)
+    for type_id, obj_id in ac_types_and_id:
+        # find the type of ari
+        curr_type = type_id
+        if value_matchup[curr_type]:
+                curr_values.append(value_matchup[curr_type].pop(0))        
+    if not ac_types_and_id:
+        if string_values: curr_values.append(','.join(string_values))
+        if uint_values: curr_values.append(','.join(uint_values))
+        if int_values: curr_values.append(','.join(int_values))
+        if real32_values: curr_values.append(','.join(real32_values))
+        if real64_values: curr_values.append(','.join(real64_values))
+        if uvast_values: curr_values.append(','.join(uvast_values))
+        if vast_values: curr_values.append(','.join(vast_values))
+    return curr_values
+    
 
 # entries tabulated returns header and values in correct order
 @router.get("/entries/table/{agent_id}/{adm}/{report_name}", status_code=status.HTTP_200_OK,
@@ -147,52 +180,30 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
                     curr_name = result.one_or_none()
 
                 ac_names.append(curr_name)
-                ac_types_and_id.append((entry.data_type_id, entry.obj_metadata_id))
-            # unknown template
-            if ac_names == []:
-                ac_names = ["time","string_values", "uint_values", "int_values", "real32_values", "real64_values", "uvast_values","vast_values"]
-                
+                curr_type = entry.data_type_id
+                if curr_type == 2: 
+                    curr_type = await find_edd_type(entry.obj_metadata_id)
+                elif curr_type == 12:
+                    curr_type = await find_var_type(entry.obj_metadata_id)
+                ac_types_and_id.append((curr_type, entry.obj_metadata_id))
+        
         stmt = select(Report).where(Report.agent_id == agent_id , Report.ADM == adm_name
                                                                , Report.report_name == report_name)
-        # find the type of ari
-        type_matchup = {2: find_edd_type, 12: find_var_type, }
+        # if a none formal report 
+        if ac_id == None: 
+            ac_names.append(report_name)
+            
         final_values = []
         final_values.append(ac_names)
         async with get_async_session() as session:
             result: Result = await session.scalars(stmt)
             entries = result.all()
-
+            args_to_use = []    
             for entry in entries:
-                curr_values = []
-                time = datetime.fromtimestamp(int(entry.time)).strftime('%Y-%m-%d %H:%M:%S')
-
-                string_values = list(filter(None, re.split(r",|'(.*?)'", entry.string_values))) if entry.string_values else []
-                uint_values = entry.uint_values.split(',') if entry.uint_values else []
-                int_values = entry.int_values.split(',') if entry.int_values else []
-                real32_values = entry.real32_values.split(',') if entry.real32_values else []
-                real64_values = entry.real64_values.split(',') if entry.real64_values else []
-                uvast_values = entry.uvast_values.split(',') if entry.uvast_values else []
-                vast_values = entry.vast_values.split(',') if entry.vast_values else []
-                value_matchup = {18: string_values, 19: int_values, 20: uint_values, 21: vast_values, 22: uvast_values,
-                                 23: real32_values, 24: real64_values}
-                curr_values.append(time)
-                for type_id, obj_id in ac_types_and_id:
-                    if type_id in type_matchup:
-                        curr_type = await type_matchup[type_id](obj_id)
-                    else:
-                        curr_type = type_id
-                    if value_matchup[curr_type]:
-                            curr_values.append(value_matchup[curr_type].pop(0))
-                if ac_types_and_id is []:
-                    curr_values.append(','.join(string_values))
-                    curr_values.append(','.join(uint_values))
-                    curr_values.append(','.join(int_values))
-                    curr_values.append(','.join(real32_values))
-                    curr_values.append(','.join(real64_values))
-                    curr_values.append(','.join(uvast_values))
-                    curr_values.append(','.join(vast_values))
-            
-                final_values.append(curr_values)
+                args_to_use.append(_process_report_entries([entry, ac_types_and_id]))
+            result = await asyncio.gather(*args_to_use)
+            for res in result:
+                final_values.append(res)
 
     return  final_values
 
