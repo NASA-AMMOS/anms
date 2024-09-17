@@ -4,6 +4,9 @@ on:
     paths:
       - .github/workflows/puppet.yaml
       - puppet/**
+  pull_request: {} # any target
+  schedule:
+    - cron: '0 0 * * 0' # weekly
 
 jobs:
   prep:
