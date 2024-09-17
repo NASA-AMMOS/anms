@@ -4,6 +4,9 @@ on:
     paths:
       - .github/workflows/puppet.yaml
       - puppet/**
+  pull_request: {} # any target
+  schedule:
+    - cron: '0 0 * * 0' # weekly
 
 jobs:
   prep:
@@ -11,7 +14,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: false
       - name: Install dependencies
@@ -36,12 +39,12 @@ jobs:
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # v1.146.0
+        uses: ruby/setup-ruby@v1.192.0
         with:
           ruby-version: 2.7
           bundler-cache: true
@@ -54,7 +57,7 @@ jobs:
 
       - name: Upload analysis results to GitHub
         if: always()
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: puppet-lint-results.sarif
           wait-for-processing: true
