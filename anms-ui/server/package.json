@@ -18,7 +18,7 @@
     "crypto-js": "^4.0.0",
     "csurf": "^1.11.0",
     "errorhandler": "^1.5.1",
-    "express": "^4.17.1",
+    "express": "^4.20.0",
     "express-enforces-ssl": "^1.1.0",
     "express-http-proxy": "^1.6.0",
     "express-rate-limit": "^5.1.3",
