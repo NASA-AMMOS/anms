@@ -15,7 +15,7 @@
     "connect-redis": "^4.0.4",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
-    "crypto-js": "^4.0.0",
+    "crypto-js": "^4.2.0",
     "csurf": "^1.11.0",
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",
