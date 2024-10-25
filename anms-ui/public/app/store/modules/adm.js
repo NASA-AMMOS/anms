@@ -20,7 +20,6 @@
  * subcontract 1658085.
  */
 import api_adm from '@app/shared/api_adm';
-import Vue from "vue";
 import _ from 'lodash';
 
 export default {
@@ -61,7 +60,7 @@ export default {
         sleep(1000).then(() => {
           commit('adms', res.data);
           commit('loading', false);
-        })  
+        })
       })
       .catch(function (error) {
         sleep(1000).then(() => {
@@ -69,7 +68,7 @@ export default {
           commit('requestError', error);
           commit('loading', false);
         })
-       
+
       });
     },
     async uploadAdm({ state, commit }, adm_file){
@@ -93,7 +92,7 @@ export default {
         const response = error.response
         let status = 500;
         let message = "";
-        let errors = []; 
+        let errors = [];
         if (_.isNil(response) || _.isNil(response.data) || _.isNil(response.data.message) || _.isNil(response.data.error_details)) {
           message = "Internal server error"
         } else {

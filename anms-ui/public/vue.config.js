@@ -24,14 +24,14 @@
 
   const _ = require('lodash');
   const path = require('path');
-  const webpack = require('webpack');
-  const CopyPlugin = require('copy-webpack-plugin');
+  // const webpack = require('webpack');
+  // const CopyPlugin = require('copy-webpack-plugin');
 
   const config = require('../server/shared/config');
 
   const publicDir = path.join(config.root, 'public');
   const releaseDir = path.join(config.root, 'release');
-  const isProduction = (process.env.NODE_ENV === 'production');
+  const isProduction = (import.meta.env.NODE_ENV === 'production');
 
   const scriptsOutput = path.join('assets', 'scripts');
   const stylesOutput = path.join('assets', 'styles');
@@ -123,101 +123,101 @@
         // chunks: ['chunk-vendors', 'chunk-common', 'index'] // default
       },
     },
-    configureWebpack: config => {
-      let configToMerge = {
-        plugins: [
-          new webpack.IgnorePlugin({
-            resourceRegExp: /^\.\/locale$/,
-            contextRegExp: /moment$/
-          }),
-          new CopyPlugin([
-            {from: viewsGlob, to: releaseDir, context: publicDir},
-            {from: faviconGlob, to: releaseDir, context: publicDir}
-          ]) // todo (minify, etc.)
-        ]
-      };
-      if (isProduction) {
-        // change minifier options
-        // config.optimization.minimizer[0].options
-      }
-      return configToMerge; // must always return if we want to merge it
-    },
-    chainWebpack: config => {
-      // Adjust Aliases
-      config.resolve.alias.delete('@');
-      config.resolve.alias.set('@app', publicAppDir);
-      config.resolve.alias.set('@assets', publicAssetsDir);
-      config.resolve.alias.set('@modules', publicModulesDir);
-      // https://github.com/vuejs/vue-cli/issues/2436
-      config.plugins.delete('copy'); // we may use public dir as main dir in the future
-      // Remove the prefetch/preload plugins if it causes issues with server-side templating...
-      // config.plugins.delete('prefetch-index');
-      // config.plugins.delete('preload-index');
-      // Adjust JS output path
-      const jsOutputName = path.basename(config.output.get('filename'));
-      const jsOutputHashName = path.basename(config.output.get('chunkFilename'));
-      config.output.set('filename', path.join(scriptsOutput, jsOutputName));
-      config.output.set('chunkFilename', path.join(scriptsOutput, jsOutputHashName));
-      if (isProduction) {
-        // Adjust CSS output path
-        config.plugin('extract-css')
-          .tap(args => {
-            let options = args[0];
-            const outputName = path.basename(options.filename);
-            const outputHashName = path.basename(options.chunkFilename);
-            options.filename = path.join(stylesOutput, outputName);
-            options.chunkFilename = path.join(stylesOutput, outputHashName);
-            return args;
-          });
-        // Adjust HTML Minification
-        config.plugin('html-index')
-          .tap(args => {
-            let options = args[0];
-            options.minify = htmlMinifierOpts;
-            return args;
-          });
-      }
-      // Set whitespace to original value (default is condense, used to be preserve)
-      config.module
-        .rule('vue')
-        .use('vue-loader')
-        .loader('vue-loader')
-        .tap(options => {
-          options.compilerOptions.whitespace = 'preserve';
-          return options;
-        });
-      // Adjust Images output path
-      config.module
-        .rule('images')
-        .use('url-loader')
-        .tap(options => {
-          const outputName = path.basename(options.fallback.options.name);
-          options.fallback.options.name = path.join(imagesOutput, outputName);
-          return options;
-        });
-      // Adjust SVG output path
-      config.module
-        .rule('svg')
-        .use('file-loader')
-        .tap(options => {
-          const outputName = path.basename(options.name);
-          options.name = path.join(imagesOutput, outputName);
-          return options;
-        });
-      // Add Worker Loader
-      config.module
-        .rule('js')
-        .exclude
-        .add(/\.worker\.js$/);
-      config.module
-        .rule('web-worker')
-        .test(/\.worker\.js$/)
-        .use('worker-loader')
-        .loader('worker-loader')
-        .options({
-          name: '[hash:8].[name].[ext]' // path.join(scriptsOutput, '[hash:8].[name].[ext]') // <-- enable in the future when it's easier to get pyodide
-        });
-    },
+    // configureWebpack: config => {
+    //   let configToMerge = {
+    //     plugins: [
+    //       new webpack.IgnorePlugin({
+    //         resourceRegExp: /^\.\/locale$/,
+    //         contextRegExp: /moment$/
+    //       }),
+    //       new CopyPlugin([
+    //         {from: viewsGlob, to: releaseDir, context: publicDir},
+    //         {from: faviconGlob, to: releaseDir, context: publicDir}
+    //       ]) // todo (minify, etc.)
+    //     ]
+    //   };
+    //   if (isProduction) {
+    //     // change minifier options
+    //     // config.optimization.minimizer[0].options
+    //   }
+    //   return configToMerge; // must always return if we want to merge it
+    // },
+    // chainWebpack: config => {
+    //   // Adjust Aliases
+    //   config.resolve.alias.delete('@');
+    //   config.resolve.alias.set('@app', publicAppDir);
+    //   config.resolve.alias.set('@assets', publicAssetsDir);
+    //   config.resolve.alias.set('@modules', publicModulesDir);
+    //   // https://github.com/vuejs/vue-cli/issues/2436
+    //   config.plugins.delete('copy'); // we may use public dir as main dir in the future
+    //   // Remove the prefetch/preload plugins if it causes issues with server-side templating...
+    //   // config.plugins.delete('prefetch-index');
+    //   // config.plugins.delete('preload-index');
+    //   // Adjust JS output path
+    //   const jsOutputName = path.basename(config.output.get('filename'));
+    //   const jsOutputHashName = path.basename(config.output.get('chunkFilename'));
+    //   config.output.set('filename', path.join(scriptsOutput, jsOutputName));
+    //   config.output.set('chunkFilename', path.join(scriptsOutput, jsOutputHashName));
+    //   if (isProduction) {
+    //     // Adjust CSS output path
+    //     config.plugin('extract-css')
+    //       .tap(args => {
+    //         let options = args[0];
+    //         const outputName = path.basename(options.filename);
+    //         const outputHashName = path.basename(options.chunkFilename);
+    //         options.filename = path.join(stylesOutput, outputName);
+    //         options.chunkFilename = path.join(stylesOutput, outputHashName);
+    //         return args;
+    //       });
+    //     // Adjust HTML Minification
+    //     config.plugin('html-index')
+    //       .tap(args => {
+    //         let options = args[0];
+    //         options.minify = htmlMinifierOpts;
+    //         return args;
+    //       });
+    //   }
+    //   // Set whitespace to original value (default is condense, used to be preserve)
+    //   config.module
+    //     .rule('vue')
+    //     .use('vue-loader')
+    //     .loader('vue-loader')
+    //     .tap(options => {
+    //       options.compilerOptions.whitespace = 'preserve';
+    //       return options;
+    //     });
+    //   // Adjust Images output path
+    //   config.module
+    //     .rule('images')
+    //     .use('url-loader')
+    //     .tap(options => {
+    //       const outputName = path.basename(options.fallback.options.name);
+    //       options.fallback.options.name = path.join(imagesOutput, outputName);
+    //       return options;
+    //     });
+    //   // Adjust SVG output path
+    //   config.module
+    //     .rule('svg')
+    //     .use('file-loader')
+    //     .tap(options => {
+    //       const outputName = path.basename(options.name);
+    //       options.name = path.join(imagesOutput, outputName);
+    //       return options;
+    //     });
+    //   // Add Worker Loader
+    //   config.module
+    //     .rule('js')
+    //     .exclude
+    //     .add(/\.worker\.js$/);
+    //   config.module
+    //     .rule('web-worker')
+    //     .test(/\.worker\.js$/)
+    //     .use('worker-loader')
+    //     .loader('worker-loader')
+    //     .options({
+    //       name: '[hash:8].[name].[ext]' // path.join(scriptsOutput, '[hash:8].[name].[ext]') // <-- enable in the future when it's easier to get pyodide
+    //     });
+    // },
     pluginOptions: {
       'style-resources-loader': {
         preProcessor: 'scss',

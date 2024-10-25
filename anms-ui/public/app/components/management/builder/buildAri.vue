@@ -42,7 +42,8 @@
             :ACs="ARIs"
             @updateResult="updateResults($event)"></ParameterView>
 
-          <div v-if="ariKey" class="text-center my-3">
+          <div v-if="ariKey"
+            class="text-center my-3">
             <h5>ARI String</h5>
             <p>{{ finResultStr }}</p>
             <b-button class="my-3"
@@ -69,6 +70,7 @@ import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 import Transcoder from "./transcoder.vue";
 import { ToggleButton } from 'vue-js-toggle-button'
+import { _ } from "lodash";
 
 Vue.component('ToggleButton', ToggleButton)
 

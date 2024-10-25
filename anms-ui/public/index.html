@@ -21,28 +21,41 @@
 -->
 <!doctype html>
 <html lang="en">
+
 <head>
   <title>AMMOS ANMS Application</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="AMMOS ANMS Application">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <base href="<$ baseUrl $>">
-  <link rel="shortcut icon" type="image/png" href="favicon.png"/>
+  <meta http-equiv="X-UA-Compatible"
+    content="IE=edge">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description"
+    content="AMMOS ANMS Application">
+  <meta http-equiv="Content-Type"
+    content="text/html; charset=UTF-8">
+  <link rel="shortcut icon"
+    type="image/png"
+    href="favicon.png" />
 </head>
+
 <body>
-<div id="vue-app"></div>
-<!-- Global Scope -->
-<script id="vue-init" type="text/javascript">
-  var Constants = Object.freeze({
-    BASE_URL: '<$ baseUrl $>',
-    BASE_API_URL: '<$ apiUrl $>',
-    BASE_VERSION: '<$ baseVersion $>',
-    BASE_RELEASE: ('<$ baseRelease $>' === 'true'),
-    USER_DETAILS: JSON.parse('<$ user $>'),
-    USER_NAME_REMOTE: '<$ userNameRemote $>'
-  });
-</script>
-<script id="env-config" type="text/javascript" src="/assets/scripts/config_env.js" ></script>
+  <div id="vue-app"></div>
+  <!-- Global Scope -->
+  <script id="vue-init"
+    type="text/javascript">
+      var Constants = Object.freeze({
+        BASE_URL: '<%= baseUrl %>',
+        BASE_API_URL: '%apiUrl%',
+        BASE_VERSION: '%baseVersion%',
+        BASE_RELEASE: ('%baseRelease%' === 'true'),
+        USER_DETAILS: JSON.parse('% user %'),
+        USER_NAME_REMOTE: '%userNameRemote%'
+      });
+    </script>
+  <script id="env-config"
+    type="text/javascript"
+    src="/assets/scripts/config_env.js"></script>
+  <script type="module"
+    src="/app/main.js"></script>
 </body>
+
 </html>

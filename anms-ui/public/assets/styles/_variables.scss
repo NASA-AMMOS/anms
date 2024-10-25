@@ -25,7 +25,7 @@ $enable-responsive-font-size: true;
 /* BS Variables Overrides (End) */
 
 /* Official Variables Import */
-@import '~bootswatch/dist/slate/variables';
-@import '~bootstrap/scss/functions'; // needed by variables import below
-@import '~bootstrap/scss/variables';
-@import '~bootstrap/scss/mixins'; // good to include
+@import "~/bootswatch/dist/slate/variables";
+@import "~/bootstrap/scss/functions"; // needed by variables import below
+@import "~/bootstrap/scss/variables";
+@import "~/bootstrap/scss/mixins"; // good to include

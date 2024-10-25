@@ -19,8 +19,6 @@
  * the prime contract 80NM0018D0004 between the Caltech and NASA under
  * subcontract 1658085.
  */
-import 'core-js/stable';
-import 'regenerator-runtime/runtime';
 import 'intersection-observer';
 import Vue from 'vue';
 import moment from 'moment';

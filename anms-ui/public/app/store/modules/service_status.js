@@ -20,7 +20,6 @@
  * subcontract 1658085.
  */
 import api from '../../shared/api';
-import Vue from "vue";
 import {service_info} from '@app/shared/constants';
 import _ from 'lodash';
 
@@ -60,13 +59,13 @@ export default {
       api.methods.apiGetAlerts().then(res => {
         console.log("updateAlert response", res.data);
         commit('updateAlerts',res.data)
-        
-        // TODO rethink tracking alerts for multiple accounts 
+
+        // TODO rethink tracking alerts for multiple accounts
         // _.forEach(res.data, (alert) => {
         //   if( !state.alertIds.includes(alert.id)){
         //   commit('updateAlerts',alert)
         //   commit('updateAlertIds',alert.id)
-        //  } 
+        //  }
         // });
       });
 
@@ -79,7 +78,7 @@ export default {
           console.error(e)
           jsonStatus = {};
         }
-        
+
         console.log("updateStatus called", jsonStatus);
         //Filter out status
         let errorServices = {};
@@ -104,7 +103,7 @@ export default {
           commit('errorServices', errorServices);
           commit('loading', false);
         })
-        
+
       })
       .catch(function (error) {
         // handle error
@@ -116,7 +115,7 @@ export default {
           commit('updateError', error);
           commit('loading', false);
         })
-       
+
       });
     },
     setAlert({ state, commit}, index ){
@@ -132,7 +131,7 @@ export default {
       state.alertIds.push(alertId);
     },
     removeAlert(state, index){
-      // set hidden to true 
+      // set hidden to true
       // let current_alert = state.alerts[index]
       // current_alert.visible = false
       // state.alerts[index] = current_alert;

@@ -41,12 +41,14 @@
 </template>
 
 <script>
-import ParameterView from "./ParameterView.vue";
 import vSelect from "vue-select";
 
 export default {
   name: "ExpressionParameter",
-  components: { ParameterView, vSelect, },
+  components: {
+    ParameterView: () => import("./ParameterView.vue"),
+    vSelect,
+  },
   props: ["listComponents", "name", "parms", "type", "index"],
   data() {
     return {

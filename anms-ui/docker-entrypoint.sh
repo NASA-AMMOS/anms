@@ -30,8 +30,8 @@ ORIGFILE="/opt/node_app/config_ui_env.js"
 OUTFILE="/opt/node_app/release/assets/scripts/config_env.js"
 
 TMPFILE=$(mktemp)
-VUE_APP_UI_VERSION=$ENV_UI_VERSION
-sed "s/VUE_APP_UI_VERSION_TEMPLATE/$VUE_APP_UI_VERSION/" "${ORIGFILE}" > $OUTFILE
+VITE_UI_VERSION=$ENV_UI_VERSION
+sed "s/VITE_UI_VERSION_TEMPLATE/$VITE_UI_VERSION/" "${ORIGFILE}" > $OUTFILE
 
 # update for hostnames and ports
 sed -i "s/CORE_HOSTNAME_PLACEHOLDER/${ANMS_CORE_NAME:-anms-core}/" "/opt/node_app/config.yaml"

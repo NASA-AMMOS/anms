@@ -24,7 +24,7 @@ module.exports = {
   env: {
     es6: true,
     node: true,
-    browser: true
+    browser: true,
   },
   globals: {
     'Constants': 'readonly'
@@ -35,8 +35,8 @@ module.exports = {
     '@vue/standard'
   ],
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': import.meta.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-debugger': import.meta.env.NODE_ENV === 'production' ? 'error' : 'off',
     'indent': ['error', 2, {'SwitchCase': 1}],
     'linebreak-style': 0,
     'eol-last': 2,
@@ -67,7 +67,4 @@ module.exports = {
       }
     }
   ],
-  parserOptions: {
-    parser: 'babel-eslint'
-  }
 };

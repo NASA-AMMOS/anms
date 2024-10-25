@@ -73,8 +73,7 @@
 import { mapGetters, mapActions } from "vuex";
 import toastr from 'toastr';
 import api_adm from '@app/shared/api_adm';
-
-const _ = require('lodash');
+import { _ } from "lodash";
 
 export default {
   name: "Adms",
@@ -118,7 +117,7 @@ export default {
     }),
     download(adm){
       let json  = {};
-      api_adm.apiGetAdm(adm.adm_enum).then(res => {  
+      api_adm.apiGetAdm(adm.adm_enum).then(res => {
         json= res.data;
         const jsonData = json;
         const blob = new Blob([jsonData], { type: 'application/json' });
@@ -145,7 +144,7 @@ export default {
         toastr.success(this.uploadStatus);
         await this.getAdms();
       }
-      
+
       return;
     }
   }

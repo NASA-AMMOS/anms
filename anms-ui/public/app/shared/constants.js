@@ -19,30 +19,55 @@
  * the prime contract 80NM0018D0004 between the Caltech and NASA under
  * subcontract 1658085.
  */
-import jQuery from 'jquery';
+import jQuery from "jquery";
 
-const Constants = Object.assign({}, window.Constants);
+// const Constants = Object.assign({}, window.Constants);
+const Constants = Object.assign(
+  {},
+  {
+    BASE_URL: import.meta.env.VITE_BASE_URL,
+    BASE_API_URL: import.meta.env.VITE_BASE_API_URL,
+    BASE_VERSION: import.meta.env.VITE_BASE_VERSION,
+    BASE_RELEASE: import.meta.env.VITE_BASE_RELEASE,
+    USER_NAME_REMOTE: import.meta.env.VITE_USER_NAME_REMOTE,
+  }
+);
 const anms_env_config = Object.assign({}, window.anms_env_config);
 
 console.log("Constants:", Constants);
 console.log("anms_env_config:", anms_env_config);
 
 // Bootstrap Finished, Remove Init
-jQuery('#vue-init').remove();
-jQuery('#env-config').remove();
+jQuery("#vue-init").remove();
+jQuery("#env-config").remove();
 
 window.Constants = undefined;
 window.anms_env_config = undefined;
 
-const uiversion = anms_env_config.VUE_APP_UI_VERSION;
-// const status_refresh_rate = anms_env_config.VUE_APP_STATUS_REFRESH_RATE; //ms -the rate of updating services' status
+const uiversion = anms_env_config.VITE_UI_VERSION;
+// const status_refresh_rate = anms_env_config.VITE_STATUS_REFRESH_RATE; //ms -the rate of updating services' status
 const status_refresh_rate = 60000; //ms -the rate of updating services' status
 
-console.log(status_refresh_rate)
-const service_info = anms_env_config.SERVICE_INFO;
+console.log(status_refresh_rate);
+// const service_info = anms_env_config.SERVICE_INFO;
+const service_info = {
+  names: [
+    "adminer",
+    "anms-core",
+    "authnz",
+    "ion-manager",
+    "aricodec",
+    "nginx",
+    "postgres",
+    "redis",
+    "mqtt-broker",
+    "transcoder",
+    "grafana",
+    "grafana-image-renderer",
+  ],
+  normal_status: ["running", "healthy"],
+  error_status: ["not-running", "unhealthy"],
+};
 
 export default Constants;
-export {uiversion, 
-    status_refresh_rate, 
-    service_info
-};
+export { service_info, status_refresh_rate, uiversion };
