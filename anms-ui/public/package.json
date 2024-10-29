@@ -14,7 +14,6 @@
     "bootswatch": "^4.5.0",
     "braces": "^3.0.3",
     "browserify-sign": "^4.2.2",
-    "cbor": "^8.1.0",
     "collect": "^0.3.5",
     "collect.js": "^4.32.0",
     "core-js": "^3.6.5",
