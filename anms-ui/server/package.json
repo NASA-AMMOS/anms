@@ -4,10 +4,11 @@
   "dependencies": {
     "@hapi/boom": "^7.4.11",
     "async": "^3.2.0",
-    "axios": "^1.0.0",
+    "axios": "^1.7.4",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.7.2",
-    "body-parser": "^1.19.0",
+    "body-parser": "^1.20.3",
+    "braces": "3.0.3",
     "btoa": "^1.2.1",
     "chokidar": "^3.5.3",
     "compression": "^1.7.4",
@@ -41,7 +42,8 @@
     "serve-favicon": "^2.5.0",
     "spdy": "^4.0.2",
     "winston": "^2.4.4",
-    "winston-daily-rotate-file": "^3.10.0"
+    "winston-daily-rotate-file": "^3.10.0",
+    "ws": "^6.2.3"
   },
   "devDependencies": {
     "eslint": "^7.1.0",

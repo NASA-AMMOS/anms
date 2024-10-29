@@ -12,8 +12,8 @@
           </tr>
         </thead>
         <tbody>
-          <template v-for="(adm, index) in adms">
-            <tr :key="index">
+          <template :key="index" v-for="(adm, index) in adms">
+            <tr >
               <td>{{ adm.adm_enum }}</td>
               <td v-b-tooltip.hover
                   title="Download ADM JSON" @click="download(adm)" ><b>{{ adm.adm_name }}</b></td>
@@ -54,8 +54,8 @@
           </tr>
         </thead>
         <tbody>
-          <template v-for="(error, index) in uploadErrors">
-            <tr :key="index">
+          <template :key="index" v-for="(error, index) in uploadErrors">
+            <tr>
               <td>{{ error.obj_type }}</td>
               <td>{{ error.name }}</td>
               <td>{{ error.issue }}</td>
