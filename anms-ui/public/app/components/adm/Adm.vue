@@ -12,8 +12,8 @@
           </tr>
         </thead>
         <tbody>
-          <template :key="index" v-for="(adm, index) in adms">
-            <tr >
+          <template v-for="(adm, index) in adms">
+            <tr :key="index">
               <td>{{ adm.adm_enum }}</td>
               <td v-b-tooltip.hover
                   title="Download ADM JSON" @click="download(adm)" ><b>{{ adm.adm_name }}</b></td>
@@ -54,8 +54,8 @@
           </tr>
         </thead>
         <tbody>
-          <template :key="index" v-for="(error, index) in uploadErrors">
-            <tr>
+          <template v-for="(error, index) in uploadErrors">
+            <tr :key="index">
               <td>{{ error.obj_type }}</td>
               <td>{{ error.name }}</td>
               <td>{{ error.issue }}</td>
@@ -118,7 +118,7 @@ export default {
     }),
     download(adm){
       let json  = {};
-      api_adm.apiGetAdm(adm.adm_enum).then(res => {  
+      api_adm.apiGetAdm(adm.adm_enum).then(res => {
         json= res.data;
         const jsonData = json;
         const blob = new Blob([jsonData], { type: 'application/json' });
@@ -145,7 +145,7 @@ export default {
         toastr.success(this.uploadStatus);
         await this.getAdms();
       }
-      
+
       return;
     }
   }
