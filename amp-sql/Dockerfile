@@ -24,12 +24,6 @@
 
 FROM postgres:14
 
-# COPY postgres/Database_Scripts/Tables/*.sql /docker-entrypoint-initdb.d/
-
-# COPY postgres/Database_Scripts/Views/*.sql /docker-entrypoint-initdb.d/
-# 
-# COPY postgres/Database_Scripts/Routines/*.sql /docker-entrypoint-initdb.d/
-
 COPY postgres/Database_Scripts/*/*.sql /docker-entrypoint-initdb.d/
 COPY postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/
 
