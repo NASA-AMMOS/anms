@@ -40,30 +40,4 @@ html, body {
   flex:       1 1 100%;
   // https://drafts.csswg.org/css-flexbox/#min-size-auto
   min-height: 0;
-}
-
-// Copied from scss/_buttons.scss in bootstrap 4.3
-// Since cannot extend inside a media-breakpoint...
-// https://github.com/sass/sass/issues/1050
-// @include media-breakpoint-only(xs) {
-
-  // .btn-block-xs {
-  //   display: block;
-  //   width:   100%;
-
-  //   // Vertically space out multiple block buttons
-  //   + .btn-block {
-  //     margin-top: $btn-block-spacing-y;
-  //   }
-  // }
-
-  // Specificity overrides
-  input[type="submit"],
-  input[type="reset"],
-  input[type="button"] {
-    &.btn-block-xs {
-      width: 100%;
-    }
-  }
-
-// }
+} 
