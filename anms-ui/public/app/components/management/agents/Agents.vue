@@ -11,11 +11,13 @@
             @change="handleSearchStringChange($event)"
             v-on:keyup.enter="handlePageChange(1)" />
           <div class="input-group-append">
+            <div class="d-grid gap-2 col-6 mx-auto">
             <button class="btn btn-outline-secondary"
               type="button"
               @click="handlePageChange(1)">
               Search
             </button>
+          </div>
           </div>
         </div>
         <b-row>
@@ -236,9 +238,6 @@ export default {
 </script>
 
 <style>
-.table-hover tbody tr:hover {
-  cursor: pointer;
-}
 
 .footer {
   position: fixed;

@@ -2597,7 +2597,7 @@
   "resolved" "https://registry.npmjs.org/boolbase/-/boolbase-1.0.0.tgz"
   "version" "1.0.0"
 
-"bootstrap-vue@^2.15.0":
+"bootstrap-vue@^2.23.1":
   "integrity" "sha512-SEWkG4LzmMuWjQdSYmAQk1G/oOKm37dtNfjB5kxq0YafnL2W6qUAmeDTcIZVbPiQd2OQlIkWOMPBRGySk/zGsg=="
   "resolved" "https://registry.npmjs.org/bootstrap-vue/-/bootstrap-vue-2.23.1.tgz"
   "version" "2.23.1"
@@ -2608,12 +2608,12 @@
     "portal-vue" "^2.1.7"
     "vue-functional-data-merge" "^3.1.0"
 
-"bootstrap@^4.5.0", "bootstrap@^4.6.1":
+"bootstrap@^4.6.1", "bootstrap@^4.6.2":
   "integrity" "sha512-51Bbp/Uxr9aTuy6ca/8FbFloBUJZLHwnhTcnjIeRn2suQWsWzcuJhGjKDB5eppVte/8oCdOL3VuwxvZDUggwGQ=="
   "resolved" "https://registry.npmjs.org/bootstrap/-/bootstrap-4.6.2.tgz"
   "version" "4.6.2"
 
-"bootswatch@^4.5.0":
+"bootswatch@^4.6.2":
   "integrity" "sha512-pHOS3d2yM/x9Y7/zwVzfGhGIIBdIa/rPwipghh756PaSNJS3ott/29d9uehakgze3pDvbH4FoQVjbho8wsLm6A=="
   "resolved" "https://registry.npmjs.org/bootswatch/-/bootswatch-4.6.2.tgz"
   "version" "4.6.2"
