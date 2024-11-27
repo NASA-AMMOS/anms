@@ -45,17 +45,17 @@ html, body {
 // Copied from scss/_buttons.scss in bootstrap 4.3
 // Since cannot extend inside a media-breakpoint...
 // https://github.com/sass/sass/issues/1050
-@include media-breakpoint-only(xs) {
+// @include media-breakpoint-only(xs) {
 
-  .btn-block-xs {
-    display: block;
-    width:   100%;
+  // .btn-block-xs {
+  //   display: block;
+  //   width:   100%;
 
-    // Vertically space out multiple block buttons
-    + .btn-block {
-      margin-top: $btn-block-spacing-y;
-    }
-  }
+  //   // Vertically space out multiple block buttons
+  //   + .btn-block {
+  //     margin-top: $btn-block-spacing-y;
+  //   }
+  // }
 
   // Specificity overrides
   input[type="submit"],
@@ -66,4 +66,4 @@ html, body {
     }
   }
 
-}
+// }
