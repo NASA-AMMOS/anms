@@ -49,7 +49,7 @@ router = APIRouter(tags=["ARIs"])
 #Note: this patch is needed due to bool('False') is True
 bool_convert = {"True": True, "False": False} 
 
-# expensive to compute
+# expensive to compute, generating string ari from the database values  
 async def _generate_aris(ari_id):
     obj_metadata_id, obj_id, actual = ari_id.split('.')
     stmt = select(ARI).where(and_(ARI.obj_metadata_id == int(obj_metadata_id), ARI.obj_id == int(obj_id), ARI.actual == bool_convert[actual]))
@@ -97,95 +97,21 @@ async def _generate_aris(ari_id):
 
                     for i in range(0, formal_param.num_parms):
                         type_name_upper = type_names[i].upper()
-                        if type_name_upper == "STR":
-                            if list_of_values["fp_values"] is not None:
-                                a_parm_values.append("REF." + list_of_values["fp_values"].pop())
-                            elif list_of_values["obj_values"] is not None:
+                        if list_of_values["fp_values"] is not None:
+                            # reference ari should not be in builder since need value from wrapping ari
+                            return None
+                        # check if the values is stored as a literal if so pull its actual value 
+                        if list_of_values["obj_values"] is not None: 
                                 lit_results: Result = await session.scalars(
                                     select(LiteralObject).where(
                                         LiteralObject.obj_actual_definition_id == int(
                                             list_of_values["obj_values"].pop())))
                                 lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append("STR." + lit_results)
-                            else:
-                                a_parm_values.append("STR." + list_of_values["STR"].pop())
-                        elif type_name_upper == "INT":
-                            if list_of_values["fp_values"] is not None:
-                                # // todo refrence name
-                                a_parm_values.append("REF." + list_of_values["fp_values"].pop())
-                            elif list_of_values["obj_values"] is not None:
-                                lit_results: Result = await session.scalars(
-                                    select(LiteralObject).where(
-                                        LiteralObject.obj_actual_definition_id == int(
-                                            list_of_values["obj_values"].pop())))
-                                lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append("INT." + lit_results)
-                            else:
-                                a_parm_values.append("INT." + list_of_values["INT"].pop())
-
-                        elif type_name_upper == "UINT":
-                            if list_of_values["fp_values"] is not None:
-                                a_parm_values.append("REF." + list_of_values["fp_values"].pop())
-                            elif list_of_values["obj_values"] is not None:
-                                lit_results: Result = await session.scalars(
-                                    select(LiteralObject).where(
-                                        LiteralObject.obj_actual_definition_id == int(
-                                            list_of_values["obj_values"].pop())))
-                                lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append("UINT." + lit_results)
-                            else:
-                                a_parm_values.append("UINT." + list_of_values["UINT"].pop())
-                        elif type_name_upper == "VAST":
-                            if list_of_values["fp_values"] is not None:
-                                a_parm_values.append("REF." + list_of_values["fp_values"].pop())
-                            elif list_of_values["obj_values"] is not None:
-                                lit_results: Result = await session.scalars(
-                                    select(LiteralObject).where(
-                                        LiteralObject.obj_actual_definition_id == int(
-                                            list_of_values["obj_values"].pop())))
-                                lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append("VAST." + lit_results)
-                            else:
-                                a_parm_values.append("VAST." + list_of_values["vast_values"].pop())
-                        elif type_name_upper == "UVAST":
-                            if list_of_values["fp_values"] is not None:
-                                a_parm_values.append("REF." + list_of_values["fp_values"].pop())
-                            elif list_of_values["obj_values"] is not None:
-                                lit_results: Result = await session.scalars(
-                                    select(LiteralObject).where(
-                                        LiteralObject.obj_actual_definition_id == int(
-                                            list_of_values["obj_values"].pop())))
-                                lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append("UVAST." + lit_results)
-                            else:
-                                a_parm_values.append("UVAST." + list_of_values["UVAST"].pop())
-                        elif type_name_upper == "REAL32":
-                            if list_of_values["fp_values"] is not None:
-                                a_parm_values.append("REF." + list_of_values["fp_values"].pop())
-                            elif list_of_values["obj_values"] is not None:
-                                lit_results: Result = await session.scalars(
-                                    select(LiteralObject).where(
-                                        LiteralObject.obj_actual_definition_id == int(
-                                            list_of_values["obj_values"].pop())))
-                                lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append("REAL32." + lit_results)
-                            else:
-                                a_parm_values.append("REAL32." + list_of_values["REAL32"].pop())
-                        elif type_name_upper == "REAL64":
-                            if list_of_values["fp_values"] is not None:
-                                a_parm_values.append("REF." + list_of_values["fp_values"].pop())
-                            elif list_of_values["obj_values"] is not None:
-                                lit_results: Result = await session.scalars(
-                                    select(LiteralObject).where(
-                                        LiteralObject.obj_actual_definition_id == int(
-                                            list_of_values["obj_values"].pop())))
-                                lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append("REAL64." + lit_results)
-                            else:
-                                a_parm_values.append("REAL64." + list_of_values["REAL64"].pop())
+                                a_parm_values.append(type_name_upper + "." + lit_results)
+                        # if not just pop from values list 
                         else:
                             a_parm_values.append(type_name_upper + "." + list_of_values[type_name_upper].pop())
-
+                            
                     results = "ari://IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "(" + ' '.join(
                         str(e) for e in a_parm_values) + ")"
                     curr_ari = ari
