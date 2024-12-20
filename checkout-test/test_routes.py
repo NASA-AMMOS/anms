@@ -400,7 +400,7 @@ class TestWebsockets(BaseTest, unittest.IsolatedAsyncioTestCase):
             wsuri = wsuri._replace(scheme='wss')
         kwargs = {
             'uri': urlunsplit(wsuri),
-            'extra_headers': {
+            'additional_headers': {
                 'Cookie': '; '.join(cookies),
             },
         }

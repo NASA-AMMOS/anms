@@ -2,7 +2,10 @@
   "name": "ammos-core-integration-tests",
   "version": "0.2.0",
   "dependencies": {
-    "global": "^4.4.0"
+    "global": "^4.4.0",
+    "semver": "^7.5.2",
+    "tough-cookie": "^4.1.4",
+    "word-wrap": "^1.2.5"
   },
   "devDependencies": {
     "newman": "^5.3.2"
@@ -16,3 +19,4 @@
     "integration_tests": "newman run integration_tests.json -r cli,json"
   }
 }
+z

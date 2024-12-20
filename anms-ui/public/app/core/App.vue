@@ -53,6 +53,7 @@
   import _ from "lodash";
   import { mapGetters, mapActions } from "vuex";
   import {status_refresh_rate} from '@app/shared/constants';
+  
   export default {
     mixins: [api],
     data() {
@@ -66,7 +67,7 @@
         showStubbedTabs: false,
         statusWorkerId: "",
         ariWorkerId: "",
-        // alerts:[]
+        alerts:[]
       };
     },
     computed: {
@@ -167,6 +168,7 @@
   @import '~bootswatch/dist/darkly/bootswatch';
   // Bootstrap Vue Lib
   @import '~bootstrap-vue/src/index.scss';
+  
 
   // Font Awesome Lib
   $fa-font-path:  '~@fortawesome/fontawesome-free/webfonts';

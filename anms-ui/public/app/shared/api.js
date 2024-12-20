@@ -21,7 +21,6 @@
  */
 import Constants from '@app/shared/constants';
 import axios from 'axios';
-import CBOR from "cbor";
 export default {
   data() {
     return {
@@ -248,47 +247,5 @@ export default {
         return axios.get(Constants.BASE_API_URL + `transcoder/ui/log/search/${searchString}`, { params: params });
       }
     },
-
-    // TODO: Add apiGetAgents which is called by agents store
-    apiSendTBR(nodeEID, start, period, count, report, tbrCount) {
-      const zeroPad = (num, places) => String(num).padStart(places, '0')
-      var reportRaw = "";
-      var tbrNameHexString = "";
-      var pad = zeroPad(tbrCount.toString(16), 2).length / 2;
-      tbrNameHexString = "4" + pad + zeroPad(tbrCount.toString(16), 2)
-
-      switch (report) {
-        case "ltp_agent.endpointReport":
-          reportRaw = "8718414100"
-          break;
-        case "bp_agent.endpoint_report":
-          reportRaw = "87182d4101"
-          break;
-        case "bp_agent.full_report":
-          reportRaw = "87182d4100"
-          break;
-        case "amp_agent.full_report":
-          reportRaw = "8718194100"
-          break;
-        default:
-          reportRaw = "8718194100"
-          break;
-      }
-
-      var startArr = CBOR.encode(parseInt(start));
-      var startHexString = "";
-      startArr.forEach(par => startHexString = startHexString + (zeroPad(par.toString(16), 2)));
-
-      var periodArr = CBOR.encode(parseInt(period));
-      var periodHexString = "";
-      periodArr.forEach(par => periodHexString = periodHexString + (zeroPad(par.toString(16), 2)));
-
-      var countArr = CBOR.encode(parseInt(count));
-      var countHexString = "";
-      countArr.forEach(par => countHexString = countHexString + (zeroPad(par.toString(16), 2)));
-      var raw = `0xc115410a05062416161625128b01${tbrNameHexString}${startHexString}${periodHexString}${countHexString}81c11541050502252381${reportRaw}006747656e52707473`;
-
-      return [axios.put(Constants.BASE_API_URL+'nm/agents/eid/' + nodeEID + '/hex',{"data":raw}), raw]
-    }
   }
 };

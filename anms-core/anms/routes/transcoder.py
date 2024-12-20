@@ -45,16 +45,19 @@ async def paged_transcoder_log(params: Params = Depends()):
         return await paginate(session, select(TranscoderLog).order_by(desc(TranscoderLog.transcoder_log_id)), params)
 
 
-@router.get("/db/search/{query}", status_code=status.HTTP_200_OK, response_model=Page[TL])
+@router.get("/db/search/{query:path}", status_code=status.HTTP_200_OK, response_model=Page[TL])
 async def paged_transcoder_log(query: str, params: Params = Depends()):
     async with get_async_session() as session:
-        query = '%' + query + '%'
+        filters = []
+        filters.append(TranscoderLog.input_string.ilike(f'%{query}%'))
+        filters.append(TranscoderLog.uri.ilike(f'%{query}%'))
+        filters.append(TranscoderLog.cbor.ilike(f'%{query}%'))
+        if query.isdigit():
+            filters.append(TranscoderLog.transcoder_log_id == int(query))
 
-        return await paginate(session, select(TranscoderLog).where(or_(
-            TranscoderLog.input_string.ilike(query),
-            TranscoderLog.uri.ilike(query),
-            TranscoderLog.cbor.ilike(query)
-        )).order_by(desc(TranscoderLog.transcoder_log_id)), params)
+        return await paginate(session, select(TranscoderLog)
+                              .where(or_(*filters))
+                              .order_by(desc(TranscoderLog.transcoder_log_id)), params)
 
 @router.get("/db/id/{id}", status_code=status.HTTP_200_OK, response_model=TL)
 async def transcoder_log_by_id(id: str):

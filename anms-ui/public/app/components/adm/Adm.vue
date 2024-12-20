@@ -118,7 +118,7 @@ export default {
     }),
     download(adm){
       let json  = {};
-      api_adm.apiGetAdm(adm.adm_enum).then(res => {  
+      api_adm.apiGetAdm(adm.adm_enum).then(res => {
         json= res.data;
         const jsonData = json;
         const blob = new Blob([jsonData], { type: 'application/json' });
@@ -145,7 +145,7 @@ export default {
         toastr.success(this.uploadStatus);
         await this.getAdms();
       }
-      
+
       return;
     }
   }

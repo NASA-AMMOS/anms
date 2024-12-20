@@ -38,8 +38,8 @@
   .user-tabs {
     // No gutters from the main container since we're don't want a row/column grid gutters
     // For Grids with gutters, re-initialize a new container on the sub-element
-    margin-right: -$grid-gutter-width / 2;
-    margin-left:  -$grid-gutter-width / 2;
+    margin-right: calc(-1 * $grid-gutter-width / 2);
+    margin-left:  calc(-1 * $grid-gutter-width / 2);
   }
 
 </style>

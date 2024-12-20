@@ -519,13 +519,13 @@ import _, {size} from 'lodash';
       &::v-deep .table-outline-#{$theme-color} {
 
         $color:             $theme-color-value;
-        $color-hover:       color-yiq($color);
+        $color-hover:       color-contrast($color);
         $active-background: $color;
         $active-border:     $color;
 
         color:              $color;
         border:             $table-border-width solid $color;
-        border-width:       2 * $table-border-width;
+        border-width:       calc($table-border-width * 2);
 
         > td {
           border-top:    $table-border-width solid $color;
@@ -535,14 +535,9 @@ import _, {size} from 'lodash';
         &:first-child td {
           // https://www.w3.org/TR/CSS2/tables.html#border-conflict-resolution
           border-top:       $table-border-width double $color;
-          border-top-width: 2 * $table-border-width; // re-declare due to conflict resolution algorithm
+          border-top-width: calc($table-border-width * 2); // re-declare due to conflict resolution algorithm
         }
 
-        @include hover {
-          // color:            $color-hover;
-          // background-color: $active-background;
-          border-color: $active-border;
-        }
 
         &:focus,
         &.focus {

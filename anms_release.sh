@@ -21,91 +21,29 @@
 ## subcontract 1658085.
 ##
 
-# Create a shallow release copy for ANMS on the AMMOS Github.
+# Create a shallow source release tarball and binary image tarball
 #
 # Run as:
-# ./anms_release.sh master v0.9.0 v0.9.0
+# ./anms_release.sh
 #
 set -e
 
-SRCBRANCH=$1
-SRCTAG=$2
-DSTTAG=$3
-if ! shift 3
+GITTAG=$(git describe --always --tags --dirty)
+
+if [[ $# -ne 0 ]]
 then
-    echo "Usage: anms_release.sh {SRC_BRANCH} {SRC_TAG} {DST_TAG} [--dry-run]"
+    echo "Usage: anms_release.sh"
     exit 1
 fi
-DOPUSH=1
-if [ "$1" == "--dry-run" ]
-then
-    DOPUSH=0
-    echo "Running in dry-run mode, no changes will be pushed to the remote"
-fi
 
-SRCREPO="git@gitlab.jhuapl.edu:anms/ammos-anms.git"
-DSTREPO="git@github.jpl.nasa.gov:MGSS/anms.git"
+# Tarball of all source excluding git metadata
+OUTFILE="anms-${GITTAG}-src.tar.gz"
+DSTDIR=$(mktemp -d)
+echo "Tarring source from ${DSTDIR} into ${OUTFILE}"
+RSYNC_OPTS="--recursive --quiet --archive --delete --exclude=.git --exclude=puppet/.modules --exclude='*.tar.gz'"
+rsync ${RSYNC_OPTS} ./ ${DSTDIR}/
+tar -C ${DSTDIR} -czf ${OUTFILE} .
+rm -rf ${DSTDIR}
 
-TMPDIR=$(mktemp -d)
-echo "Working in ${TMPDIR} ..."
-pushd ${TMPDIR} >/dev/null
-
-read -p "Push enter when APL VPN is active..."
-while ! git clone ${SRCREPO} --depth 1 --branch ${SRCBRANCH} --single-branch --recurse-submodules src
-do
-    echo "Some failure occurred above."
-    read -p "Push enter to try again..."
-done
-
-# Tag locally
-if [ -n "${SRCTAG}" ]
-then
-    # Separate versioning for ACE and CAmp
-    for DIRNAME in . amp-sql anms-core anms-ui transcoder
-    do
-	echo "Tagging ${SRCTAG} in ${DIRNAME}"
-	pushd src/${DIRNAME} >/dev/null
-	git tag -a ${SRCTAG} -m "Release ${SRCTAG}" --force
-	if [ $DOPUSH -ne 0 ]
-	then
-	    git push --tags --force
-	fi
-	popd
-    done
-fi
-
-
-# No need for these files
-for FN in .git .gitmodules .gitlab-ci.yml
-do
-    find src -name "${FN}" -exec rm -rf {} +
-done
-
-read -p "Push enter when JPL VPN is active..."
-while ! git clone ${DSTREPO} dst
-do
-    echo "Some failure occurred above."
-    read -p "Push enter to try again..."
-done
-
-RSYNC_OPTS="--recursive --quiet --archive --delete --exclude .git"
-rsync ${RSYNC_OPTS} src/ dst/
-# Add to the destination
-pushd dst >/dev/null
-git add -A
-git status
-git commit -m "Updating for release ${DSTTAG}" || true
-git tag -a ${DSTTAG} -m "Release ${DSTTAG}"
-if [ $DOPUSH -ne 0 ]
-then
-    while ! git push
-    do
-        echo "Some failure occurred above."
-        read -p "Push enter to try again..."
-    done
-    git push --tags
-fi
-popd
-
-echo "Finished in ${TMPDIR}"
-popd
+# Tarball of all images
+./build.sh tar
