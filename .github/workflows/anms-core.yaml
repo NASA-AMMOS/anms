@@ -20,7 +20,7 @@ jobs:
           python-version: "3.10"
       - name: Install dependencies
         run: |
-          pip3 install deps/anms-ace
+          pip3 install deps/dtnma-ace
           pip3 install deps/anms-camp
       - name: Install
         working-directory: anms-core
@@ -42,7 +42,7 @@ jobs:
           python-version: "3.10"
       - name: Install dependencies
         run: |
-          pip3 install deps/anms-ace
+          pip3 install deps/dtnma-ace
           pip3 install deps/anms-camp
       - name: Install flake8
         working-directory: anms-core

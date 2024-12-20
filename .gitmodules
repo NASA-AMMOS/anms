@@ -1,6 +1,3 @@
-[submodule "deps/anms-ace"]
-	path = deps/anms-ace
-	url = ../anms-ace.git
 [submodule "deps/anms-camp"]
 	path = deps/anms-camp
 	url = ../anms-camp.git
@@ -8,4 +5,7 @@
 	path = ion/src
 	url = https://github.com/JHUAPL/dtnma-tools.git
 
-
+[submodule "deps/dtnma-ace"]
+	path = deps/dtnma-ace
+	url = https://github.com/JHUAPL-DTNMA/dtnma-ace
+	branch = main

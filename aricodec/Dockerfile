@@ -24,7 +24,7 @@
 # MQTT_HOST referencing the DNS name of the MQTT broker
 # DB_URI referencing the sqlalchemy URI for the DNS name of a PostgreSQL server
 #
-FROM anms-acelib
+FROM dtnma-acelib
 ENV APP_WORK_DIR=/usr/src/aricodec
 
 # Requirement of main package

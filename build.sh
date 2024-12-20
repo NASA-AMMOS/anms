@@ -42,7 +42,7 @@ echo "Running image build"
 declare -A BASEIMGS=(
     [anms-base]=". -f base.Dockerfile --target anms-base"
     [anms-init]=". -f base.Dockerfile --target anms-init"
-    [anms-acelib]=". -f base.Dockerfile --target anms-acelib"
+    [dtnma-acelib]=". -f base.Dockerfile --target dtnma-acelib"
 )
 declare -A IMAGES=(
     [authnz]=""
