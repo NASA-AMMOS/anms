@@ -25,7 +25,7 @@
 # DB_USERNAME and DB_PASSWORD for optional authentication
 # DB_NAME for the database schema to use
 #
-FROM anms-acelib
+FROM dtnma-acelib
 ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
@@ -40,7 +40,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install ${APP_WORK_DIR}
 
 RUN mkdir -p /usr/local/share/ace && \
-    cp -R /usr/src/anms-ace/tests/adms /usr/local/share/ace/adms
+    cp -R /usr/src/dtnma-ace/tests/adms /usr/local/share/ace/adms
 COPY anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
 
 # Remaining commands as the local user

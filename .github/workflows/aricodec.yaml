@@ -20,7 +20,7 @@ jobs:
           python-version: "3.10"
       - name: Install dependencies
         run: |
-          pip3 install deps/anms-ace
+          pip3 install deps/dtnma-ace
       - name: Install flake8
         working-directory: aricodec
         run: pip3 install -e '.[flake8]'
