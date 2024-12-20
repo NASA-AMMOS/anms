@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "dtnma-ace",
+  "anms-ace",
   "anms-camp",
   "anyio ~=3.6.1",
   "arrow ~=1.2.3",

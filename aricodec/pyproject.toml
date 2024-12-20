@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "dtnma-ace ~=1.0.0",
+  "anms-ace ~=1.0.0",
   "paho-mqtt ~=1.6.1",
   "sqlalchemy ~=1.4.42",
   "psycopg2-binary ~=2.9.5",
