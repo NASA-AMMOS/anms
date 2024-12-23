@@ -64,7 +64,7 @@ RUN systemctl disable dnf-makecache.timer
 # Sets environment:
 #  PY_WHEEL_DIR to local PIP wheel search path
 #
-FROM anms-base AS anms-acelib
+FROM anms-base AS dtnma-acelib
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -75,9 +75,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Submodules with dependencies
 env PY_WHEEL_DIR=/usr/local/lib/wheels
 
-COPY deps/anms-ace /usr/src/anms-ace
+COPY deps/dtnma-ace /usr/src/dtnma-ace
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 wheel /usr/src/anms-ace -w ${PY_WHEEL_DIR} --no-deps
+    pip3 wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
 
 COPY deps/anms-camp /usr/src/anms-camp
 RUN --mount=type=cache,target=/root/.cache/pip \
