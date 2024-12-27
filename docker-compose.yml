@@ -25,8 +25,6 @@
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
-version: '3.9'
-
 networks:
   default:
     name: ${DOCKER_CTR_PREFIX}anms
@@ -144,7 +142,9 @@ services:
 
   postgres:
     hostname: postgres
-    image: postgres:14
+    image: ${DOCKER_CTR_PREFIX}anms-postgres
+    build:
+      context: amp-sql
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -154,31 +154,6 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
-      - ./amp-sql/postgres/Database_Scripts/Tables/amp_core_create_database.sql:/docker-entrypoint-initdb.d/00-amp_core_create_database.sql
-      - ./amp-sql/postgres/Database_Scripts/Tables/transcoder.sql:/docker-entrypoint-initdb.d/00-transcoder.sql
-      - ./amp-sql/postgres/Database_Scripts/Tables/adm_data.sql:/docker-entrypoint-initdb.d/01-adm_data.sql
-
-      - ./amp-sql/postgres/Database_Scripts/Views/obj_view.sql:/docker-entrypoint-initdb.d/01-obj_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/ari_view.sql:/docker-entrypoint-initdb.d/14-ari_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/ctrl_view.sql:/docker-entrypoint-initdb.d/04-ctrl_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/edd_view.sql:/docker-entrypoint-initdb.d/05-edd_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/mac_view.sql:/docker-entrypoint-initdb.d/06-mac_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/oper_view.sql:/docker-entrypoint-initdb.d/07-oper_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/message_view.sql:/docker-entrypoint-initdb.d/08-message_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/rpt_view.sql:/docker-entrypoint-initdb.d/13-rpt_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/sbr_view.sql:/docker-entrypoint-initdb.d/09-sbr_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/tbr_view.sql:/docker-entrypoint-initdb.d/10-tbr_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/tblt_view.sql:/docker-entrypoint-initdb.d/11-tblt_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/tnvc_view.sql:/docker-entrypoint-initdb.d/12-tnvc_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/parm_view.sql:/docker-entrypoint-initdb.d/13-parm_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/var_view.sql:/docker-entrypoint-initdb.d/13-var_view.sql
-      - ./amp-sql/postgres/Database_Scripts/Views/namespace_view.sql:/docker-entrypoint-initdb.d/13-namespace_view.sql
-
-      - ./amp-sql/postgres/Database_Scripts/Routines/all_routines.sql:/docker-entrypoint-initdb.d/16-all_routines.sql
-      - ./amp-sql/postgres/Database_Scripts/Tables/healthcheck_roles.sql:/docker-entrypoint-initdb.d/17-healthcheck_roles.sql
-      - ./amp-sql/postgres/Database_Scripts/amp_core_functions.sql:/docker-entrypoint-initdb.d/17-amp_core_functions.sql
-      # This is used for testing, it is easier to delete the amp_agent after inserting it using adm_amp_agent.sql instead of removing the script since other scripts are also relying on amp_agent
-      # - ./amp-sql/postgres/Database_Scripts/Routines/amp_agent_delete.sql:/docker-entrypoint-initdb.d/31-amp_agent_delete.sql
     healthcheck:
       test: pg_isready -U healthcheck
       interval: 10s
