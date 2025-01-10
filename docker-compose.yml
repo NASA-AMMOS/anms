@@ -87,16 +87,11 @@ services:
 
   nginx:
     hostname: nginx
-    image: nginx:1.23
+    image: ${DOCKER_IMAGE_PREFIX}anms-nginx:${DOCKER_IMAGE_TAG}
+    build:
+      context: nginx
+      dockerfile: Dockerfile
     restart: unless-stopped
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    healthcheck:
-      test: curl -sq -o/dev/null http://localhost:80
-      interval: 60s
-      start_period: 10s
-      timeout: 60s
-      retries: 20
     security_opt:
       - "label=type:nginx.process"
     depends_on:
@@ -142,7 +137,7 @@ services:
 
   postgres:
     hostname: postgres
-    image: ${DOCKER_CTR_PREFIX}anms-postgres
+    image: ${DOCKER_CTR_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
     build:
       context: amp-sql
     restart: unless-stopped
@@ -165,22 +160,14 @@ services:
 
   mqtt-broker:
     hostname: mqtt-broker
-    image: eclipse-mosquitto:2.0
+    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker
+    build:
+      context: mqtt-broker
     restart: unless-stopped
-    volumes:
-      - ./mqtt-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
     security_opt:
       - "label=type:mqtt-broker.process"
     ports:
       - "${MQTT_PORT:-1883}:1883"
-# $SYS variable not defined
-    healthcheck:
-      test: echo "Healthcheck disabled"
-#      test: mosquitto_sub -t $SYS/broker/version -C 1
-#      interval: 10s
-#      start_period: 5s
-#      timeout: 1s
-#      retries: 5
       
   transcoder:
     hostname: transcoder
@@ -200,7 +187,7 @@ services:
 
   grafana:
     hostname: grafana
-    image: ${DOCKER_IMAGE_PREFIX}grafana:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG}
     build:
       # NOTE: Custom image currently needed only for SSL-cert purposes
       context: grafana
@@ -302,8 +289,9 @@ services:
     security_opt:
       - "label=type:anms-core.process"
 #    volumes:
-# VERIFY: Is this needed?
+# TODO: Not compatible with podman without additional setup
 #      - /var/run/docker.sock:/var/run/docker.sock
+#      - /usr/lib/systemd/user/podman.socket:/var/run/docker.sock
     environment:
       ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres

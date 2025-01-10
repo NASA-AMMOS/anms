@@ -73,7 +73,9 @@ ENTRYPOINT ["docker-entrypoint"]
 
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
-COPY --chown=${APP_USER}:${APP_USER} config.yaml process.yml config_ui_env.js data/ ${APP_WORK_DIR}
+
+# NOTE: wildcard allows handling case when data directory has not been created locally
+COPY --chown=${APP_USER}:${APP_USER} config.yaml process.yml config_ui_env.js data* ${APP_WORK_DIR}
 
 CMD ["pm2-docker", "process.yml", "--env", "production"]
 
