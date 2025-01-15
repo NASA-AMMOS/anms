@@ -50,7 +50,7 @@ class MQTTClient:
         checking_child = Thread(target=self._check_pending)
         checking_child.daemon = True
         checking_child.start()
-        client.loop_start()
+        client.loop_forever(retry_first_connection=True) #start()
 
     def publish(self, *args, **kwargs):
         ''' If connected, pass through a publish request. '''
