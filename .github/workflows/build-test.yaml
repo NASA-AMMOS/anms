@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - main
+    - dsn-devel
   pull_request: {} # any target
   schedule:
     - cron: '0 0 * * 0' # weekly
