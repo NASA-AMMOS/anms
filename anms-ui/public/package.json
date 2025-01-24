@@ -9,7 +9,7 @@
     "@fortawesome/vue-fontawesome": "^2.0.9",
     "axios": "^1.7.4",
     "body-parser": "^1.20.3",
-    "bootstrap": "^4.6.2",
+    "bootstrap": "^5.0.0",
     "bootstrap-vue": "^2.23.1",
     "bootswatch": "^4.6.2",
     "braces": "^3.0.3",
