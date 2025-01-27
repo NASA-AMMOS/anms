@@ -50,7 +50,7 @@ services:
     image: anms-init
     build:
       dockerfile: base.Dockerfile
-      target: anms-base
+      target: anms-init
     command: echo "Base-init image built" # Prevent it from running
   builder-acelib:
     image: anms-acelib

@@ -58,7 +58,6 @@ RUN dnf -y install container-tools
 # Container service config
 RUN systemctl disable dnf-makecache.timer
 
-CMD [ "/sbin/init" ]
 
 # This image includes common libraries used by the aricodec and anms-core
 # containers.
