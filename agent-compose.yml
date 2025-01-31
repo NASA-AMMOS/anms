@@ -56,10 +56,16 @@ services:
       container: docker
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
+    networks:
+      default:
+        ipv4_address: 10.5.0.102
     command: "/sbin/init"
   ion-agent3:
     <<: *ion-agent
     hostname: ion-agent3
+    networks:
+      default:
+        ipv4_address: 10.5.0.103
     environment:
       container: docker
       ION_NODE_NUM: 3

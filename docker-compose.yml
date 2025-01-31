@@ -31,6 +31,14 @@ networks:
     driver_opts:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
       com.docker.network.driver.mtu: 65535
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
+          aux_addresses:
+            ion-manager: 10.5.0.101
+            ion-agent2: 10.5.0.102
+            ion-agent3: 10.5.0.103
 
 volumes:
   grafana-data: {}
@@ -69,7 +77,7 @@ services:
       - "label=type:authnz.process"
     ports:
       - "${AUTHNZ_PORT:-80}:80"
-      - "${AUTHNZ_HTTPS_PORT:-8443}:443"
+      - "${AUTHNZ_HTTPS_PORT:-443}:443"
     depends_on:
       - nginx
       - builder-base
@@ -332,6 +340,12 @@ services:
       - "1113:1113/udp"
       - "4556:4556/udp"
       - "${ION_MGR_PORT:-8089}:8089"
+    networks:
+      default:
+        ipv4_address: 10.5.0.101
+    extra_hosts:
+      - ion-agent2:10.5.0.102
+      - ion-agent3:10.5.0.103
     depends_on:
       builder-init:
           # Not expected to run, but needed here to ensure build dependency
