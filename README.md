@@ -25,7 +25,7 @@ This is a detailed developer-focused documentation for the AMMOS Asynchronous Ne
 
 ### Copyright
 
-Copyright (C) 2022-2023 The Johns Hopkins University Applied Physics Laboratory LLC.
+Copyright (C) 2022-2025 The Johns Hopkins University Applied Physics Laboratory LLC.
 
 [[_TOC_]]
 
@@ -37,8 +37,8 @@ This section details prerequisites to installing the ANMS from source on a devel
 
 ### Software and OS Versions
 
-The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur) and Ubuntu 20.04.
-To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer, and Docker Compose version 1.29.2 or newer. 
+The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9  and Ubuntu 20.04.
+To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and podman can generally be used interchangeably.
 
 The ANMS UI capability has been tested on Firefox version 96.0.1.
 There is no capability that should preclude operation on other modern browsers. 
@@ -69,8 +69,39 @@ The current ANMS capability is designed to run on `localhost` and on a developme
 This guide presumes that you can either connect via a VMRC remote console or with ssh tunnelling to the machine, hence the use of `localhost` in db connection information and in URLs.
 If you deploy this to a VM, you will need to replace `localhost` with the hostname of the machine where it is deployed.
 
+### Special Notes on Podman
+
+If not otherwise specified, most commands in this document allow podman to be substituted with docker without change. It is also possible to install an alias (provided in most package managers) to map `docker` to `podman` if desired.
+
+Podman support is a work in progress.  It is currently known that the docker.sock interface is not compatible with podman, which causes **the 'Services' tab to show all services as unavailable**.
+
+Podman, running as a standard user, is typically unable to bind to **low-numbered ports**. It is recommended to edit the `.env` file and uncomment the lines at top for AUTHNZ_PORT and AUTHNZ_HTTPS_PORT to remap those services to a higher port number.  In the directions below, you would then use for example http://localhost:8084 and https://localhost:8443 instead of the default.
+
+Note: If running on a system where **SELinux** is enabled, the system will not start if the appropriate security groups have not been defined. As an alternative, the `security_opt` sections can be commented out in the *-compose.yml files if required.
+
+
 ## ANMS Docker build and deploy
 
+Choose the appropriate docker or podman commands in the directions below as appropriate for your system.
+
+- Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
+- Setup Volume containing PKI configuration (certificate chains and private keys):
+  - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
+- Build Core Images using either:
+  - `docker compose build`
+  - `podman-compose --podman-build-args='--format docker' build`
+    - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.
+- Build Agent images
+  - `docker compose -f agent-compose.yml build`
+  - `podman-compose -f agent-compose.yml --podman-build-args='--format docker' build`
+- Start System. Note: You may omit the `-d` argument to keep logs in the foreground.
+  - `docker compose up -d`
+  - `podman-compose up -d`
+- Start additional ION Agent Nodes
+  - `docker compose -f agent-compose.yml up -d`
+  - `podman-compose -f agent-compose.yml up -d`
+
+### Alternativev Build.sh setup script (deprecated, docker-only)
 The ANMS repository contains a build script which will build and run multiple Docker containers.
 These containers comprise the ANMS software and services, including demonstration AMP agents running on non-ANMS containers.
 
@@ -160,7 +191,7 @@ docker-compose -f agent-compose.yml up -d --force-recreate
 
 ## Compose Environment and Options
 
-The top-level `docker-compose.yml` uses the environment defined by the sibling file `.env` which itself is overridden by corresponding environment variables when running `build.sh` script.
+The top-level `docker-compose.yml` uses the environment defined by the sibling file `.env`.  Note: If using the legacy/deprecated build.sh script, that script may additionally override some environment variables.
 
 Two principal options of the compose configuration, which are both defaulted to empty text, are:
 
@@ -188,6 +219,8 @@ which is most likely related to the `host` or `bind address` specified in `anms-
 or if there is an environment variable overriding this.
 
 ## ANMS-UI is not visible at hostname
+
+Check the startup logs for any errors. If using podman, some port numbers may need to be remapped using the `.env` file to higher numbered ports, or the system configuration modified to adjust permissions (not recommended).
 
 If you go to your browser and hostname:9030 (replace hostname with the server's hostname) and you see the ANMS UI,
 but http://hostname does not render the same page, then NGinx is having an issue.  You should look at the
