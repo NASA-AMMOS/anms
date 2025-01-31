@@ -101,7 +101,7 @@ Choose the appropriate docker or podman commands in the directions below as appr
   - `docker compose -f agent-compose.yml up -d`
   - `podman-compose -f agent-compose.yml up -d`
 
-### Alternativev Build.sh setup script (deprecated, docker-only)
+### Alternative Build.sh setup script (deprecated, docker-only)
 The ANMS repository contains a build script which will build and run multiple Docker containers.
 These containers comprise the ANMS software and services, including demonstration AMP agents running on non-ANMS containers.
 
@@ -173,8 +173,10 @@ ea0c66364d70   grafana/grafana:9.1.3                  "/run.sh"                4
 ------- Done -------
 ~~~
 
-To further confirm that ANMS is running, open a browser and navigate to `http://localhost/`.
-There you should see the ANMS login via CAM emulator page (figure below). 
+## Usage
+
+To confirm that ANMS is running, open a browser and navigate to `http://localhost/`.
+There you should see the ANMS login via CAM emulator page (figure below). Default credentials is admin/admin when using the emulator.
 
 ![ANMS Login](Screenshots/ANMS-Login.png)
 
@@ -189,7 +191,7 @@ To restart the agents forcefully, controlled with a different compose file `agen
 docker-compose -f agent-compose.yml up -d --force-recreate
 ```
 
-## Compose Environment and Options
+### Compose Environment and Options
 
 The top-level `docker-compose.yml` uses the environment defined by the sibling file `.env`.  Note: If using the legacy/deprecated build.sh script, that script may additionally override some environment variables.
 
@@ -202,7 +204,7 @@ Two principal options of the compose configuration, which are both defaulted to 
 
 
 
-## AMP Database Querying
+### AMP Database Querying
 
 To see what is present in the underlying AMP database, you can use the adminer access
 point. With ANMS running, go to `localhost:8080` and log in to the database with: 
@@ -212,24 +214,7 @@ point. With ANMS running, go to `localhost:8080` and log in to the database with
 - Password: `root`
 - Database `amp_core`
 
-## ANMS-UI is not visible at hostname:9030
-
-This signals that the anms-ui docker container is probably experiencing issues getting HTTP requests, 
-which is most likely related to the `host` or `bind address` specified in `anms-ui/server/shared/config.py`
-or if there is an environment variable overriding this.
-
-## ANMS-UI is not visible at hostname
-
-Check the startup logs for any errors. If using podman, some port numbers may need to be remapped using the `.env` file to higher numbered ports, or the system configuration modified to adjust permissions (not recommended).
-
-If you go to your browser and hostname:9030 (replace hostname with the server's hostname) and you see the ANMS UI,
-but http://hostname does not render the same page, then NGinx is having an issue.  You should look at the
-docker-compose services list and see what it's status is. You may need to restart nginx via 
-`docker-compose -f docker-compose.yml restart nginx`. If this fails you may need to look at nginx.conf in the
-root of the anms-ammos project. You want to make sure that `anms-ui` or `localhost` are specified for port `80` and
-not an incorrect hostname.
-
-## ADM and Agent Updates
+### ADM and Agent Updates
 
 Changes to ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI.
 The manager will then be able to use the new ADM.
@@ -246,7 +231,7 @@ To regenerate agent source, scraping the pre-existing source to avoid clearing o
 PYTHONPATH=deps/anms-ace/src/:deps/anms-camp/src/ python3 -m camp.tools.camp ion/src/nm/doc/adms/ion_bp_admin.json -o ion/src/bpv7/nm/ --only-ch --scrape
 ```
 
-## Manual Agent exercising
+### Manual Agent exercising
 
 To use the local AMP Manager directly via its REST API on the local host run similar to:
 ```
@@ -254,3 +239,26 @@ echo 'ari:/IANA:ltp_agent/CTRL.reset(UINT.3)' | PYTHONPATH=deps/anms-ace/src/ AD
 ```
 
 A limitation in the current NM REST API disallows multiple controls in a single message, so each ARI must be iterated over for this method.
+
+
+## Troubleshooting
+
+### ANMS-UI is not visible at hostname:9030
+
+This signals that the anms-ui docker container is probably experiencing issues getting HTTP requests, 
+which is most likely related to firewall rules, the `host` or `bind address` specified in `anms-ui/server/shared/config.py`
+or if there is an environment variable overriding this.
+
+Refer to the `.env` file for port binding overrides, or `docker-compose.yml` for defaults. Consult with your system admin for any firewall issues.
+
+### ANMS-UI is not visible at hostname
+
+Check the startup logs for any errors. If using podman, some port numbers may need to be remapped using the `.env` file to higher numbered ports, or the system configuration modified to adjust permissions (not recommended).
+
+If you go to your browser and hostname:9030 (replace hostname with the server's hostname) and you see the ANMS UI,
+but http://hostname does not render the same page, then NGinx is having an issue.  You should look at the
+docker-compose services list and see what it's status is. You may need to restart nginx via 
+`docker-compose -f docker-compose.yml restart nginx`. If this fails you may need to look at nginx.conf in the
+root of the anms-ammos project. You want to make sure that `anms-ui` or `localhost` are specified for port `80` and
+not an incorrect hostname.
+
