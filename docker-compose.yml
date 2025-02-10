@@ -49,19 +49,19 @@ volumes:
 
 services:
   builder-base:
-    image: anms-base
+    image: ${DOCKER_IMAGE_PREFIX}anms-base
     build:
       dockerfile: base.Dockerfile
       target: anms-base
     command: echo "Base image built" # Prevent it from running
   builder-init:
-    image: anms-init
+    image: ${DOCKER_IMAGE_PREFIX}anms-init
     build:
       dockerfile: base.Dockerfile
       target: anms-init
     command: echo "Base-init image built" # Prevent it from running
   builder-acelib:
-    image: anms-acelib
+    image: ${DOCKER_IMAGE_PREFIX}anms-acelib
     build:
       dockerfile: base.Dockerfile
       target: anms-acelib
