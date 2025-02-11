@@ -21,7 +21,7 @@
 ##
 
 # The yarn-base image is used by prep_packages script externally
-FROM anms-base AS yarn-base
+FROM localhost/anms-base AS yarn-base
 ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
