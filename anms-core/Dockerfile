@@ -25,7 +25,7 @@
 # DB_USERNAME and DB_PASSWORD for optional authentication
 # DB_NAME for the database schema to use
 #
-FROM ${DOCKER_IMAGE_PREFIX}anms-acelib
+FROM localhost/anms-acelib
 ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
