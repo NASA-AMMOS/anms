@@ -19,7 +19,7 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM anms-acelib
+FROM ${DOCKER_IMAGE_PREFIX}anms-acelib
 ENV APP_WORK_DIR /opt/app
 
 
