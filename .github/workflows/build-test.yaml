@@ -17,7 +17,7 @@ jobs:
       AUTHNZ_EMU: "1"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
       AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
-      DOCKER_IMAGE_PREFIX: "localhost"
+      DOCKER_IMAGE_PREFIX: "localhost/"
     steps:
       - name: Versions
         run: |
