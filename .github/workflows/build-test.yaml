@@ -18,6 +18,11 @@ jobs:
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
       AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
     steps:
+      - name: Start Podman API Service
+        run: |
+          systemctl --user start podman.socket
+          systemctl --user enable podman.socket
+          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock      
       - name: Versions
         run: |
           podman -v
