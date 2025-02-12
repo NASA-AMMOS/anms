@@ -10,6 +10,63 @@ on:
     - cron: '0 0 * * 0' # weekly
 
 jobs:
+  podman-checkout-test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILDKIT: "1"
+      AUTHNZ_EMU: "1"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
+      AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
+    steps:
+      - name: Versions
+        run: |
+          podman -v
+          podman ps
+          podman compose ls
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Tag name env
+        run: |
+          DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
+          echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
+      - name: Debug GitHub workspace
+        run: |
+          echo "GITHUB_WORKSPACE=${{ github.workspace }}"
+          ls -al ${{ github.workspace }}
+      - name: Build
+        run: |
+          podman compose build --no-cache
+          podman compose -f agent-compose.yml build
+          ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
+      - name: Start
+        run: |
+          podman compose up -d --force-recreate
+          podman compose -f agent-compose.yml up -d --force-recreate
+          sleep 5
+      - name: Status
+        run: |
+          for BADSTATUS in stopped restarting; do
+            podman compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
+          done
+          # Show hints at what may be wrong
+          for SERVNAME in $(cat /tmp/notgood); do
+            podman compose ${ANMS_COMPOSE_OPTS} logs --tail 50 ${SERVNAME}
+          done
+          # Fail if any names are in the file
+          ! grep '[^[:space:]]' /tmp/notgood
+      - name: Test
+        run: |
+          # Checkout the running gateway+backend
+          podman build -t checkout-test checkout-test
+          podman run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
+      - name: Stop
+        if: always()
+        run: |
+          for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+            podman compose ${!OPTS_NAME} rm --stop --force
+          done
   checkout-test:
     runs-on: ubuntu-latest
     env:
@@ -35,10 +92,10 @@ jobs:
         run: |
           echo "GITHUB_WORKSPACE=${{ github.workspace }}"
           ls -al ${{ github.workspace }}
-      - name: List Directories
-        run: find ${{ github.workspace }} -maxdepth 2
-      - name: Clear Cache
-        run: rm -rf /home/runner/.cache
+#      - name: List Directories
+#        run: find ${{ github.workspace }} -maxdepth 2
+#      - name: Clear Cache
+#        run: rm -rf /home/runner/.cache
       - name: Build
         run: |
           docker compose build --no-cache
