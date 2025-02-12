@@ -40,10 +40,12 @@ jobs:
         run: |
           echo "GITHUB_WORKSPACE=${{ github.workspace }}"
           ls -al ${{ github.workspace }}
-      - name: Build
+      - name: Build Main
+        run: podman compose build --no-cache
+      - name: Build Agents
+        run: podman compose -f agent-compose.yml build
+      - name: Build Volume
         run: |
-          podman compose build --no-cache
-          podman compose -f agent-compose.yml build
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
       - name: Start
         run: |
@@ -101,10 +103,12 @@ jobs:
 #        run: find ${{ github.workspace }} -maxdepth 2
 #      - name: Clear Cache
 #        run: rm -rf /home/runner/.cache
-      - name: Build
+      - name: Build Main
+        run: docker compose build --no-cache
+      - name: Build Agents
+        run: docker compose -f agent-compose.yml build
+      - name: Build Volume
         run: |
-          docker compose build --no-cache
-          docker compose -f agent-compose.yml build
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
       - name: Start
         run: |
