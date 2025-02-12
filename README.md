@@ -299,3 +299,9 @@ not an incorrect hostname.
 This and related errors are typically caused by incomplete support or configuration of security settings.  In older Docker & Podman releases these tags were ignored on systems where SELinux was not enabled.
 
 If running certain versions of Podman, or sytems with SELinux features enabled, users may need to explicitly configure the appropriate security groups (see User Guide) or disable the security tags entirely.  The latter can be done by commenting out the "security_opt" section in the *-compose.yml files.
+
+### `external volume ammos-tls not found`
+
+The create_volume.sh script in the directions above automatically detects if docker or podman is available.  If both are available (and are not aliased to each other), you must explicitly specify your chosen container type to ensure the volume is created appropriately.
+
+This can be done by setting the DOCKER_CMD environment variable such as `DOCKER_CMD=podman ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
