@@ -18,6 +18,8 @@ jobs:
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
       AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
       DOCKER_CMD: "podman"
+      AUTHNZ_PORT: 8084
+      AUTHNZ_HTTPS_PORT: 8443
     steps:
       - name: Start Podman API Service
         run: |
@@ -75,7 +77,7 @@ jobs:
           for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
             podman compose ${!OPTS_NAME} rm --stop --force
           done
-  checkout-test:
+  docker-checkout-test:
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: "1"
