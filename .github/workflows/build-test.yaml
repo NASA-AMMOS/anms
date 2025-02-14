@@ -12,8 +12,6 @@ on:
 jobs:
   podman-checkout-test:
     runs-on: ubuntu-latest
-    # needs: Temporarily added to force the test to run sequentially for test purposes.
-    needs: docker-checkout-test
     env:
       DOCKER_BUILDKIT: "1"
       AUTHNZ_EMU: "authnz-emu"
