@@ -28,6 +28,7 @@
 networks:
   default:
     name: ${DOCKER_CTR_PREFIX}anms
+    attachable: true
     driver_opts:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
       com.docker.network.driver.mtu: 65535
@@ -35,11 +36,6 @@ networks:
       config:
         - subnet: 10.5.0.0/16
           gateway: 10.5.0.1
-          aux_addresses:
-            ion-manager: 10.5.0.101
-            ion-agent2: 10.5.0.102
-            ion-agent3: 10.5.0.103
-
 volumes:
   grafana-data: {}
   postgres-data: {}
@@ -366,6 +362,5 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-    command: "/sbin/init"
-    # TODO: Above command is a workaround. Can likely be removed after fixing base.Dockerfile (done, but not rebuilt)
+
     
