@@ -82,18 +82,20 @@ Note: If running on a system where **SELinux** is enabled, the system will not s
 
 ## ANMS build and deploy
 
-Choose the appropriate docker or podman commands in the directions below as appropriate for your system.
+Choose the appropriate docker, podman or podman-compose commands in the directions below as appropriate for your system.
 
 - Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
 - Setup Volume containing PKI configuration (certificate chains and private keys):
   - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
 - Build Core Images using either:
   - `docker compose build`
-  - `podman compose --podman-build-args='--format docker' build`
-    - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.
+  - `podman compose build`
+  - `podman-compose --podman-build-args='--format docker' build`
+    - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
 - Build Agent images
   - `docker compose -f agent-compose.yml build`
-  - `podman compose -f agent-compose.yml --podman-build-args='--format docker' build`
+  - `podman compose -f agent-compose.yml build`
+  - `podman-compose -f agent-compose.yml --podman-build-args='--format docker' build`
 - Start System. Note: You may omit the `-d` argument to keep logs in the foreground.
   - `docker compose up -d`
   - `podman compose up -d`
@@ -299,3 +301,9 @@ not an incorrect hostname.
 This and related errors are typically caused by incomplete support or configuration of security settings.  In older Docker & Podman releases these tags were ignored on systems where SELinux was not enabled.
 
 If running certain versions of Podman, or sytems with SELinux features enabled, users may need to explicitly configure the appropriate security groups (see User Guide) or disable the security tags entirely.  The latter can be done by commenting out the "security_opt" section in the *-compose.yml files.
+
+### `external volume ammos-tls not found`
+
+The create_volume.sh script in the directions above automatically detects if docker or podman is available.  If both are available (and are not aliased to each other), you must explicitly specify your chosen container type to ensure the volume is created appropriately.
+
+This can be done by setting the DOCKER_CMD environment variable such as `DOCKER_CMD=podman ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
