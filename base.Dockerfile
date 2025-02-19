@@ -68,7 +68,7 @@ FROM anms-base AS anms-acelib
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/root/.cache/pip \
-    dnf -y install python3 python3-pip python3-wheel python3-setuptools && \
+    dnf -y install python3 python3-pip python3-wheel python3-setuptools iputils && \
     dnf clean all && rm -rf /var/cache/yum && \
     pip3 install --upgrade pip pip-tools 
 

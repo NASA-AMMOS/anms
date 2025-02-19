@@ -292,10 +292,6 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:anms-core.process"
-#    volumes:
-# TODO: Not compatible with podman without additional setup
-#      - /var/run/docker.sock:/var/run/docker.sock
-#      - /usr/lib/systemd/user/podman.socket:/var/run/docker.sock
     environment:
       ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres
