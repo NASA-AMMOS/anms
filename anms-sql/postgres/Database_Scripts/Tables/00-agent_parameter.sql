@@ -19,9 +19,26 @@
 -- the prime contract 80NM0018D0004 between the Caltech and NASA under
 -- subcontract 1658085.
 --
-SET GLOBAL sql_mode='NO_AUTO_VALUE_ON_ZERO';
-SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';
-SELECT @@GLOBAL.sql_mode;
-SELECT @@SESSION.sql_mode;
 
-drop database amp_core;
+
+CREATE TABLE agent_parameter(
+    agent_parameter_id serial NOT NULL, 
+    command_name VARCHAR NOT NULL,
+    command_parameters VARCHAR,
+    PRIMARY KEY (agent_parameter_id),
+    UNIQUE (command_name,command_parameters)
+);
+
+CREATE TABLE agent_parameter_received(
+    ts TIMESTAMP default current_timestamp,
+    agent_parameter_received_id serial NOT NULL,
+    manager_id INT,
+    registered_agents_id INT NOT NULL,
+    agent_parameter_id INT NOT NULL,
+    command_parameters VARCHAR,
+    PRIMARY KEY (agent_parameter_received_id),
+    FOREIGN KEY (registered_agents_id)
+        REFERENCES registered_agents (registered_agents_id),
+    FOREIGN KEY (agent_parameter_id)
+        REFERENCES agent_parameter (agent_parameter_id)
+);

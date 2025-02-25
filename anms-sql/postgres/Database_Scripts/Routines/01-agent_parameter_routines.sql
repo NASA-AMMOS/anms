@@ -19,28 +19,18 @@
 -- the prime contract 80NM0018D0004 between the Caltech and NASA under
 -- subcontract 1658085.
 --
-CREATE OR REPLACE VIEW vw_oper_actual AS
-    SELECT 
-        obj_metadata.obj_metadata_id,
-        obj_name,
-        namespace_id,
-        obj_actual_definition_id,
-       obj_metadata.data_type_id,
-        num_operands,
-        tnvc_id,
-        use_desc
-    FROM
-        obj_metadata
-            JOIN
-        (SELECT 
-            obj_actual_definition.obj_actual_definition_id,
-                obj_metadata_id,
-                use_desc,
-                data_type_id,
-                num_operands,
-                tnvc_id
-        FROM
-            obj_actual_definition
-        JOIN operator_actual_definition ON operator_actual_definition.obj_actual_definition_id = obj_actual_definition.obj_actual_definition_id) join2 ON join2.obj_metadata_id = obj_metadata.obj_metadata_id;
 
- 
+
+CREATE OR REPLACE PROCEDURE SP__add_agent_parameter_received(IN p_manager_id INTEGER, p_registered_agents_id INTEGER, p_agent_parameter_id int, p_command_parameters VARCHAR )
+LANGUAGE plpgsql
+as $$ BEGIN
+    INSERT INTO agent_parameter_received(manager_id, registered_agents_id, agent_parameter_id, command_parameters) VALUES(p_manager_id, p_registered_agents_id, p_agent_parameter_id, p_command_parameters);
+END$$;
+
+
+CREATE OR REPLACE PROCEDURE SP__add_agent_parameter(IN  p_command_name VARCHAR, p_command_parameters VARCHAR )
+LANGUAGE plpgsql
+as $$ BEGIN
+    INSERT INTO agent_parameter(command_name, command_parameters) VALUES(p_command_name, p_command_parameters);
+END$$;
+
