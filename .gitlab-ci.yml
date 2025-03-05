@@ -333,7 +333,7 @@ deploy:
     - |
       dnf install -y https://yum.puppet.com/puppet-release-el-9.noarch.rpm
       dnf install -y https://yum.puppet.com/puppet-tools-release-el-9.noarch.rpm
-      dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt
+      dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt-3.30.0-1.el9
       update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
     - chmod +t /tmp # workaround ruby need within prep.sh
     - ./puppet/prep.sh
@@ -364,3 +364,4 @@ deploy:
     - *prep-install-python
     - pip3 install -r checkout-test/requirements.txt
     - CHECKOUT_BASE_URL=http://${DEPLOY_TARGET}/ ./checkout-test/run.sh
+
