@@ -230,14 +230,14 @@ The two output paths for ADM C files are:
 
 To regenerate agent source, scraping the pre-existing source to avoid clearing out agent implementations, run:
 ```sh
-PYTHONPATH=deps/anms-ace/src/:deps/anms-camp/src/ python3 -m camp.tools.camp ion/src/nm/doc/adms/ion_bp_admin.json -o ion/src/bpv7/nm/ --only-ch --scrape
+PYTHONPATH=deps/dtnma-ace/src/:deps/anms-camp/src/ python3 -m camp.tools.camp ion/src/nm/doc/adms/ion_bp_admin.json -o ion/src/bpv7/nm/ --only-ch --scrape
 ```
 
 ### Manual Agent exercising
 
 To use the local AMP Manager directly via its REST API on the local host run similar to:
 ```
-echo 'ari:/IANA:ltp_agent/CTRL.reset(UINT.3)' | PYTHONPATH=deps/anms-ace/src/ ADM_PATH=deps/anms-ace/tests/adms/ python3 -m ace.tools.ace_ari --log-level=warning --outform=cborhex --must-nickname | tr -d '[[:space:]]' | curl -v -XPUT -H 'Content-Type: text/plain' --data-binary @- http://localhost:8089/nm/api/agents/eid/ipn:2.6/hex; echo
+echo 'ari:/IANA:ltp_agent/CTRL.reset(UINT.3)' | PYTHONPATH=deps/dtnma-ace/src/ ADM_PATH=deps/dtnma-ace/tests/adms/ python3 -m ace.tools.ace_ari --log-level=warning --outform=cborhex --must-nickname | tr -d '[[:space:]]' | curl -v -XPUT -H 'Content-Type: text/plain' --data-binary @- http://localhost:8089/nm/api/agents/eid/ipn:2.6/hex; echo
 ```
 
 A limitation in the current NM REST API disallows multiple controls in a single message, so each ARI must be iterated over for this method.

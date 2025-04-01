@@ -19,7 +19,8 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM localhost/anms-acelib
+FROM localhost/dtnma-acelib
+
 ENV APP_WORK_DIR /opt/app
 
 

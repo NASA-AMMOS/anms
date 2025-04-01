@@ -57,10 +57,10 @@ services:
       target: anms-init
     command: echo "Base-init image built" # Prevent it from running
   builder-acelib:
-    image: localhost/anms-acelib
+    image: localhost/dtnma-acelib
     build:
       dockerfile: base.Dockerfile
-      target: anms-acelib
+      target: dtnma-acelib
     command: echo "Base-acelib image built" # Prevent it from running
   authnz:
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
