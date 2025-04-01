@@ -49,19 +49,19 @@ services:
     build:
       dockerfile: base.Dockerfile
       target: anms-base
-    command: echo "Base image built" # Prevent it from running
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
   builder-init:
     image: localhost/anms-init
     build:
       dockerfile: base.Dockerfile
       target: anms-init
-    command: echo "Base-init image built" # Prevent it from running
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
   builder-acelib:
     image: localhost/dtnma-acelib
     build:
       dockerfile: base.Dockerfile
       target: dtnma-acelib
-    command: echo "Base-acelib image built" # Prevent it from running
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
   authnz:
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
     build:
