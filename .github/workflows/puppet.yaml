@@ -1,9 +1,8 @@
 name: Puppet module
 on:
   push:
-    paths:
-      - .github/workflows/puppet.yaml
-      - puppet/**
+    branches:
+    - main
   pull_request: {} # any target
   schedule:
     - cron: '0 0 * * 0' # weekly
