@@ -1,9 +1,8 @@
 name: Puppet module
 on:
   push:
-    paths:
-      - .github/workflows/puppet.yaml
-      - puppet/**
+    branches:
+    - main
   pull_request: {} # any target
   schedule:
     - cron: '0 0 * * 0' # weekly
@@ -11,7 +10,7 @@ on:
 jobs:
   prep:
     name: Download modules
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,7 +31,7 @@ jobs:
           ./puppet/prep.sh
 
   puppet-lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read # for checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
@@ -53,7 +52,7 @@ jobs:
         run: gem install puppet-lint
 
       - name: Run puppet-lint
-        run: puppet-lint . --sarif > puppet-lint-results.sarif
+        run: puppet-lint puppet --sarif --ignore-paths 'puppet/modules/anms/files/*' > puppet-lint-results.sarif
 
       - name: Upload analysis results to GitHub
         if: always()
