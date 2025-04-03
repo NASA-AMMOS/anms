@@ -20,7 +20,7 @@
 ## subcontract 1658085.
 ##
 FROM dtnma-acelib
-ENV APP_WORK_DIR /opt/app
+ENV APP_WORK_DIR=/opt/app
 
 
 # Copy over all required content (source, data, etc.)

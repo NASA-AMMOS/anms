@@ -25,7 +25,6 @@
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
-version: '3.9'
 
 networks:
   default:
@@ -244,7 +243,7 @@ services:
     security_opt:
       - "label=type:anms-core.process"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - "/var/run/docker.sock:/var/run/docker.sock"
     environment:
       ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres
@@ -269,16 +268,16 @@ services:
     ports:
       - "${ADMINER_PORT:-8080}:8080"
 
-  ion-manager:
-    container_name: ${DOCKER_CTR_PREFIX}ion-manager
-    hostname: ion-manager
-    image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+  amp-manager:
+    container_name: ${DOCKER_CTR_PREFIX}amp-manager
+    hostname: amp-manager
+    image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     restart: unless-stopped
     security_opt:
-      - "label=type:ion-manager.process"
+      - "label=type:amp-manager.process"
+    volumes:
+      - "/var/run/anms:/var/run/anms:rw"
     ports:
-      - "1113:1113/udp"
-      - "4556:4556/udp"
       - "${ION_MGR_PORT:-8089}:8089"
     depends_on:
       postgres:
@@ -291,8 +290,7 @@ services:
       - SYS_NICE
     environment:
       container: docker
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
+      ION_APP_PROXY_SOCK: /var/run/anms/ion-proxy.socket
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}

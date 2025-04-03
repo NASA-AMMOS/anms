@@ -73,7 +73,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install --upgrade pip pip-tools 
 
 # Submodules with dependencies
-env PY_WHEEL_DIR=/usr/local/lib/wheels
+ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
 COPY deps/dtnma-ace /usr/src/dtnma-ace
 RUN --mount=type=cache,target=/root/.cache/pip \
