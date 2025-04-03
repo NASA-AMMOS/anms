@@ -18,7 +18,7 @@ class anms::hostenv(
       }
       class { 'selinux': }
       package { 'udica':
-        ensure  => 'installed',
+        ensure => 'installed',
       }
 
       class { 'firewalld': }
