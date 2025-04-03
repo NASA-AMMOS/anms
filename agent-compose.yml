@@ -40,7 +40,7 @@ services:
     image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
     restart: unless-stopped
     volumes:
-      - "/var/run/anms:/var/run/anms:rw"
+      - "/var/run/anms:/var/tmp/anms"
     ports:
       - "1113/udp"
       - "4556/udp"
@@ -52,7 +52,7 @@ services:
       - SYS_NICE
     environment:
       container: docker
-      ION_APP_PROXY_SOCK: /var/run/anms/ion-proxy.socket
+      ION_APP_PROXY_SOCK: /var/tmp/anms/ion-proxy.socket
       ION_NODE_NUM: 1
       MGR_NODE_NUM: 1
 

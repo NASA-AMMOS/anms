@@ -44,6 +44,18 @@ RUN cd /usr/local/src/dtnma-tools/deps/mlib && \
     make install && \
     make -j$(nproc) clean
 
+# Helper utilities
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y \
+    python3 python3-pip \
+    gcc python3-devel systemd-devel
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip3 install systemd-python
+COPY --chmod=755 dtnma-tools/testenv/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
+COPY --chmod=755 dtnma-tools/testenv/service_is_running.sh /usr/local/bin/service_is_running
+COPY --chmod=755 dtnma-tools/testenv/ion_restart_ducts.sh /usr/local/bin/ion_restart_ducts
+COPY --chmod=755 dtnma-tools/testenv/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
+
 
 # Additional ION library install
 FROM deps-base AS ion-base
@@ -67,18 +79,6 @@ RUN cd /usr/local/src/dtnma-tools/deps/ion && \
     make install && \
     echo /usr/local/lib64 > /etc/ld.so.conf.d/local.conf && \
     ldconfig 
-
-# Helper utilities
-RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y \
-    python3 python3-pip \
-    gcc python3-devel systemd-devel
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install systemd-python
-COPY --chmod=755 dtnma-tools/testenv/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
-COPY --chmod=755 dtnma-tools/testenv/service_is_running.sh /usr/local/bin/service_is_running
-#COPY --chmod=755 dtnma-tools/testenv/ion_restart_ducts.sh /usr/local/bin/ion_restart_ducts
-COPY --chmod=755 dtnma-tools/testenv/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
 
 # Systemd services
 COPY dtnma-tools/systemd/tmpfiles.conf /etc/tmpfiles.d/ion.conf
@@ -132,7 +132,7 @@ RUN cd /usr/local/src/dtnma-tools && \
     cmake --build build/default && \
     cmake --install build/default 
 
-COPY test-ion-configs/mgr.rc /etc/ion.rc
+COPY test-ion-configs/mgr.rc /etc/ion/node-1.rc
 COPY --chmod=644 dtnma-tools/systemd/ion-app-proxy.service dtnma-tools/systemd/ion-nm-agent.service /usr/local/lib/systemd/system/
 RUN systemctl enable ion-app-proxy ion-nm-agent && \
     mkdir -p /var/run/ion
@@ -160,7 +160,8 @@ RUN cd /usr/local/src/dtnma-tools && \
     cmake --build build/default && \
     cmake --install build/default 
 
-COPY test-ion-configs/agent.rc.in /etc/ion.rc
+    COPY test-ion-configs/agent-2.rc /etc/ion/node-2.rc
+    COPY test-ion-configs/agent-3.rc /etc/ion/node-3.rc
 COPY --chmod=644 dtnma-tools/systemd/ion-nm-agent.service /usr/local/lib/systemd/system/
 RUN systemctl enable ion-nm-agent && \
     mkdir -p /var/run/ion

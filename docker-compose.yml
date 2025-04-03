@@ -276,7 +276,7 @@ services:
     security_opt:
       - "label=type:amp-manager.process"
     volumes:
-      - "/var/run/anms:/var/run/anms:rw"
+      - "/var/run/anms:/var/tmp/anms"
     ports:
       - "${ION_MGR_PORT:-8089}:8089"
     depends_on:
@@ -290,7 +290,7 @@ services:
       - SYS_NICE
     environment:
       container: docker
-      ION_APP_PROXY_SOCK: /var/run/anms/ion-proxy.socket
+      ION_APP_PROXY_SOCK: /var/tmp/anms/ion-proxy.socket
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
