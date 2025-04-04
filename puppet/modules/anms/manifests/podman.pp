@@ -47,14 +47,14 @@ class anms::podman() {
   systemd::unit_file { 'podman-compose@.service':
     source  => 'puppet:///modules/anms/podman-compose@.service',
   }
-  file { "/etc/containers/compose":
+  file { '/etc/containers/compose':
     ensure  => 'directory',
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
     require => Package['podman'],
   }
-  file { "/etc/containers/compose/projects":
+  file { '/etc/containers/compose/projects':
     ensure  => 'directory',
     owner   => 'root',
     group   => 'root',

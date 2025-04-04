@@ -23,16 +23,20 @@ define anms::compose(
         exec { "docker-compose-${title}-pull":
           path    => $facts['path'],
           command => "podman compose -p ${title} -f ${directory}/${compose_file} pull",
-	  require => [
-	    File["${directory}/${compose_file}"],
-	  ],
+          require => [
+            File["${directory}/${compose_file}"],
+          ],
           before  => Service["podman-compose@${title}"],
         }
       }
       # Environment for podman-compose@.service instance
       file { "/etc/containers/compose/projects/${title}.env":
         ensure  => 'file',
-        content => epp('anms/podman-compose-project.env.epp', {'title' => $title, 'directory' => $directory, 'compose_file' => $compose_file}),
+        content => epp('anms/podman-compose-project.env.epp', {
+          'title'        => $title,
+          'directory'    => $directory,
+          'compose_file' => $compose_file
+        }),
         owner   => 'root',
         group   => 'root',
         mode    => '0644',
@@ -40,8 +44,8 @@ define anms::compose(
       service { "podman-compose@${title}":
         enable  => true,
         require => [
-	  Systemd::Unit_file['podman-compose@.service'],
-	],
+          Systemd::Unit_file['podman-compose@.service'],
+        ],
       }
     }
     'absent': {

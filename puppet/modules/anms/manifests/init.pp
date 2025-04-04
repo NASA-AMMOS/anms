@@ -144,10 +144,10 @@ class anms(
     mode   => '0644',
   }
   anms::compose { 'anms':
-    ensure        => 'present',
-    directory     => '/ammos/anms',
-    compose_file  => 'anms-compose.yml',
-    subscribe     => [
+    ensure       => 'present',
+    directory    => '/ammos/anms',
+    compose_file => 'anms-compose.yml',
+    subscribe    => [
       File['/ammos/anms/anms-compose.yml'],
       File['/ammos/anms/.env'],
     ],
@@ -161,13 +161,13 @@ class anms(
     mode   => '0644',
   }
   anms::compose { 'agents':
-    ensure        => 'present',
-    directory     => '/ammos/anms',
-    compose_file  => 'agent-compose.yml',
-    require       => [
+    ensure       => 'present',
+    directory    => '/ammos/anms',
+    compose_file => 'agent-compose.yml',
+    require      => [
       Anms::Compose['anms'], # for the anms network
     ],
-    subscribe     => [
+    subscribe    => [
       File['/ammos/anms/agent-compose.yml'],
       File['/ammos/anms/.env'],
     ],
