@@ -19,7 +19,7 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM grafana/grafana:9.1.3
+FROM docker.io/grafana/grafana:9.1.3
 
 # Optional APL network configuration from
 # https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34

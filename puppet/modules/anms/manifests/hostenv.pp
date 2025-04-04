@@ -111,7 +111,7 @@ class anms::hostenv(
     ],
   }
 
-  class { 'anms::docker':
+  class { 'anms::podman':
     require => Augeas['environment_ca'],
   }
 }

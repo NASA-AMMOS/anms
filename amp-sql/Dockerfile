@@ -22,7 +22,7 @@
 
 # This is a postgres stateful database with data definition startup SQL scripts
 
-FROM postgres:14
+FROM docker.io/library/postgres:14
 
 COPY postgres/Database_Scripts/*/*.sql /docker-entrypoint-initdb.d/
 COPY postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/

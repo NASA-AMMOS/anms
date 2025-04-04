@@ -31,14 +31,12 @@ ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
 COPY pyproject.toml ${APP_WORK_DIR}/
-RUN --mount=type=cache,target=/root/.cache/pip \
-    cd ${APP_WORK_DIR} && \
+RUN cd ${APP_WORK_DIR} && \
     pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml && \
     pip3 install  --ignore-installed  -r requirements.txt
 # Actual main package
 COPY anms ${APP_WORK_DIR}/anms
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install ${APP_WORK_DIR}
+RUN pip3 install ${APP_WORK_DIR}
 
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-ace/tests/adms /usr/local/share/ace/adms

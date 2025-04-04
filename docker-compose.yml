@@ -106,7 +106,7 @@ services:
 
   opensearch:
     hostname: opensearch
-    image: opensearchproject/opensearch:2.0.0
+    image: docker.io/opensearchproject/opensearch:2.0.0
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch.process"
@@ -130,7 +130,7 @@ services:
 
   opensearch-dashboards:
     hostname: opensearch-dashboards
-    image: opensearchproject/opensearch-dashboards:2.0.0
+    image: docker.io/opensearchproject/opensearch-dashboards:2.0.0
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch-dashboards.process"
@@ -211,7 +211,7 @@ services:
 
   grafana-image-renderer:
     hostname: grafana-image-renderer
-    image: grafana/grafana-image-renderer:3.6.1
+    image: docker.io/grafana/grafana-image-renderer:3.6.1
     restart: unless-stopped
     security_opt:
       - "label=type:grafana-image-renderer.process"
@@ -220,7 +220,7 @@ services:
 
   redis:
     hostname: redis
-    image: redis:6.0-alpine
+    image: docker.io/library/redis:6.0-alpine
     restart: unless-stopped
     security_opt:
       - "label=type:redis.process"
@@ -311,7 +311,7 @@ services:
 
   adminer:
     hostname: adminer
-    image:  adminer:latest
+    image: docker.io/library/adminer:latest
     restart: unless-stopped
     security_opt:
       - "label=type:adminer.process"

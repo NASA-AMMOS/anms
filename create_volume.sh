@@ -19,12 +19,12 @@ fi
 # Determine base command (docker or podman)
 if [ -n "$DOCKER_CMD" ]; then
     echo "Using defined DOCKER_CMD=${DOCKER_CMD}"
-elif command -v docker &> /dev/null; then
-    echo "Docker is installed"
-    DOCKER_CMD="docker"
 elif command -v podman &> /dev/null; then
     echo "Podman is installed"
     DOCKER_CMD="podman"
+elif command -v docker &> /dev/null; then
+    echo "Docker is installed"
+    DOCKER_CMD="docker"
 else
     echo "Neither Docker nor Podman is installed"
     exit 1
