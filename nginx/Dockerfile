@@ -19,7 +19,7 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM nginx:1.23
+FROM docker.io/library/nginx:1.23
 
 COPY nginx.conf /etc/nginx/nginx.conf
 

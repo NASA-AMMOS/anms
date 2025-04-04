@@ -25,7 +25,6 @@
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
-version: '3.9'
 
 networks:
   # This network is created by docker-compose.yml
@@ -36,9 +35,12 @@ networks:
 services:
 
   ion-agent2: &ion-agent
-    container_name: ${DOCKER_CTR_PREFIX}ion-agent2
     hostname: ion-agent2
     image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
+    build:
+      context: ion
+      dockerfile: Dockerfile
+      target: ion-agent
     expose:
       - 1113/udp
       - 4556/udp
@@ -53,11 +55,15 @@ services:
       container: docker
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
-
+    networks:
+      default:
+        ipv4_address: 10.5.0.102
   ion-agent3:
     <<: *ion-agent
-    container_name: ${DOCKER_CTR_PREFIX}ion-agent3
     hostname: ion-agent3
+    networks:
+      default:
+        ipv4_address: 10.5.0.103
     environment:
       container: docker
       ION_NODE_NUM: 3

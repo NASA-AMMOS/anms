@@ -1,12 +1,12 @@
 # The root class for installing the ANMS
 #
 class anms(
-  String $docker_image_prefix,
-  String $docker_image_tag,
+  String $ctr_image_prefix,
+  String $ctr_image_tag,
   String $version = '',
   String $gw_fqdn = $facts['networking']['fqdn'],
-  Optional[String] $docker_registry_user = undef,
-  Optional[String] $docker_registry_pass = undef,
+  Optional[String] $ctr_registry_user = undef,
+  Optional[String] $ctr_registry_pass = undef,
   String $cam_server_url = '',
   String $cam_admin_user = 'amAdmin',
   String $cam_admin_password = '',
@@ -77,8 +77,8 @@ class anms(
       anms::semodule_cil { 'anms-ports':
         source_cil => 'puppet:///modules/anms/selinux/anms-ports.cil',
         require    => Package['udica'],
-        before     => Anms::Docker_compose['anms'],
-        notify     => Anms::Docker_compose['anms'],
+        before     => Anms::Compose['anms'],
+        notify     => Anms::Compose['anms'],
       }
       $containers.each |$ctrname| {
         anms::semodule_cil { $ctrname:
@@ -91,8 +91,8 @@ class anms(
             Package['udica'],
             Anms::Semodule_cil['anms-ports'],
           ],
-          before     => Anms::Docker_compose['anms'],
-          notify     => Anms::Docker_compose['anms'],
+          before     => Anms::Compose['anms'],
+          notify     => Anms::Compose['anms'],
         }
       }
     }
@@ -101,14 +101,13 @@ class anms(
   }
 
   # Images pulled from remote registry
-  if !empty($docker_image_prefix) and !empty($docker_registry_user) and !empty($docker_registry_pass) {
-    exec { 'docker-login':
+  if !empty($ctr_image_prefix) and !empty($ctr_registry_user) and !empty($ctr_registry_pass) {
+    exec { 'image-repo-login':
       path    => $facts['path'],
-      command => "docker login ${docker_image_prefix} --username \"${docker_registry_user}\" --password \"${docker_registry_pass}\"",
-      require => Service['docker'],
+      command => "podman login ${ctr_image_prefix} --username \"${ctr_registry_user}\" --password \"${ctr_registry_pass}\"",
       before  => [
-        Anms::Docker_compose['anms'],
-        Anms::Docker_compose['agents'],
+        Anms::Compose['anms'],
+        Anms::Compose['agents'],
       ],
     }
   }
@@ -124,9 +123,8 @@ class anms(
   exec { 'volume-ammos-tls':
     path      => $facts['path'],
     command   => '/ammos/anms/create_volume.sh',
-    unless    => 'docker volume inspect ammos-tls',
+    unless    => 'podman volume inspect ammos-tls',
     require   => [
-      Service['docker'],
       File['/ammos/anms/create_volume.sh'],
     ],
     subscribe => [
@@ -134,23 +132,23 @@ class anms(
       File['/ammos/etc/pki/tls/certs/ammos-server-cert.pem'],
       File['/ammos/etc/pki/tls/certs/ammos-ca-bundle.crt'],
     ],
-    before    => Anms::Docker_compose['anms'],
-    notify    => Anms::Docker_compose['anms'],
+    before    => Anms::Compose['anms'],
+    notify    => Anms::Compose['anms'],
   }
 
-  file { '/ammos/anms/docker-compose.yml':
+  file { '/ammos/anms/anms-compose.yml':
     ensure => 'file',
     source => 'puppet:///modules/anms/docker-compose.yml',
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
   }
-  anms::docker_compose { 'anms':
-    ensure        => 'present',
-    compose_files => ['/ammos/anms/docker-compose.yml'],
-    up_args       => '--force-recreate',
-    subscribe     => [
-      File['/ammos/anms/docker-compose.yml'],
+  anms::compose { 'anms':
+    ensure       => 'present',
+    directory    => '/ammos/anms',
+    compose_file => 'anms-compose.yml',
+    subscribe    => [
+      File['/ammos/anms/anms-compose.yml'],
       File['/ammos/anms/.env'],
     ],
   }
@@ -162,14 +160,14 @@ class anms(
     group  => 'root',
     mode   => '0644',
   }
-  anms::docker_compose { 'agents':
-    ensure        => 'present',
-    compose_files => ['/ammos/anms/agent-compose.yml'],
-    up_args       => '--force-recreate',
-    require       => [
-      Anms::Docker_compose['anms'], # for the anms network
+  anms::compose { 'agents':
+    ensure       => 'present',
+    directory    => '/ammos/anms',
+    compose_file => 'agent-compose.yml',
+    require      => [
+      Anms::Compose['anms'], # for the anms network
     ],
-    subscribe     => [
+    subscribe    => [
       File['/ammos/anms/agent-compose.yml'],
       File['/ammos/anms/.env'],
     ],
@@ -181,14 +179,14 @@ class anms(
     'ion-agent2',
     'ion-agent3',
   ]
-  $ion_containers.each |$ctrname| {
-    exec { "restart-ducts-${ctrname}":
-      command => "docker exec ${ctrname} ion_restart_ducts",
-      path    => $facts['path'],
-      require => [
-        Anms::Docker_compose['anms'],
-        Anms::Docker_compose['agents'],
-      ],
-    }
-  }
+#  $ion_containers.each |$ctrname| {
+#    exec { "restart-ducts-${ctrname}":
+#      command => "podman exec ${ctrname} ion_restart_ducts",
+#      path    => $facts['path'],
+#      require => [
+#        Anms::Compose['anms'],
+#        Anms::Compose['agents'],
+#      ],
+#    }
+#  }
 }

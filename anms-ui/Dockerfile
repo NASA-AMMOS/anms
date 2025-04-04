@@ -21,14 +21,14 @@
 ##
 
 # The yarn-base image is used by prep_packages script externally
-FROM anms-base AS yarn-base
+FROM localhost/anms-base AS yarn-base
 ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
 # Yarn cannot be installed via RPM because of FIPS-mode restrictions
-RUN dnf -y  install  https://rpm.nodesource.com/pub_16.x/el/9/x86_64/nodesource-release-el9-1.noarch.rpm && \
-    dnf -y  install nodejs && \
-    dnf clean all && rm -rf /var/cache/yum && \
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y https://rpm.nodesource.com/pub_16.x/el/9/x86_64/nodesource-release-el9-1.noarch.rpm && \
+    dnf install -y nodejs && \
     npm install --global yarn && \
     yarn config set --global cafile ${PIP_CERT}
 
@@ -73,7 +73,9 @@ ENTRYPOINT ["docker-entrypoint"]
 
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
-COPY --chown=${APP_USER}:${APP_USER} config.yaml process.yml config_ui_env.js data/ ${APP_WORK_DIR}
+
+# NOTE: wildcard allows handling case when data directory has not been created locally
+COPY --chown=${APP_USER}:${APP_USER} config.yaml process.yml config_ui_env.js data* ${APP_WORK_DIR}
 
 CMD ["pm2-docker", "process.yml", "--env", "production"]
 

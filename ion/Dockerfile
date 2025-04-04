@@ -16,7 +16,7 @@
 ## limitations under the License.
 ##
 
-FROM anms-init AS ion-base
+FROM localhost/anms-init AS ion-base
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 RUN dnf install  -y  \
     autoconf libtool \

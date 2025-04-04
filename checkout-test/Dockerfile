@@ -21,7 +21,7 @@
 ##
 
 # Allow the checkout tests to be run within a docker network
-FROM anms-base
+FROM localhost/anms-base
 
 COPY . /usr/src/checkout-test
 RUN --mount=type=cache,target=/var/cache/yum \
