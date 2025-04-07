@@ -11,6 +11,7 @@ jobs:
   prep:
     name: Download modules
     runs-on: ubuntu-24.04
+    container: quay.io/centos/centos:stream9
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,14 +19,11 @@ jobs:
           submodules: false
       - name: Install dependencies
         run: |
-          wget https://apt.puppet.com/puppet-release-noble.deb
-          sudo dpkg -i puppet-release-noble.deb
-          wget https://apt.puppet.com/puppet-tools-release-noble.deb
-          sudo dpkg -i puppet-tools-release-noble.deb
-          sudo apt-get update
-          sudo apt-get install -y puppet-agent puppet-bolt
-          sudo update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
-          sudo chmod +t /tmp # workaround ruby need within prep.sh
+          dnf install -y https://yum.puppet.com/puppet7-release-el-9.noarch.rpm
+          dnf install -y https://yum.puppet.com/puppet-tools-release-el-9.noarch.rpm
+          dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt-3.30.0-1.el9
+          update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
+          chmod +t /tmp # workaround ruby need within prep.sh
       - name: Prep project
         run: |
           ./puppet/prep.sh
