@@ -43,6 +43,7 @@ RUN mkdir -p /usr/local/share/ace && \
 COPY anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
 
 # Remaining commands as the local user
+RUN setcap cap_net_raw=ep /usr/bin/ping
 COPY --chmod=755 docker-entrypoint.sh /root/docker-entrypoint.sh
 CMD ["/root/docker-entrypoint.sh"]
 

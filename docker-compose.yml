@@ -292,6 +292,8 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:anms-core.process"
+    cap_add:
+      - NET_RAW
     environment:
       ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres

@@ -106,11 +106,12 @@ def get_containers_status():
     else:
       # If no other check defined, test that host can be pinged
       try:
-        result = subprocess.run(["ping", "-c1", f"-W{timeout}", hostname])
+        cmd = ["ping", "-c1", f"-W{timeout}", hostname]
+        result = subprocess.run(cmd, shell=False)
         if result.returncode == 0:
           statuses[name] = "healthy"
         else:
-          logger.warning("%s: Host %s is unreachable via ping", name, hostname)
+          logger.warning("%s: Host %s is unreachable via ping, exit code %d", name, hostname, result.returncode)
           statuses[name] = "unhealthy"
       except Exception as err:
         logger.warning("%s: Error pinging %s: %s", name, hostname, err)
