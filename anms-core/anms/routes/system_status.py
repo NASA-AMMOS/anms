@@ -22,19 +22,14 @@
 # subcontract 1658085.
 #
 from fastapi import APIRouter, status
-import os
 import requests
 import json
 import socket
+import subprocess
 from pydantic import BaseModel
 
-from anms.models.relational import  nm_url
+from anms.models.relational import nm_url
 from anms.shared.opensearch_logger import OpenSearchLogger
-from anms.models.relational import get_async_session
-
-from sqlalchemy.orm import (Query, Session, as_declarative, declared_attr,
-                            scoped_session, sessionmaker)
-
 
 
 router = APIRouter(tags=["SYS_STATUS"])
@@ -49,19 +44,20 @@ logger = OpenSearchLogger(__name__).logger
 #  hostname - Optional hostname of service. If omitted, assumed to match name
 #  url - If defined, perform a GET of this URL and report success if no error is returned (HTTP 200)
 status_cfg = [
-  {"name" : "adminer",                "url": "http://adminer:8080"},
-  {"name" : "anms-core"}, # Self
-  {"name" : "aricodec"},
-  {"name" : "authnz",                 "url": "http://authnz/authn/login.html"},
-  {"name" : "grafana",                "url":"http://grafana:3000"},
-  {"name" : "grafana-image-renderer", "url":"http://grafana-image-renderer:8081"},
-  {"name" : "ion-manager",            "url":"http://ion-manager:8089/nm/api/version"},
-  {"name" : "mqtt-broker"},
-  {"name" : "nginx",                   "url":"http://nginx"},
-  {"name" : "postgres", "tcp_port":5432},
-  {"name" : "redis"},
-  {"name" : "transcoder"}
+  {"name": "adminer", "url": "http://adminer:8080"},
+  {"name": "anms-core"}, # Self
+  {"name": "aricodec"},
+  {"name": "authnz", "url": "http://authnz/authn/login.html"},
+  {"name": "grafana", "url": "http://grafana:3000"},
+  {"name": "grafana-image-renderer", "url": "http://grafana-image-renderer:8081"},
+  {"name": "ion-manager", "url": "http://ion-manager:8089/nm/api/version"},
+  {"name": "mqtt-broker"},
+  {"name": "nginx", "url": "http://nginx"},
+  {"name": "postgres", "tcp_port": 5432},
+  {"name": "redis"},
+  {"name": "transcoder"}
 ]
+
 
 def get_containers_status():
   '''
@@ -74,50 +70,50 @@ def get_containers_status():
 
   for container in status_cfg:
     name = container['name']
-    
+
     # Default hostname to container.name if not explicitly defined
     hostname = container.get("hostname", name)
+    timeout = 5  # seconds
 
     if "url" in container:
       url = container['url']
       try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=timeout)
         if response.status_code == 200:
-          #print(f"{name}: URL {url} is reachable (HTTP 200)")
           statuses[name] = "healthy"
         else:
-          print(f"{name}: URL {url} responded with status {response.status_code}")
+          logger.warning("%s: URL %s responded with status %d", name, url, response.status_code)
           statuses[name] = "unhealthy"
-      except requests.RequestException as e:
-        print(f"{name}: Failed to reach {url} - {e}")
+      except requests.RequestException as err:
+        logger.warning("%s: URL %s failed to reach with error %s", name, url, err)
         statuses[name] = "not-running"
+
     elif "tcp_port" in container:
       port = container['tcp_port']
       try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-          sock.settimeout(3)
+          sock.settimeout(timeout)
           result = sock.connect_ex((hostname, port))
           if result == 0:
-            #print(f"{name}: URL {url} is reachable (HTTP 200)")
             statuses[name] = "healthy"
           else:
-            print(f"{name}: TCP port {port} on {hostname} is closed or unreachable")
+            logger.warning("%s: TCP port %s:%d is closed or unreachable", name, hostname, port)
             statuses[name] = "unhealthy"
-      except Exception as e:
-        print(f"{name}: TCP port {port} on {hostname} can't be queried = {e}")
+      except Exception as err:
+        logger.warning("%s: TCP port %s:%d can't be queried: {err}", name, hostname, port, err)
         statuses[name] = "not-running"
+
     else:
       # If no other check defined, test that host can be pinged
       try:
-        result = os.system(f"ping -c 1 {hostname}")
-        if result == 0:
-          #print(f"{name}: Host {hostname} is reachable via ping")
+        result = subprocess.run(["ping", "-c1", f"-W{timeout}", hostname])
+        if result.returncode == 0:
           statuses[name] = "healthy"
         else:
-          print(f"{name}: Host {hostname} is unreachable via ping")
+          logger.warning("%s: Host %s is unreachable via ping", name, hostname)
           statuses[name] = "unhealthy"
-      except Exception as e:
-        print(f"{name}: Error pinging {hostname} - {e}")
+      except Exception as err:
+        logger.warning("%s: Error pinging %s: %s", name, hostname, err)
         statuses[name] = "not-running"
         
   return statuses
