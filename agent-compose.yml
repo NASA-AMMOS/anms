@@ -38,6 +38,10 @@ services:
     container_name: ${DOCKER_CTR_PREFIX}ion-manager
     hostname: ion-manager
     image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+    build:
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: ion-manager
     restart: unless-stopped
     volumes:
       - "/var/run/anms:/var/tmp/anms"
@@ -65,6 +69,10 @@ services:
   ion-agent2: &ion-agent
     hostname: ion-agent2
     image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
+    build:
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: ion-agent
     build:
       context: ion
       dockerfile: Dockerfile

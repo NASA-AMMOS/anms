@@ -16,7 +16,7 @@
 ## limitations under the License.
 ##
 
-FROM anms-init AS deps-base
+FROM localhost/anms-init AS deps-base
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 RUN --mount=type=cache,target=/var/cache/yum \
@@ -95,7 +95,6 @@ COPY dtnma-tools/cmake /usr/local/src/dtnma-tools/cmake
 COPY dtnma-tools/src /usr/local/src/dtnma-tools/src
 COPY dtnma-tools/test /usr/local/src/dtnma-tools/test
 COPY dtnma-tools/CMakeLists.txt /usr/local/src/dtnma-tools/
-RUN ls -lt /usr/local/src/dtnma-tools/
 RUN cd /usr/local/src/dtnma-tools && \
     cmake -S . -B build/default \
     -DCMAKE_BUILD_TYPE=Debug \
@@ -122,7 +121,6 @@ COPY dtnma-tools/cmake /usr/local/src/dtnma-tools/cmake
 COPY dtnma-tools/src /usr/local/src/dtnma-tools/src
 COPY dtnma-tools/test /usr/local/src/dtnma-tools/test
 COPY dtnma-tools/CMakeLists.txt /usr/local/src/dtnma-tools/
-RUN ls -lt /usr/local/src/dtnma-tools/
 RUN cd /usr/local/src/dtnma-tools && \
     cmake -S . -B build/default \
     -DCMAKE_BUILD_TYPE=Debug \
@@ -150,7 +148,6 @@ COPY dtnma-tools/cmake /usr/local/src/dtnma-tools/cmake
 COPY dtnma-tools/src /usr/local/src/dtnma-tools/src
 COPY dtnma-tools/test /usr/local/src/dtnma-tools/test
 COPY dtnma-tools/CMakeLists.txt /usr/local/src/dtnma-tools/
-RUN ls -lt /usr/local/src/dtnma-tools/
 RUN cd /usr/local/src/dtnma-tools && \
     cmake -S . -B build/default \
     -DCMAKE_BUILD_TYPE=Debug \
