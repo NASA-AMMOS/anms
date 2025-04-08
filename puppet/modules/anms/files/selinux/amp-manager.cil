@@ -1,0 +1,5 @@
+(block ion-manager
+    (blockinherit container)
+    (blockinherit restricted_net_container)
+    (allow process http_port_t ( tcp_socket (  name_bind ))) 
+)
