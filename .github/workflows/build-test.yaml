@@ -44,7 +44,7 @@ jobs:
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
-          mkdir /var/run/anms
+          sudo mkdir /var/run/anms
       - name: Start
         run: |
           podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
@@ -105,7 +105,7 @@ jobs:
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
-          mkdir /var/run/anms
+          sudo mkdir /var/run/anms
       - name: Start
         run: |
           docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
