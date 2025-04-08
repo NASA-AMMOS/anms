@@ -25,7 +25,7 @@ This is a detailed developer-focused documentation for the AMMOS Asynchronous Ne
 
 ### Copyright
 
-Copyright (C) 2022-2023 The Johns Hopkins University Applied Physics Laboratory LLC.
+Copyright (C) 2022-2025 The Johns Hopkins University Applied Physics Laboratory LLC.
 
 [[_TOC_]]
 
@@ -37,8 +37,8 @@ This section details prerequisites to installing the ANMS from source on a devel
 
 ### Software and OS Versions
 
-The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur) and Ubuntu 20.04.
-To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer, and Docker Compose version 1.29.2 or newer. 
+The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9  and Ubuntu 20.04.
+To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and podman can generally be used interchangeably.
 
 The ANMS UI capability has been tested on Firefox version 96.0.1.
 There is no capability that should preclude operation on other modern browsers. 
@@ -69,8 +69,41 @@ The current ANMS capability is designed to run on `localhost` and on a developme
 This guide presumes that you can either connect via a VMRC remote console or with ssh tunnelling to the machine, hence the use of `localhost` in db connection information and in URLs.
 If you deploy this to a VM, you will need to replace `localhost` with the hostname of the machine where it is deployed.
 
-## ANMS Docker build and deploy
+### Special Notes on Podman
 
+If not otherwise specified, most commands in this document allow podman to be substituted with docker without change. It is also possible to install an alias (provided in most package managers) to map `docker` to `podman` if desired.
+
+Podman support is a work in progress.  It is currently known that the docker.sock interface is not compatible with podman, which causes **the 'Services' tab to show all services as unavailable**.
+
+Podman, running as a standard user, is typically unable to bind to **low-numbered ports**. It is recommended to edit the `.env` file and uncomment the lines at top for AUTHNZ_PORT and AUTHNZ_HTTPS_PORT to remap those services to a higher port number.  In the directions below, you would then use for example http://localhost:8084 and https://localhost:8443 instead of the default.
+
+Note: If running on a system where **SELinux** is enabled, the system will not start if the appropriate security groups have not been defined. As an alternative, the `security_opt` sections can be commented out in the *-compose.yml files if required.
+
+
+## ANMS build and deploy
+
+Choose the appropriate docker, podman or podman-compose commands in the directions below as appropriate for your system.
+
+- Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
+- Setup Volume containing PKI configuration (certificate chains and private keys):
+  - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
+- Build Core Images using either:
+  - `docker compose build`
+  - `podman compose build`
+  - `podman-compose --podman-build-args='--format docker' build`
+    - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
+- Build Agent images
+  - `docker compose -f agent-compose.yml build`
+  - `podman compose -f agent-compose.yml build`
+  - `podman-compose -f agent-compose.yml --podman-build-args='--format docker' build`
+- Start System. Note: You may omit the `-d` argument to keep logs in the foreground.
+  - `docker compose up -d`
+  - `podman compose up -d`
+- Start additional ION Agent Nodes
+  - `docker compose -f agent-compose.yml up -d`
+  - `podman compose -f agent-compose.yml up -d`
+
+### Alternative Build.sh setup script (deprecated, docker-only)
 The ANMS repository contains a build script which will build and run multiple Docker containers.
 These containers comprise the ANMS software and services, including demonstration AMP agents running on non-ANMS containers.
 
@@ -142,8 +175,10 @@ ea0c66364d70   grafana/grafana:9.1.3                  "/run.sh"                4
 ------- Done -------
 ~~~
 
-To further confirm that ANMS is running, open a browser and navigate to `http://localhost/`.
-There you should see the ANMS login via CAM emulator page (figure below). 
+## Usage
+
+To confirm that ANMS is running, open a browser and navigate to `http://localhost/`.
+There you should see the ANMS login via CAM emulator page (figure below). Default credentials is admin/admin when using the emulator.
 
 ![ANMS Login](Screenshots/ANMS-Login.png)
 
@@ -158,9 +193,9 @@ To restart the agents forcefully, controlled with a different compose file `agen
 docker-compose -f agent-compose.yml up -d --force-recreate
 ```
 
-## Compose Environment and Options
+### Compose Environment and Options
 
-The top-level `docker-compose.yml` uses the environment defined by the sibling file `.env` which itself is overridden by corresponding environment variables when running `build.sh` script.
+The top-level `docker-compose.yml` uses the environment defined by the sibling file `.env`.  Note: If using the legacy/deprecated build.sh script, that script may additionally override some environment variables.
 
 Two principal options of the compose configuration, which are both defaulted to empty text, are:
 
@@ -171,7 +206,7 @@ Two principal options of the compose configuration, which are both defaulted to 
 
 
 
-## AMP Database Querying
+### AMP Database Querying
 
 To see what is present in the underlying AMP database, you can use the adminer access
 point. With ANMS running, go to `localhost:8080` and log in to the database with: 
@@ -181,22 +216,7 @@ point. With ANMS running, go to `localhost:8080` and log in to the database with
 - Password: `root`
 - Database `amp_core`
 
-## ANMS-UI is not visible at hostname:9030
-
-This signals that the anms-ui docker container is probably experiencing issues getting HTTP requests, 
-which is most likely related to the `host` or `bind address` specified in `anms-ui/server/shared/config.py`
-or if there is an environment variable overriding this.
-
-## ANMS-UI is not visible at hostname
-
-If you go to your browser and hostname:9030 (replace hostname with the server's hostname) and you see the ANMS UI,
-but http://hostname does not render the same page, then NGinx is having an issue.  You should look at the
-docker-compose services list and see what it's status is. You may need to restart nginx via 
-`docker-compose -f docker-compose.yml restart nginx`. If this fails you may need to look at nginx.conf in the
-root of the anms-ammos project. You want to make sure that `anms-ui` or `localhost` are specified for port `80` and
-not an incorrect hostname.
-
-## ADM and Agent Updates
+### ADM and Agent Updates
 
 Changes to ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI.
 The manager will then be able to use the new ADM.
@@ -213,7 +233,7 @@ To regenerate agent source, scraping the pre-existing source to avoid clearing o
 PYTHONPATH=deps/dtnma-ace/src/:deps/anms-camp/src/ python3 -m camp.tools.camp ion/src/nm/doc/adms/ion_bp_admin.json -o ion/src/bpv7/nm/ --only-ch --scrape
 ```
 
-## Manual Agent exercising
+### Manual Agent exercising
 
 To use the local AMP Manager directly via its REST API on the local host run similar to:
 ```
@@ -221,3 +241,69 @@ echo 'ari:/IANA:ltp_agent/CTRL.reset(UINT.3)' | PYTHONPATH=deps/dtnma-ace/src/ A
 ```
 
 A limitation in the current NM REST API disallows multiple controls in a single message, so each ARI must be iterated over for this method.
+
+## Deployment Options
+
+It is recommended to build all containers using the instructions in this document when practical for local deployment.  To support other use cases, all images may also be built once and exported to a tar.gz using standard tools for offline deploments.
+
+The script `export.sh` will create a single .tar.gz file suitable for import by Docker or Podman without requiring access to external resources.
+
+The tar.gz file can be imported using `podman|docker import anms-${VERSION}-images.tar.gz`
+
+## Network Ports / Services
+
+The following table lists network services exposed by the compose containers. Users typically will not require direct access to all exposed ports for typical use cases.  Usage of localhost is an example, however avaialbility from remote machines via hostname may also be subject to firewall configuration.
+
+Note: Podman cannot bind to low-numbered ports (ie: the default for AUTHNZ).  Different versions of *-compose may behave differently if an exposed port is already in use where associated containers may fail to start entirely or may start without the specified binding being available.
+
+| Container              | Description                           | Default Port/URL             | .env variable                      | Details                                                              |
+|------------------------|---------------------------------------|------------------------------|------------------------------------|----------------------------------------------------------------------|
+| authnz                 | Access to UI and all REST APIs        | http://localhost  (80)       | AUTHNZ_PORT                        | Podman users may need to remap to a higher port number via .env file |
+| authnz                 | "                                     | https://localhost (443)      | AUTHNZ_HTTPS_PORT                  | "                                                                    |
+| opensearch             |                                       | 9200, 9600                   | OPENSEARCH_PORT1, OPENSEARCH_PORT2 |                                                                      |
+| opensearch-dashboards  |                                       | 5601                         | OPENSEARCH_DASH_PORT               |                                                                      |
+| postgres               | Postgres SQL Database                 | 5432                         | DB_PORT                            |                                                                      |
+| adminer                | DB Management Web Tool                | http://localhost:8080, 8080  | ADMINER_PORT                       |                                                                      |
+| mqtt-broker            |                                       | 1883                         | MQTT_PORT                          |                                                                      |
+| grafana                |                                       | http://localhost:3000, 3000  | GRAFANA_PORT                       |                                                                      |
+| grafana-image-renderer |                                       | 8081                         | RENDERER_PORT                      |                                                                      |
+| redis                  |                                       | 6379                         | REDIS_PORT                         |                                                                      |
+| anms-ui                |                                       | http://localhost:9030, 9030  | ANMS_UI_HTTP_PORT                  |                                                                      |
+| anms-ui                |                                       | https://localhost:9443, 9443 | ANMS_UI_HTTPS_PORT                 |                                                                      |
+| anms-core              |                                       | 5555                         | ANMS_CORE_HTTP_PORT                |                                                                      |
+| ion-manager            | ION DTN Network Manager (NM) REST API | http://localhost:8089, 8089  | ION_MGR_PORT                       |                                                                      |
+| ion-manager            | DTN Bundle Protocol                   | 4556                         | ION_BP_PORT                        |                                                                      |
+| ion-manager            | Licklider Transmission Protocol (LTP) | 1113                         | ION_LTP_PORT                       |                                                                      |
+
+## Troubleshooting
+
+### ANMS-UI is not visible at hostname:9030
+
+This signals that the anms-ui docker container is probably experiencing issues getting HTTP requests, 
+which is most likely related to firewall rules, the `host` or `bind address` specified in `anms-ui/server/shared/config.py`
+or if there is an environment variable overriding this.
+
+Refer to the `.env` file for port binding overrides, or `docker-compose.yml` for defaults. Consult with your system admin for any firewall issues.
+
+### ANMS-UI is not visible at hostname
+
+Check the startup logs for any errors. If using podman, some port numbers may need to be remapped using the `.env` file to higher numbered ports, or the system configuration modified to adjust permissions (not recommended).
+
+If you go to your browser and hostname:9030 (replace hostname with the server's hostname) and you see the ANMS UI,
+but http://hostname does not render the same page, then NGinx is having an issue.  You should look at the
+docker-compose services list and see what it's status is. You may need to restart nginx via 
+`docker-compose -f docker-compose.yml restart nginx`. If this fails you may need to look at nginx.conf in the
+root of the anms-ammos project. You want to make sure that `anms-ui` or `localhost` are specified for port `80` and
+not an incorrect hostname.
+
+### `OCI runtime error: unable to process ecurity attribute`
+
+This and related errors are typically caused by incomplete support or configuration of security settings.  In older Docker & Podman releases these tags were ignored on systems where SELinux was not enabled.
+
+If running certain versions of Podman, or sytems with SELinux features enabled, users may need to explicitly configure the appropriate security groups (see User Guide) or disable the security tags entirely.  The latter can be done by commenting out the "security_opt" section in the *-compose.yml files.
+
+### `external volume ammos-tls not found`
+
+The create_volume.sh script in the directions above automatically detects if docker or podman is available.  If both are available (and are not aliased to each other), you must explicitly specify your chosen container type to ensure the volume is created appropriately.
+
+This can be done by setting the DOCKER_CMD environment variable such as `DOCKER_CMD=podman ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`

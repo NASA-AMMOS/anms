@@ -20,19 +20,7 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-
-# Ensure local account $APP_USER has membership in docker socket group
 set -e
-
-SOCKFILE="/var/run/docker.sock"
-if [ -e "$SOCKFILE" ]
-then
-    chmod g+rw "${SOCKFILE}"
-
-    FILE_GID=$(stat -c '%g' "${SOCKFILE}")
-    getent group ${FILE_GID} || groupadd -r -g ${FILE_GID} docker
-    usermod -a -G ${FILE_GID} ${APP_USER}
-fi
 
 # initialize DB state
 runuser -u ${APP_USER} -- python3 -m anms.init_adms

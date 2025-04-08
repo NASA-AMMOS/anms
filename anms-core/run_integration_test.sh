@@ -36,5 +36,5 @@ export DOCKER_IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX:=}
 export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG:=${GITBRANCH}}
 
 COMPOSE_OPTS="-f ${SELFDIR}/integration_test/docker-compose.yml -p test"
-docker-compose ${COMPOSE_OPTS} build
-docker-compose ${COMPOSE_OPTS} run test-fixture "$@"
+podman compose ${COMPOSE_OPTS} build
+podman compose ${COMPOSE_OPTS} run test-fixture "$@"

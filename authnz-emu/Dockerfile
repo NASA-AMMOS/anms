@@ -23,7 +23,7 @@
 # Configure an Apache HTTPd to perform cookie-based authentication and
 # path-based authorization to emulate the JPL CAM client.
 #
-FROM anms-base
+FROM localhost/anms-base
 
 # Install Apache
 RUN dnf -y install httpd-tools mod_ssl mod_session
