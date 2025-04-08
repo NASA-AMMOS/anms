@@ -1,0 +1,14 @@
+[Unit]
+Description=Podman compose project %i
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/containers/compose/projects/%i.env
+ExecStartPre=-/usr/bin/podman-compose --in-pod pod_%i up --no-start
+ExecStartPre=/usr/bin/podman pod start pod_%i
+ExecStart=/usr/bin/podman-compose wait
+ExecStop=/usr/bin/podman pod stop pod_%i
+ExecStopPost=/usr/bin/podman pod rm pod_%i
+
+[Install]
+WantedBy=default.target

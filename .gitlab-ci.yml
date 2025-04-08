@@ -331,7 +331,7 @@ deploy:
     - dnf install -y hostname
     - ./build.sh push
     - |
-      dnf install -y https://yum.puppet.com/puppet-release-el-9.noarch.rpm
+      dnf install -y https://yum.puppet.com/puppet7-release-el-9.noarch.rpm
       dnf install -y https://yum.puppet.com/puppet-tools-release-el-9.noarch.rpm
       dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt-3.30.0-1.el9
       update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
@@ -343,10 +343,10 @@ deploy:
       mkdir -p puppet/data/fqdn/
       cat <<EOF >puppet/data/override.yaml
       anms::version: "${ANMS_VERSION}"
-      anms::docker_image_prefix: "${DOCKER_IMAGE_PREFIX}"
-      anms::docker_image_tag: "${DOCKER_IMAGE_TAG}"
-      anms::docker_registry_user: "${DOCKER_REGISTRY_USERNAME}"
-      anms::docker_registry_pass: "${DOCKER_REGISTRY_PASSWORD}"
+      anms::ctr_image_prefix: "${DOCKER_IMAGE_PREFIX}"
+      anms::ctr_image_tag: "${DOCKER_IMAGE_TAG}"
+      anms::ctr_registry_user: "${DOCKER_REGISTRY_USERNAME}"
+      anms::ctr_registry_pass: "${DOCKER_REGISTRY_PASSWORD}"
       anms::tls_server_key: 'puppet:///modules/apl_test/anms/tls/private/ammos-server-key.pem'
       anms::tls_server_cert: 'puppet:///modules/apl_test/anms/tls/certs/ammos-server-cert.pem'
       anms::tls_server_ca: 'puppet:///modules/apl_test/anms/tls/certs/ammos-ca-bundle.crt'

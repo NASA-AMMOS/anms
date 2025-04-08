@@ -13,6 +13,8 @@ modules:
   version_requirement: ">= 2.0.1"
 - name: puppet/selinux
   version_requirement: ">=3.4.1"
+- name: puppet/systemd
+  version_requirement: ">=7.1.0"
 - name: puppet/trusted_ca
   version_requirement: ">=4.1.0"
 - name: puppetlabs/apt

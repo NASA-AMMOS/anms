@@ -25,15 +25,17 @@
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
-version: '3.9'
-
 networks:
   default:
     name: ${DOCKER_CTR_PREFIX}anms
+    attachable: true
     driver_opts:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
       com.docker.network.driver.mtu: 65535
-
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
 volumes:
   grafana-data: {}
   postgres-data: {}
@@ -42,18 +44,39 @@ volumes:
     external: true
 
 services:
+  builder-base:
+    image: localhost/anms-base
+    build:
+      dockerfile: base.Dockerfile
+      target: anms-base
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
+  builder-init:
+    image: localhost/anms-init
+    build:
+      dockerfile: base.Dockerfile
+      target: anms-init
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
+  builder-acelib:
+    image: localhost/dtnma-acelib
+    build:
+      dockerfile: base.Dockerfile
+      target: dtnma-acelib
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
   authnz:
-    container_name: authnz
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
+    build:
+      context: ${AUTHNZ_EMU}
+      dockerfile: Dockerfile
     hostname: authnz
     restart: unless-stopped
     security_opt:
       - "label=type:authnz.process"
     ports:
-      - "80:80"
-      - "443:443"
+      - "${AUTHNZ_PORT:-80}:80"
+      - "${AUTHNZ_HTTPS_PORT:-443}:443"
     depends_on:
       - nginx
+      - builder-base
     environment:
       CAM_SERVER_URL: ${CAM_SERVER_URL}
       CAM_ADMIN_USER: ${CAM_ADMIN_USER}
@@ -67,9 +90,11 @@ services:
       - ammos-tls:/ammos/etc/pki/tls:ro
 
   nginx:
-    container_name: ${DOCKER_CTR_PREFIX}nginx
     hostname: nginx
     image: ${DOCKER_IMAGE_PREFIX}anms-nginx:${DOCKER_IMAGE_TAG}
+    build:
+      context: nginx
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:nginx.process"
@@ -80,9 +105,8 @@ services:
       - adminer
 
   opensearch:
-    container_name: ${DOCKER_CTR_PREFIX}opensearch
     hostname: opensearch
-    image: opensearchproject/opensearch:2.0.0
+    image: docker.io/opensearchproject/opensearch:2.0.0
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch.process"
@@ -90,35 +114,36 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
-        hard: 65536
+    # privileged: true # doesn't work
+    # ulimits: # acuses permission error
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
+    #   nofile:
+    #     soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+    #     hard: 65536
     volumes:
       - "opensearch:/usr/share/opensearch/data"
     ports:
-      - "9200:9200"
-      - "9600:9600" # required for Performance Analyzer
+      - "${OPENSEARCH_PORT1:-9200}:9200"
+      - "${OPENSEARCH_PORT2:-9600}:9600" # required for Performance Analyzer
 
   opensearch-dashboards:
-    container_name: ${DOCKER_CTR_PREFIX}opensearch-dashboards
     hostname: opensearch-dashboards
-    image: opensearchproject/opensearch-dashboards:2.0.0
+    image: docker.io/opensearchproject/opensearch-dashboards:2.0.0
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch-dashboards.process"
     ports:
-      - "5601:5601"
+      - "${OPENSEARCH_DASH_PORT:-5601}:5601"
     environment:
       OPENSEARCH_HOSTS: '["https://opensearch:9200"]' # must be a string with no spaces when specified as an environment variable
 
   postgres:
-    container_name: ${DOCKER_CTR_PREFIX}postgres
     hostname: postgres
-    image: ${DOCKER_IMAGE_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_CTR_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    build:
+      context: amp-sql
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -128,34 +153,48 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
+    healthcheck:
+      test: pg_isready -U healthcheck
+      interval: 10s
+      start_period: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "${DB_PORT-5432}:5432"
 
   mqtt-broker:
-    container_name: ${DOCKER_CTR_PREFIX}mqtt-broker
     hostname: mqtt-broker
-    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker
+    build:
+      context: mqtt-broker
     restart: unless-stopped
     security_opt:
       - "label=type:mqtt-broker.process"
     ports:
-      - "1883:1883"
-
+      - "${MQTT_PORT:-1883}:1883"
+      
   transcoder:
-    container_name: ${DOCKER_CTR_PREFIX}transcoder
     hostname: transcoder
     image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
+    build:
+      context: transcoder
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:transcoder.process"
     depends_on:
+      builder-acelib:
+          # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       mqtt-broker:
         condition: service_healthy
 
   grafana:
-    container_name: ${DOCKER_CTR_PREFIX}grafana
     hostname: grafana
-    image: ${DOCKER_IMAGE_PREFIX}grafana:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG}
+    build:
+      # NOTE: Custom image currently needed only for SSL-cert purposes
+      context: grafana
     restart: unless-stopped
     security_opt:
       - "label=type:grafana.process"
@@ -171,9 +210,8 @@ services:
       - "grafana-data:/var/lib/grafana"
 
   grafana-image-renderer:
-    container_name: ${DOCKER_CTR_PREFIX}grafana-image-renderer
     hostname: grafana-image-renderer
-    image: grafana/grafana-image-renderer:3.6.1
+    image: docker.io/grafana/grafana-image-renderer:3.6.1
     restart: unless-stopped
     security_opt:
       - "label=type:grafana-image-renderer.process"
@@ -181,9 +219,8 @@ services:
       - "${RENDERER_PORT:-8081}:8081"
 
   redis:
-    container_name: ${DOCKER_CTR_PREFIX}redis
     hostname: redis
-    image: redis:6.0-alpine
+    image: docker.io/library/redis:6.0-alpine
     restart: unless-stopped
     security_opt:
       - "label=type:redis.process"
@@ -197,9 +234,11 @@ services:
     command: redis-server --databases 1 --bind 0.0.0.0 --port ${REDIS_PORT:-6379}
 
   aricodec:
-    container_name: ${DOCKER_CTR_PREFIX}aricodec
     hostname: aricodec
     image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG}
+    build:
+      context: aricodec
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:aricodec.process"
@@ -207,15 +246,20 @@ services:
       DB_URI: postgresql://${DB_USER}:${DB_PASSWORD}@postgres/${DB_NAME}
       MQTT_HOST: mqtt-broker
     depends_on:
+      builder-acelib:
+          # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       postgres:
         condition: service_healthy
       mqtt-broker:
         condition: service_healthy
 
   anms-ui:
-    container_name: ${DOCKER_CTR_PREFIX}anms-ui
     hostname: anms-ui
     image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
+    build:
+      context: anms-ui
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:anms-ui.process"
@@ -223,6 +267,9 @@ services:
       - "${ANMS_UI_HTTP_PORT:-9030}:9030"
       - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
     depends_on:
+      builder-base:
+        # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       redis:
         condition: service_healthy
       postgres:
@@ -237,14 +284,16 @@ services:
       REDIS_URI_HOSTNAME: redis
 
   anms-core:
-    container_name: ${DOCKER_CTR_PREFIX}anms-core
     hostname: anms-core
     image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
+    build:
+      context: anms-core
+      dockerfile: Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:anms-core.process"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+    cap_add:
+      - NET_RAW
     environment:
       ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres
@@ -254,15 +303,17 @@ services:
     ports:
       - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
     depends_on:
+      builder-acelib:
+        # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       postgres:
         condition: service_healthy
       mqtt-broker:
         condition: service_healthy
 
   adminer:
-    container_name: ${DOCKER_CTR_PREFIX}adminer
     hostname: adminer
-    image:  adminer:latest
+    image: docker.io/library/adminer:latest
     restart: unless-stopped
     security_opt:
       - "label=type:adminer.process"
@@ -270,9 +321,12 @@ services:
       - "${ADMINER_PORT:-8080}:8080"
 
   ion-manager:
-    container_name: ${DOCKER_CTR_PREFIX}ion-manager
     hostname: ion-manager
     image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+    build:
+      context: ion
+      dockerfile: Dockerfile
+      target: ion-manager
     restart: unless-stopped
     security_opt:
       - "label=type:ion-manager.process"
@@ -280,7 +334,16 @@ services:
       - "1113:1113/udp"
       - "4556:4556/udp"
       - "${ION_MGR_PORT:-8089}:8089"
+    networks:
+      default:
+        ipv4_address: 10.5.0.101
+    extra_hosts:
+      - ion-agent2:10.5.0.102
+      - ion-agent3:10.5.0.103
     depends_on:
+      builder-init:
+          # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
       postgres:
         condition: service_healthy
     privileged: true
@@ -297,3 +360,5 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+
+    

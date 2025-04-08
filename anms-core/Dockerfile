@@ -25,25 +25,25 @@
 # DB_USERNAME and DB_PASSWORD for optional authentication
 # DB_NAME for the database schema to use
 #
-FROM dtnma-acelib
+FROM localhost/dtnma-acelib
+
 ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
 COPY pyproject.toml ${APP_WORK_DIR}/
-RUN --mount=type=cache,target=/root/.cache/pip \
-    cd ${APP_WORK_DIR} && \
+RUN cd ${APP_WORK_DIR} && \
     pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml && \
     pip3 install  --ignore-installed  -r requirements.txt
 # Actual main package
 COPY anms ${APP_WORK_DIR}/anms
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install ${APP_WORK_DIR}
+RUN pip3 install ${APP_WORK_DIR}
 
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-ace/tests/adms /usr/local/share/ace/adms
 COPY anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
 
 # Remaining commands as the local user
+RUN setcap cap_net_raw=ep /usr/bin/ping
 COPY --chmod=755 docker-entrypoint.sh /root/docker-entrypoint.sh
 CMD ["/root/docker-entrypoint.sh"]
 

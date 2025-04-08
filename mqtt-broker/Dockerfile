@@ -19,7 +19,7 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM eclipse-mosquitto:2.0
+FROM docker.io/library/eclipse-mosquitto:2.0
 
 COPY mosquitto.conf /mosquitto/config/mosquitto.conf
 
