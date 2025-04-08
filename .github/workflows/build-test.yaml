@@ -37,21 +37,18 @@ jobs:
         run: |
           DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
-      - name: Debug GitHub workspace
-        run: |
-          echo "GITHUB_WORKSPACE=${{ github.workspace }}"
-          ls -al ${{ github.workspace }}
       - name: Build Main
-        run: podman compose build
+        run: podman compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
-        run: podman compose -f agent-compose.yml build
+        run: podman compose ${AGENT_COMPOSE_OPTS} build
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
+          mkdir /var/run/anms
       - name: Start
         run: |
-          podman compose up -d --force-recreate
-          podman compose -f agent-compose.yml up -d --force-recreate
+          podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
+          podman compose ${AGENT_COMPOSE_OPTS} up -d --force-recreate
           sleep 5
       - name: Status
         run: |
@@ -102,16 +99,17 @@ jobs:
           echo "GITHUB_WORKSPACE=${{ github.workspace }}"
           ls -al ${{ github.workspace }}
       - name: Build Main
-        run: docker compose build
+        run: docker compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
-        run: docker compose -f agent-compose.yml build
+        run: docker compose ${AGENT_COMPOSE_OPTS} build
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
+          mkdir /var/run/anms
       - name: Start
         run: |
-          docker compose up -d --force-recreate
-          docker compose -f agent-compose.yml up -d --force-recreate
+          docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
+          docker compose ${AGENT_COMPOSE_OPTS} up -d --force-recreate
           sleep 5
       - name: Status
         run: |
