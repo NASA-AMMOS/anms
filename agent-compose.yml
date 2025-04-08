@@ -73,10 +73,6 @@ services:
       context: deps
       dockerfile: reftools.Dockerfile
       target: ion-agent
-    build:
-      context: ion
-      dockerfile: Dockerfile
-      target: ion-agent
     expose:
       - "1113/udp"
       - "4556/udp"
