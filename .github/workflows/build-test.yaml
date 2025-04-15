@@ -11,7 +11,6 @@ jobs:
   podman-checkout-test:
     runs-on: ubuntu-latest
     env:
-      DOCKER_BUILDKIT: "1"
       AUTHNZ_EMU: "authnz-emu"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
       AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
@@ -65,13 +64,14 @@ jobs:
         run: |
           # Checkout the running gateway+backend
           podman build -t checkout-test checkout-test
-          podman run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz:${AUTHNZ_PORT}/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
+          podman run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
       - name: Stop
         if: always()
         run: |
           for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
-            podman compose ${!OPTS_NAME} rm --stop --force
+            podman compose ${!OPTS_NAME} down --remove-orphans
           done
+
   docker-checkout-test:
     runs-on: ubuntu-latest
     env:
@@ -131,5 +131,5 @@ jobs:
         if: always()
         run: |
           for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
-            docker compose ${!OPTS_NAME} rm --stop --force
+            docker compose ${!OPTS_NAME} down --remove-orphans
           done

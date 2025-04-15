@@ -4,6 +4,7 @@
 #  ./create_volume {optional tls file source path}
 #
 set -e
+set -x
 
 # Full name of the volume
 VOLNAME=ammos-tls
@@ -33,8 +34,8 @@ fi
 
 ${DOCKER_CMD} volume create ${VOLNAME}
 CTRNAME=$(${DOCKER_CMD} run --detach --rm \
-		 -v ${VOLNAME}:${VOLPATH} -it \
-		 docker.io/redhat/ubi9 tail -f /dev/null)
+          -v ${VOLNAME}:${VOLPATH} \
+          docker.io/redhat/ubi9 tail -f /dev/null)
 
 ${DOCKER_CMD} exec ${CTRNAME} rm -rf ${VOLPATH}/*
 for FN in ${SRCPATH}/*
