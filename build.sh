@@ -54,8 +54,9 @@ declare -A IMAGES=(
     [anms-core]="anms-core"
     [amp-sql]="amp-sql"
     [grafana]="grafana"
-    [ion-manager]="ion --target ion-manager"
-    [ion-agent]="ion --target ion-agent"
+    [amp-manager]="deps -f deps/reftools.Dockerfile --target amp-manager"
+    [ion-manager]="deps -f deps/reftools.Dockerfile --target ion-manager"
+    [ion-agent]="deps -f deps/reftools.Dockerfile --target ion-agent"
 )
 if [ $AUTHNZ_EMU -ne 0 ]
 then

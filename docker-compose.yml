@@ -320,26 +320,20 @@ services:
     ports:
       - "${ADMINER_PORT:-8080}:8080"
 
-  ion-manager:
-    hostname: ion-manager
-    image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+  amp-manager:
+    hostname: amp-manager
+    image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     build:
-      context: ion
-      dockerfile: Dockerfile
-      target: ion-manager
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: amp-manager
     restart: unless-stopped
     security_opt:
-      - "label=type:ion-manager.process"
+      - "label=type:amp-manager.process"
+    volumes:
+      - "/var/run/anms:/var/tmp/anms"
     ports:
-      - "1113:1113/udp"
-      - "4556:4556/udp"
       - "${ION_MGR_PORT:-8089}:8089"
-    networks:
-      default:
-        ipv4_address: 10.5.0.101
-    extra_hosts:
-      - ion-agent2:10.5.0.102
-      - ion-agent3:10.5.0.103
     depends_on:
       builder-init:
           # Not expected to run, but needed here to ensure build dependency
@@ -354,8 +348,7 @@ services:
       - SYS_NICE
     environment:
       container: docker
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
+      ION_APP_PROXY_SOCK: /var/tmp/anms/ion-proxy.socket
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}

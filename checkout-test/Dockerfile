@@ -23,11 +23,13 @@
 # Allow the checkout tests to be run within a docker network
 FROM localhost/anms-base
 
-COPY . /usr/src/checkout-test
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install python3 python3-pip python3-wheel
+    dnf install -y iputils python3 python3-pip python3-wheel
+
+COPY requirements.txt /usr/src/checkout-test/
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install -r /usr/src/checkout-test/requirements.txt
+COPY . /usr/src/checkout-test
 
 # First argument is the base URL to test
 ENTRYPOINT ["/usr/src/checkout-test/run.sh"]
