@@ -126,7 +126,7 @@ class BaseConfig(AbstractConfig):
     MQTT_USER = None
 
     # nm Settings
-    NM_HOST = "anms-amp-manager-1"
+    NM_HOST = "amp-manager"
     NM_PORT = 8089
     NM_API_BASE ="/nm/api"
 

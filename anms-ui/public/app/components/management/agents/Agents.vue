@@ -157,7 +157,6 @@ export default {
     api.methods
       .apiAmpVersion()
       .then((response) => {
-        console.log(response.data)
         if(response.data.amp_version_str != null){
           vm.info = response.data.amp_version_str;
         }
