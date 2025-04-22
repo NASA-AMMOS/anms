@@ -18,7 +18,7 @@ else
     exit 1
 fi
 
-IMAGES=$(${COMPOSE_CMD} -f docker-compose.yml -f agent-compose.yml config | grep --color=auto 'image:' | awk '{print $2}' | sort -u | less)
+IMAGES=$(${COMPOSE_CMD} -f docker-compose.yml -f testenv-compose.yml config | grep --color=auto 'image:' | awk '{print $2}' | sort -u | less)
 echo "${COMPOSE_CMD} reports the following images: ${IMAGES}"
 
 # Determine base command (docker or podman)
