@@ -49,8 +49,8 @@ variables:
   DOCKER_IMAGE_TAG: $CI_COMMIT_REF_SLUG
   DOCKER_IMAGE_PREFIX: $DOCKER_REGISTRY/$DOCKER_GROUP/
   AUTHNZ_EMU: 1
-  ANMS_COMPOSE_OPTS: -f docker-compose.yml -p anms
-  AGENT_COMPOSE_OPTS: -f agent-compose.yml -p agents
+  ANMS_COMPOSE_OPTS: -f docker-compose.yml
+  TESTENV_COMPOSE_OPTS: -f testenv-compose.yml
 
 stages:
   - build
@@ -88,7 +88,7 @@ stages:
   docker-compose version
 
 .cleanup-docker: &cleanup-docker |
-  for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+  for OPTS_NAME in ANMS_COMPOSE_OPTS TESTENV_COMPOSE_OPTS; do
     docker-compose ${!OPTS_NAME} rm --stop --force
   done
   docker network prune -f
@@ -127,12 +127,12 @@ checkout-test:
     - ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls/
     - echo "running services..."
     - |
-      for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+      for OPTS_NAME in ANMS_COMPOSE_OPTS TESTENV_COMPOSE_OPTS; do
         docker-compose ${!OPTS_NAME} up --detach --force-recreate
       done
     - sleep 5
     - |
-      for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
+      for OPTS_NAME in ANMS_COMPOSE_OPTS TESTENV_COMPOSE_OPTS; do
         docker-compose ${!OPTS_NAME} ps
       done
     - |

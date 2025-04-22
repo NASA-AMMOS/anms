@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AUTHNZ_EMU: "authnz-emu"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
-      AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
+      TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: "podman"
       AUTHNZ_PORT: 8084
       AUTHNZ_HTTPS_PORT: 8443
@@ -39,15 +39,15 @@ jobs:
       - name: Build Main
         run: podman compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
-        run: podman compose ${AGENT_COMPOSE_OPTS} build
+        run: podman compose ${TESTENV_COMPOSE_OPTS} build
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
-          sudo mkdir /var/run/anms
+          sudo mkdir /run/anms
       - name: Start
         run: |
           podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
-          podman compose ${AGENT_COMPOSE_OPTS} up -d --force-recreate
+          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           sleep 5
       - name: Status
         run: |
@@ -68,7 +68,7 @@ jobs:
       - name: Stop
         if: always()
         run: |
-          for OPTS_NAME in AGENT_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
+          for OPTS_NAME in TESTENV_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
             podman compose ${!OPTS_NAME} down --remove-orphans
           done
 
@@ -77,8 +77,8 @@ jobs:
     env:
       DOCKER_BUILDKIT: "1"
       AUTHNZ_EMU: "authnz-emu"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml -p anms"
-      AGENT_COMPOSE_OPTS: "-f agent-compose.yml -p agents"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
+      TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: "docker"
     steps:
       - name: Versions
@@ -101,15 +101,15 @@ jobs:
       - name: Build Main
         run: docker compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
-        run: docker compose ${AGENT_COMPOSE_OPTS} build
+        run: docker compose ${TESTENV_COMPOSE_OPTS} build
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
-          sudo mkdir /var/run/anms
+          sudo mkdir /run/anms
       - name: Start
         run: |
           docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
-          docker compose ${AGENT_COMPOSE_OPTS} up -d --force-recreate
+          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           sleep 5
       - name: Status
         run: |
@@ -130,6 +130,6 @@ jobs:
       - name: Stop
         if: always()
         run: |
-          for OPTS_NAME in AGENT_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
+          for OPTS_NAME in TESTENV_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
             docker compose ${!OPTS_NAME} down --remove-orphans
           done

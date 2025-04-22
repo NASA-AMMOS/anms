@@ -25,6 +25,8 @@
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
+name: anms
+
 networks:
   default:
     name: ${DOCKER_CTR_PREFIX}anms
@@ -306,6 +308,8 @@ services:
       builder-acelib:
         # Not expected to run, but needed here to ensure build dependency
         condition: service_started
+      amp-manager:
+        condition: service_started
       postgres:
         condition: service_healthy
       mqtt-broker:
@@ -331,7 +335,7 @@ services:
     security_opt:
       - "label=type:amp-manager.process"
     volumes:
-      - "/var/run/anms:/var/tmp/anms"
+      - "${ANMS_RUN_DIR:-/run/anms}:/var/tmp/anms"
     ports:
       - "${ION_MGR_PORT:-8089}:8089"
     depends_on:
