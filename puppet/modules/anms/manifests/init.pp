@@ -196,5 +196,10 @@ class anms(
     file { '/ammos/anms/testenv-compose.yml':
       ensure => 'absent',
     }
+    anms::compose { 'testenv':
+      ensure       => 'absent',
+      directory    => '/ammos/anms',
+      compose_file => 'testenv-compose.yml',
+    }
   }
 }

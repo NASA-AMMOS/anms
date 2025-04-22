@@ -52,6 +52,12 @@ define anms::compose(
       file { "/etc/containers/compose/projects/${title}.env":
         ensure => 'absent',
       }
+      service { "podman-compose@${title}":
+        enable  => false,
+        require => [
+          Systemd::Unit_file['podman-compose@.service'],
+        ],
+      }
     }
     default: {
       fail("Invalid ensure argument: ${ensure}")
