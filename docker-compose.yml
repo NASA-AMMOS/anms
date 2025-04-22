@@ -25,6 +25,8 @@
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
+name: anms
+
 networks:
   default:
     name: ${DOCKER_CTR_PREFIX}anms
@@ -305,6 +307,8 @@ services:
     depends_on:
       builder-acelib:
         # Not expected to run, but needed here to ensure build dependency
+        condition: service_started
+      ion-manager:
         condition: service_started
       postgres:
         condition: service_healthy

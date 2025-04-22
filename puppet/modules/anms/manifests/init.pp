@@ -15,6 +15,7 @@ class anms(
   Optional[String] $tls_server_key = undef,
   Optional[String] $tls_server_cert = undef,
   Optional[String] $tls_server_ca = undef,
+  Boolean $use_testenv = false,
 ) {
   require Class['anms::hostenv']
 
@@ -107,7 +108,7 @@ class anms(
       command => "podman login ${ctr_image_prefix} --username \"${ctr_registry_user}\" --password \"${ctr_registry_pass}\"",
       before  => [
         Anms::Compose['anms'],
-        Anms::Compose['agents'],
+        Anms::Compose['testenv'],
       ],
     }
   }
@@ -153,40 +154,52 @@ class anms(
     ],
   }
 
-  file { '/ammos/anms/agent-compose.yml':
-    ensure => 'file',
-    source => 'puppet:///modules/anms/agent-compose.yml',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0644',
-  }
-  anms::compose { 'agents':
-    ensure       => 'present',
-    directory    => '/ammos/anms',
-    compose_file => 'agent-compose.yml',
-    require      => [
-      Anms::Compose['anms'], # for the anms network
-    ],
-    subscribe    => [
-      File['/ammos/anms/agent-compose.yml'],
-      File['/ammos/anms/.env'],
-    ],
-  }
+  if $use_testenv {
+    file { '/ammos/anms/testenv-compose.yml':
+      ensure => 'file',
+      source => 'puppet:///modules/anms/testenv-compose.yml',
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0644',
+    }
+    anms::compose { 'testenv':
+      ensure       => 'present',
+      directory    => '/ammos/anms',
+      compose_file => 'testenv-compose.yml',
+      require      => [
+        Anms::Compose['anms'], # for the anms network
+      ],
+      subscribe    => [
+        File['/ammos/anms/testenv-compose.yml'],
+        File['/ammos/anms/.env'],
+      ],
+    }
 
-  # Restart ducts to cache updated DNS resolution
-  $ion_containers = [
-    'ion-manager',
-    'ion-agent2',
-    'ion-agent3',
-  ]
-#  $ion_containers.each |$ctrname| {
-#    exec { "restart-ducts-${ctrname}":
-#      command => "podman exec ${ctrname} ion_restart_ducts",
-#      path    => $facts['path'],
-#      require => [
-#        Anms::Compose['anms'],
-#        Anms::Compose['agents'],
-#      ],
+    # Restart ducts to cache updated DNS resolution
+    $ion_containers = [
+      'ion-manager',
+      'ion-agent2',
+      'ion-agent3',
+    ]
+#    $ion_containers.each |$ctrname| {
+#      exec { "restart-ducts-${ctrname}":
+#        command => "podman exec ${ctrname} ion_restart_ducts",
+#        path    => $facts['path'],
+#        require => [
+#          Anms::Compose['anms'],
+#          Anms::Compose['testenv'],
+#        ],
+#      }
 #    }
-#  }
+  }
+  else {
+    file { '/ammos/anms/testenv-compose.yml':
+      ensure => 'absent',
+    }
+    anms::compose { 'testenv':
+      ensure       => 'absent',
+      directory    => '/ammos/anms',
+      compose_file => 'testenv-compose.yml',
+    }
+  }
 }
