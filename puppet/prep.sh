@@ -30,7 +30,7 @@ source ${SELFDIR}/getenv.sh
 
 rm -f "${SELFDIR}"/modules/anms/files/*-compose.yml
 cp "${SELFDIR}/../docker-compose.yml" \
-   "${SELFDIR}/../agent-compose.yml" \
+   "${SELFDIR}/../testenv-compose.yml" \
    "${SELFDIR}/../create_volume.sh" \
    "${SELFDIR}/modules/anms/files/"
 
