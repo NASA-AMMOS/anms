@@ -102,7 +102,7 @@ services:
       - grafana
       - grafana-image-renderer
       - adminer
-      - ion-manager
+      - amp-manager
 
   opensearch:
     hostname: opensearch
