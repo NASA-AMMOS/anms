@@ -33,11 +33,7 @@ networks:
     attachable: true
     driver_opts:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
-      com.docker.network.driver.mtu: 65535
-    ipam:
-      config:
-        - subnet: 10.5.0.0/16
-          gateway: 10.5.0.1
+
 volumes:
   grafana-data: {}
   postgres-data: {}

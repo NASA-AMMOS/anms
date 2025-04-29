@@ -28,13 +28,19 @@
 name: testenv
 
 networks:
-  # This network is created by docker-compose.yml
+  # This is entirely separate from the network in docker-compose.yml
   default:
-    name: ${DOCKER_CTR_PREFIX}anms
-    external: true
+    name: ${DOCKER_CTR_PREFIX}testenv
+    attachable: true
+    driver_opts:
+      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}testenv
+      com.docker.network.driver.mtu: 65535
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
 
 services:
-
   ion-manager:
     container_name: ${DOCKER_CTR_PREFIX}ion-manager
     hostname: ion-manager
