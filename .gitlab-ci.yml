@@ -88,8 +88,8 @@ stages:
   docker-compose version
 
 .cleanup-docker: &cleanup-docker |
-  for OPTS_NAME in ANMS_COMPOSE_OPTS TESTENV_COMPOSE_OPTS; do
-    docker-compose ${!OPTS_NAME} rm --stop --force
+  for OPTS_NAME in TESTENV_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
+    docker-compose ${!OPTS_NAME} down
   done
   docker network prune -f
   docker volume prune -f

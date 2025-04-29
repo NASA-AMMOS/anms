@@ -103,8 +103,8 @@ then
 fi
 
 echo "Running docker-compose up"
-ANMS_COMPOSE_OPTS="-f docker-compose.yml -p anms"
-AGENT_COMPOSE_OPTS="-f agent-compose.yml -p agents"
+ANMS_COMPOSE_OPTS="-f docker-compose.yml"
+AGENT_COMPOSE_OPTS="-f testenv-compose.yml"
 for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
     docker compose ${!OPTS_NAME} up --detach
 done

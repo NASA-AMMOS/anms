@@ -174,23 +174,6 @@ class anms(
         File['/ammos/anms/.env'],
       ],
     }
-
-    # Restart ducts to cache updated DNS resolution
-    $ion_containers = [
-      'ion-manager',
-      'ion-agent2',
-      'ion-agent3',
-    ]
-#    $ion_containers.each |$ctrname| {
-#      exec { "restart-ducts-${ctrname}":
-#        command => "podman exec ${ctrname} ion_restart_ducts",
-#        path    => $facts['path'],
-#        require => [
-#          Anms::Compose['anms'],
-#          Anms::Compose['testenv'],
-#        ],
-#      }
-#    }
   }
   else {
     file { '/ammos/anms/testenv-compose.yml':

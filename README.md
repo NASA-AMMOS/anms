@@ -93,15 +93,15 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
   - `podman-compose --podman-build-args='--format docker' build`
     - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
 - Build Agent images
-  - `docker compose -f agent-compose.yml build`
-  - `podman compose -f agent-compose.yml build`
-  - `podman-compose -f agent-compose.yml --podman-build-args='--format docker' build`
+  - `docker compose -f testenv-compose.yml build`
+  - `podman compose -f testenv-compose.yml build`
+  - `podman-compose -f testenv-compose.yml --podman-build-args='--format docker' build`
 - Start System. Note: You may omit the `-d` argument to keep logs in the foreground.
   - `docker compose up -d`
   - `podman compose up -d`
 - Start additional ION Agent Nodes
-  - `docker compose -f agent-compose.yml up -d`
-  - `podman compose -f agent-compose.yml up -d`
+  - `docker compose -f testenv-compose.yml up -d`
+  - `podman compose -f testenv-compose.yml up -d`
 
 ### Alternative Build.sh setup script (deprecated, docker-only)
 The ANMS repository contains a build script which will build and run multiple Docker containers.
@@ -188,9 +188,9 @@ docker-compose -f docker-compose.yml up -d
 ```
 from within the `anms/` folder.
 
-To restart the agents forcefully, controlled with a different compose file `agent-compose.yml` run:
+To restart the agents forcefully, controlled with a different compose file `testenv-compose.yml` run:
 ```sh
-docker-compose -f agent-compose.yml up -d --force-recreate
+docker-compose -f testenv-compose.yml up -d --force-recreate
 ```
 
 ### Compose Environment and Options

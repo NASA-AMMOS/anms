@@ -96,11 +96,13 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:nginx.process"
-    depends_on:
+    depends_on: # dependencies for name resolution
       - anms-core
       - anms-ui
       - grafana
+      - grafana-image-renderer
       - adminer
+      - ion-manager
 
   opensearch:
     hostname: opensearch
