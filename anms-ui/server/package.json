@@ -4,7 +4,7 @@
   "dependencies": {
     "@hapi/boom": "^7.4.11",
     "async": "^3.2.0",
-    "axios": "^1.7.4",
+    "axios": "^1.8.2",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.7.2",
     "body-parser": "^1.20.3",
