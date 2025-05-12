@@ -20,7 +20,7 @@ classifiers = [
 
 dependencies = [
   "anms-ace",
-  "anms-camp",
+  "dtnma-camp",
   "anyio ~=3.6.1",
   "arrow ~=1.2.3",
   "asyncio ~=3.4.3",

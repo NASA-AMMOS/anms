@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install deps/dtnma-ace
-          pip3 install deps/anms-camp
+          pip3 install deps/dtnma-camp
       - name: Install
         working-directory: anms-core
         run: pip3 install -e '.[test]'
@@ -43,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install deps/dtnma-ace
-          pip3 install deps/anms-camp
+          pip3 install deps/dtnma-camp
       - name: Install flake8
         working-directory: anms-core
         run: pip3 install -e '.[flake8]'
