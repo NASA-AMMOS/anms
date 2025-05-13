@@ -1,10 +1,10 @@
-[submodule "ion/src"]
-	path = ion/src
-	url = https://github.com/JHUAPL/dtnma-tools.git
-
 [submodule "deps/dtnma-ace"]
 	path = deps/dtnma-ace
-	url = https://github.com/JHUAPL-DTNMA/dtnma-ace
+	url = https://github.com/JHUAPL-DTNMA/dtnma-ace.git
+	branch = main
+[submodule "deps/dtnma-tools"]
+	path = deps/dtnma-tools
+	url = https://github.com/JHUAPL-DTNMA/dtnma-tools.git
 	branch = main
 [submodule "deps/dtnma-camp"]
 	path = deps/dtnma-camp

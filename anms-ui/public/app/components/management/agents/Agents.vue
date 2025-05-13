@@ -134,7 +134,7 @@ export default {
         },
       ],
       node: null,
-      info: null,
+      info: "",
       results: "",
       pageSizes: [10, 20, 50, 100],
       nodes: "",
@@ -157,7 +157,9 @@ export default {
     api.methods
       .apiAmpVersion()
       .then((response) => {
-        vm.info = response.data.amp_version_str;
+        if(response.data.amp_version_str != null){
+          vm.info = response.data.amp_version_str;
+        }
       })
       .catch(function (error) {
         console.error(error);

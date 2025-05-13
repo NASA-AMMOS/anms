@@ -66,7 +66,7 @@ class anms(
         'authnz',
         'grafana',
         'grafana-image-renderer',
-        'ion-manager',
+        'amp-manager',
         'mqtt-broker',
         'nginx',
         'opensearch',

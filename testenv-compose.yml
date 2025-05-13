@@ -28,23 +28,61 @@
 name: testenv
 
 networks:
-  # This network is created by docker-compose.yml
+  # This is entirely separate from the network in docker-compose.yml
   default:
-    name: ${DOCKER_CTR_PREFIX}anms
-    external: true
+    name: ${DOCKER_CTR_PREFIX}testenv
+    attachable: true
+    driver_opts:
+      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}testenv
+      com.docker.network.driver.mtu: 65535
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
 
 services:
+  ion-manager:
+    container_name: ${DOCKER_CTR_PREFIX}ion-manager
+    hostname: ion-manager
+    image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+    build:
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: ion-manager
+    restart: unless-stopped
+    volumes:
+      - "${ANMS_RUN_DIR:-/run/anms}:/var/tmp/anms"
+    ports:
+      - "1113/udp"
+      - "4556/udp"
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    environment:
+      container: docker
+      ION_APP_PROXY_SOCK: /var/tmp/anms/ion-proxy.socket
+      ION_NODE_NUM: 1
+      MGR_NODE_NUM: 1
+    networks:
+      default:
+        ipv4_address: 10.5.0.101
+    extra_hosts:
+      - ion-agent2:10.5.0.102
+      - ion-agent3:10.5.0.103
 
   ion-agent2: &ion-agent
     hostname: ion-agent2
     image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
     build:
-      context: ion
-      dockerfile: Dockerfile
+      context: deps
+      dockerfile: reftools.Dockerfile
       target: ion-agent
     expose:
-      - 1113/udp
-      - 4556/udp
+      - "1113/udp"
+      - "4556/udp"
     depends_on: []
     privileged: true
     tty: true
