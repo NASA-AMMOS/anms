@@ -68,15 +68,15 @@ FROM anms-base AS dtnma-acelib
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install python3 python3-pip python3-wheel python3-setuptools iputils && \
-    pip3 install --upgrade pip pip-tools 
+    dnf -y install python python-pip python-wheel python-setuptools iputils && \
+    pip install --upgrade pip pip-tools 
 
 # Submodules with dependencies
 ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
 COPY deps/dtnma-ace /usr/src/dtnma-ace
-RUN pip3 wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
+RUN pip wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
 
 COPY deps/dtnma-camp /usr/src/dtnma-camp
-RUN pip3 wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
+RUN pip wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
 

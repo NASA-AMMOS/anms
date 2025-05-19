@@ -20,20 +20,22 @@ FROM localhost/anms-init AS deps-base
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 RUN --mount=type=cache,target=/var/cache/yum \
+    dnf config-manager --set-enabled crb
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y epel-release
+RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y  \
     patch \
     cmake ninja-build \
     ruby rsync git \
     systemd systemd-sysv \
+    libpq-devel \
     make gcc gcc-c++ \
     libpq-devel civetweb-devel cjson-devel\ 
-    gdb less
+    gdb less  flex libfl-static
 
 COPY dtnma-tools/deps/QCBOR /usr/local/src/dtnma-tools/deps/QCBOR
-COPY dtnma-tools/deps/qcbor*.patch /usr/local/src/dtnma-tools/deps/
 RUN cd /usr/local/src/dtnma-tools/deps/QCBOR && \
-    patch -p1 <../qcbor-install.patch && \
-    patch -p2 <../qcbor-expose-private.patch && \
     make -j$(nproc) && \
     make install && \
     make -j$(nproc) clean
@@ -44,6 +46,17 @@ RUN cd /usr/local/src/dtnma-tools/deps/mlib && \
     make install && \
     make -j$(nproc) clean
 
+COPY dtnma-tools/deps/timespec /usr/src/nm/deps/timespec
+COPY dtnma-tools/deps/timespec-CMakeLists.txt /usr/src/nm/deps/timespec/CMakeLists.txt
+RUN cd /usr/src/nm/deps/timespec && \
+    cmake -S . -B build \
+      -DCMAKE_BUILD_TYPE=Debug && \
+    cmake --build build && \
+    cmake --install build && \
+    ldconfig && \
+    rm -rf build
+
+
 # Helper utilities
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y \
@@ -51,10 +64,8 @@ RUN --mount=type=cache,target=/var/cache/yum \
     gcc python3-devel systemd-devel
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install systemd-python
-COPY --chmod=755 dtnma-tools/testenv/ion_nm_wrap.py /usr/local/bin/ion_nm_wrap
-COPY --chmod=755 dtnma-tools/testenv/service_is_running.sh /usr/local/bin/service_is_running
-COPY --chmod=755 dtnma-tools/testenv/ion_restart_ducts.sh /usr/local/bin/ion_restart_ducts
-COPY --chmod=755 dtnma-tools/testenv/ion_ping_peers.sh /usr/local/bin/ion_ping_peers
+
+COPY --chmod=755 dtnma-tools/systemd/service_is_running.sh /usr/local/bin/service_is_running
 
 
 # Additional ION library install
@@ -81,9 +92,9 @@ RUN cd /usr/local/src/dtnma-tools/deps/ion && \
     ldconfig 
 
 # Systemd services
-COPY dtnma-tools/systemd/tmpfiles.conf /etc/tmpfiles.d/ion.conf
-COPY --chmod=644 dtnma-tools/systemd/ion.service dtnma-tools/systemd/ion-stats.service dtnma-tools/systemd/bpecho@.service /usr/local/lib/systemd/system/
-COPY --chmod=644 dtnma-tools/systemd/ion-stats.timer /usr/local/lib/systemd/system/
+# COPY dtnma-tools/systemd/tmpfiles.conf /etc/tmpfiles.d/ion.conf
+COPY --chmod=644 dtnma-tools/systemd/ion.service dtnma-tools/systemd/ref*-ion.service dtnma-tools/systemd/bpecho@.service  dtnma-tools/systemd/dumpcap.service /usr/local/lib/systemd/system/
+# COPY --chmod=644 dtnma-tools/systemd/ion-stats.timer /usr/local/lib/systemd/system/
 RUN systemctl enable ion bpecho@4
 
 
