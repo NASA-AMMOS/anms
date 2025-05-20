@@ -65,7 +65,7 @@ services:
   authnz:
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
     build:
-      context: ${AUTHNZ_EMU}
+      context: auth/${AUTHNZ_EMU}
       dockerfile: Dockerfile
     hostname: authnz
     restart: unless-stopped
