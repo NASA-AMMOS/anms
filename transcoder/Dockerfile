@@ -27,18 +27,13 @@ ENV APP_WORK_DIR=/opt/app
 # Copy over all required content (source, data, etc.)
 COPY --chown=${APP_USER}:${APP_USER} . ${APP_WORK_DIR}
 # Install all python dependencies
-RUN pip3 install -r ${APP_WORK_DIR}/requirements.txt
+RUN ${PIP} install -r ${APP_WORK_DIR}/requirements.txt
 
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
 
-
-
+# Persist Docker Container
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
-
-# Persist Docker Container
-COPY --chmod=755  ./docker-entrypoint.sh /
-ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD [ "transcoder"]
-
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

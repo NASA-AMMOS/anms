@@ -19,20 +19,16 @@
 FROM localhost/anms-init AS deps-base
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-RUN --mount=type=cache,target=/var/cache/yum \
-    dnf config-manager --set-enabled crb
-RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y epel-release
+# work-around lack of CRB packages for UBI-9 images
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y  \
     patch \
     cmake ninja-build \
     ruby rsync git \
-    systemd systemd-sysv \
-    libpq-devel \
     make gcc gcc-c++ \
-    libpq-devel civetweb-devel cjson-devel\ 
-    gdb less  flex libfl-static
+    flex bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel systemd-devel libpq-devel \
+    gdb less && \
+    dnf install -y https://mirror.stream.centos.org/9-stream/CRB/x86_64/os/Packages/libfl-static-2.6.4-9.el9.x86_64.rpm
 
 COPY dtnma-tools/deps/QCBOR /usr/local/src/dtnma-tools/deps/QCBOR
 RUN cd /usr/local/src/dtnma-tools/deps/QCBOR && \

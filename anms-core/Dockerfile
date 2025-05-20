@@ -33,19 +33,20 @@ ENV APP_WORK_DIR=/usr/src/anms-core
 COPY pyproject.toml ${APP_WORK_DIR}/
 RUN cd ${APP_WORK_DIR} && \
     pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml && \
-    pip3 install  --ignore-installed  -r requirements.txt
+    ${PIP} install  --ignore-installed  -r requirements.txt
 # Actual main package
 COPY anms ${APP_WORK_DIR}/anms
-RUN pip3 install ${APP_WORK_DIR}
+RUN ${PIP} install ${APP_WORK_DIR}
 
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-ace/tests/adms /usr/local/share/ace/adms
 COPY anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
 
-# Remaining commands as the local user
 RUN setcap cap_net_raw=ep /usr/bin/ping
-COPY --chmod=755 docker-entrypoint.sh /root/docker-entrypoint.sh
-CMD ["/root/docker-entrypoint.sh"]
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
+# Remaining commands as the local user
+USER ${APP_USER}
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
 
 HEALTHCHECK --interval=60s --timeout=60s --retries=20 \
     CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/hello"]
