@@ -75,7 +75,6 @@ services:
       - "${AUTHNZ_PORT:-80}:80"
       - "${AUTHNZ_HTTPS_PORT:-443}:443"
     depends_on:
-      - nginx
       - builder-base
     environment:
       CAM_SERVER_URL: ${CAM_SERVER_URL}
@@ -84,25 +83,10 @@ services:
       AGENT_NAME: ${CAM_AGENT_NAME}
       AGENT_PASSWORD: ${CAM_AGENT_PASSWORD}
       CAM_GW_URL: "https://${ANMS_GW_FQDN}:443/"
-      PROXY_URLS: "http://nginx/"
+      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://ion-manager:8089 http://anms-ui:9030"
       NOT_ENFORCED_URLS: "http://nginx/favicon.ico"
     volumes:
       - ammos-tls:/ammos/etc/pki/tls:ro
-
-  nginx:
-    hostname: nginx
-    image: ${DOCKER_IMAGE_PREFIX}anms-nginx:${DOCKER_IMAGE_TAG}
-    build:
-      context: nginx
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    security_opt:
-      - "label=type:nginx.process"
-    depends_on:
-      - anms-core
-      - anms-ui
-      - grafana
-      - adminer
 
   opensearch:
     hostname: opensearch
@@ -282,7 +266,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       REDIS_URI_HOSTNAME: redis
-
   anms-core:
     hostname: anms-core
     image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}

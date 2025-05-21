@@ -32,8 +32,12 @@ RUN dnf -y install httpd-tools mod_ssl mod_session
 COPY httpd.conf /etc/httpd/conf/httpd.conf
 COPY htpasswd /etc/httpd/conf/htpasswd
 COPY html/ /var/www/html/
+COPY run_proxy.sh /root/run_proxy.sh
+
+RUN mkdir -p /etc/httpd/site.conf.d
 
 # Start Apache
 CMD ["/usr/sbin/httpd","-D","FOREGROUND"]
+CMD /root/run_proxy.sh
 
 EXPOSE 80
