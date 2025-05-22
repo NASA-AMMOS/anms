@@ -67,7 +67,6 @@ class anms(
         'grafana-image-renderer',
         'ion-manager',
         'mqtt-broker',
-        'nginx',
         'opensearch',
         'opensearch-dashboards',
         'postgres',
