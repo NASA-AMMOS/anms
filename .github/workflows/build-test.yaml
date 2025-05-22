@@ -11,7 +11,7 @@ jobs:
   podman-checkout-test:
     runs-on: ubuntu-latest
     env:
-      AUTHNZ_EMU: "authnz-emu"
+      AUTHNZ_EMU: "demo"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
       TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: "podman"
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: "1"
-      AUTHNZ_EMU: "authnz-emu"
+      AUTHNZ_EMU: "demo"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
       TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: "docker"
