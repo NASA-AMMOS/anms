@@ -1,7 +1,0 @@
-(block nginx
-    (blockinherit container)
-    (blockinherit restricted_net_container)
-    (allow process http_port_t ( tcp_socket ( name_bind )))
-    (allow process tor_port_t ( tcp_socket ( name_connect ))) ;FIXME: should be http for anms-core
-    (allow process http_cache_port_t ( tcp_socket ( name_connect ))) ;FIXME: should be http for adminer
-)

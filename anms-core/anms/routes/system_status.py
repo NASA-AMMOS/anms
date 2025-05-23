@@ -46,13 +46,13 @@ logger = OpenSearchLogger(__name__).logger
 status_cfg = [
   {"name": "adminer", "url": "http://adminer:8080"},
   {"name": "anms-core"}, # Self
+  {"name": "anms-ui", "url": "http://anms-ui:9030"},
   {"name": "aricodec"},
   {"name": "authnz", "url": "http://authnz/authn/login.html"},
   {"name": "grafana", "url": "http://grafana:3000"},
   {"name": "grafana-image-renderer", "url": "http://grafana-image-renderer:8081"},
   {"name": "ion-manager", "url": "http://ion-manager:8089/nm/api/version"},
   {"name": "mqtt-broker"},
-  {"name": "nginx", "url": "http://nginx"},
   {"name": "postgres", "tcp_port": 5432},
   {"name": "redis"},
   {"name": "transcoder"}
