@@ -4,6 +4,7 @@
 #  ./create_volume {optional tls file source path}
 #
 set -e
+set -x
 
 # Full name of the volume
 VOLNAME=ammos-tls

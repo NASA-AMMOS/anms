@@ -33,14 +33,12 @@ networks:
     attachable: true
     driver_opts:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
-      com.docker.network.driver.mtu: 65535
-    ipam:
-      config:
-        - subnet: 10.5.0.0/16
-          gateway: 10.5.0.1
+
 volumes:
   grafana-data: {}
   postgres-data: {}
+  sockdir:
+    # shared sockets
   opensearch: {}
   ammos-tls:
     external: true
@@ -106,7 +104,7 @@ services:
       - grafana
       - grafana-image-renderer
       - adminer
-      - ion-manager
+      - amp-manager
 
   opensearch:
     hostname: opensearch
@@ -145,9 +143,10 @@ services:
 
   postgres:
     hostname: postgres
-    image: ${DOCKER_CTR_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_CTR_PREFIX}refdb-sql:${DOCKER_IMAGE_TAG}
     build:
-      context: amp-sql
+      context: deps/dtnma-tools/refdb-sql
+      dockerfile: Containerfile
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -310,7 +309,7 @@ services:
       builder-acelib:
         # Not expected to run, but needed here to ensure build dependency
         condition: service_started
-      ion-manager:
+      amp-manager:
         condition: service_started
       postgres:
         condition: service_healthy
@@ -326,30 +325,16 @@ services:
     ports:
       - "${ADMINER_PORT:-8080}:8080"
 
-  ion-manager:
-    hostname: ion-manager
-    image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+  amp-manager:
+    hostname: amp-manager
+    image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     build:
-      context: ion
-      dockerfile: Dockerfile
-      target: ion-manager
-    restart: unless-stopped
-    security_opt:
-      - "label=type:ion-manager.process"
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: amp-manager
     ports:
-      - "1113:1113/udp"
-      - "4556:4556/udp"
-      - "${ION_MGR_PORT:-8089}:8089"
-    networks:
-      default:
-        ipv4_address: 10.5.0.101
-    extra_hosts:
-      - ion-agent2:10.5.0.102
-      - ion-agent3:10.5.0.103
+        - "8089:8089/tcp"
     depends_on:
-      builder-init:
-          # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
       postgres:
         condition: service_healthy
     privileged: true
@@ -358,13 +343,16 @@ services:
       - NET_ADMIN
       - NET_RAW
       - SYS_NICE
+    volumes:
+      - "${ANMS_RUN_DIR:-/run/anms}:${SOCKDIR}"
     environment:
       container: docker
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-
+      
+      
     
