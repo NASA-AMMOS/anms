@@ -37,6 +37,8 @@ networks:
 volumes:
   grafana-data: {}
   postgres-data: {}
+  sockdir:
+    # shared sockets
   opensearch: {}
   ammos-tls:
     external: true
@@ -141,9 +143,10 @@ services:
 
   postgres:
     hostname: postgres
-    image: ${DOCKER_CTR_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_CTR_PREFIX}refdb-sql:${DOCKER_IMAGE_TAG}
     build:
-      context: amp-sql
+      context: deps/dtnma-tools/refdb-sql
+      dockerfile: Containerfile
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -329,17 +332,9 @@ services:
       context: deps
       dockerfile: reftools.Dockerfile
       target: amp-manager
-    restart: unless-stopped
-    security_opt:
-      - "label=type:amp-manager.process"
-    volumes:
-      - "${ANMS_RUN_DIR:-/run/anms}:/var/tmp/anms"
     ports:
-      - "${ION_MGR_PORT:-8089}:8089"
+        - "8089:8089/tcp"
     depends_on:
-      builder-init:
-          # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
       postgres:
         condition: service_healthy
     privileged: true
@@ -348,12 +343,16 @@ services:
       - NET_ADMIN
       - NET_RAW
       - SYS_NICE
+    volumes:
+      - "${ANMS_RUN_DIR:-/run/anms}:${SOCKDIR}"
     environment:
       container: docker
-      ION_APP_PROXY_SOCK: /var/tmp/anms/ion-proxy.socket
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-
+      
+      
     

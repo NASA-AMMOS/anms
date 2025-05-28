@@ -51,6 +51,7 @@ services:
       target: ion-manager
     restart: unless-stopped
     volumes:
+      - "${ANMS_RUN_DIR:-/run/anms}:${SOCKDIR}"
       - "${ANMS_RUN_DIR:-/run/anms}:/var/tmp/anms"
     ports:
       - "1113/udp"
@@ -63,9 +64,12 @@ services:
       - SYS_NICE
     environment:
       container: docker
-      ION_APP_PROXY_SOCK: /var/tmp/anms/ion-proxy.socket
+      AMP_PROXY_SOCKET: ${SOCKDIR}/proxy.socket
       ION_NODE_NUM: 1
       MGR_NODE_NUM: 1
+      REFDA_EID: "/var/tmp/anms/refda.sock"
+      REFDA_SOCKET: "/var/tmp/anms/refda.sock"
+      REFDM_SOCKET: "/var/tmp/anms/refdm.sock"
     networks:
       default:
         ipv4_address: 10.5.0.101
@@ -94,6 +98,9 @@ services:
       container: docker
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
+      REFDA_SOCKET: "/var/tmp/anms/refda.sock"
+      REFDM_SOCKET: "/var/tmp/anms/refdm.sock"
+
     networks:
       default:
         ipv4_address: 10.5.0.102
@@ -107,3 +114,6 @@ services:
       container: docker
       ION_NODE_NUM: 3
       MGR_NODE_NUM: 1
+      REFDA_SOCKET: "/var/tmp/anms/refda.sock"
+      REFDM_SOCKET: "/var/tmp/anms/refdm.sock"
+
