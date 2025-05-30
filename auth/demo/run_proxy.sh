@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 PROXY_CONFIG=/etc/httpd/site.conf.d/anms_proxy.conf
 

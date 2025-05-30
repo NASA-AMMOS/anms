@@ -37,6 +37,6 @@ COPY run_proxy.sh /root/run_proxy.sh
 RUN mkdir -p /etc/httpd/site.conf.d
 
 # Start Apache
-CMD /root/run_proxy.sh
+CMD ["/root/run_proxy.sh"]
 
 EXPOSE 80
