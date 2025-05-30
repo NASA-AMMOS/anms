@@ -28,7 +28,7 @@ ENV APP_WORK_DIR=/opt/app
 COPY --chown=${APP_USER}:${APP_USER} . ${APP_WORK_DIR}
 # Install all python dependencies
 RUN ${PIP} install -r ${APP_WORK_DIR}/requirements.txt
-
+RUN ${PIP} install paho-mqtt
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
 

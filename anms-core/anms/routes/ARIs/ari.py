@@ -63,7 +63,7 @@ async def _generate_aris(ari_id):
             logger.error(e.args)
         if ari is not None:
             if ari.parm_id is None and ari.actual:
-                display = "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name
+                display = "ari:/IANA:" + ari.data_model_name + "/" + ari.type_name + "." + ari.obj_name
                 curr_ari = ari
                 curr_ari.display = display
                 curr_ari.param_names = []
@@ -112,7 +112,7 @@ async def _generate_aris(ari_id):
                         else:
                             a_parm_values.append(type_name_upper + "." + list_of_values[type_name_upper].pop())
                             
-                    results = "ari://IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "(" + ' '.join(
+                    results = "ari://IANA:" + ari.data_model_name + "/" + ari.type_name + "." + ari.obj_name + "(" + ' '.join(
                         str(e) for e in a_parm_values) + ")"
                     curr_ari = ari
                     curr_ari.display = results
@@ -126,7 +126,7 @@ async def _generate_aris(ari_id):
                     parms = curr_formal_param[0].parm_type_name
                     types = parms.split(",")
                     names = curr_formal_param[0].parm_names.split(",")
-                    display = "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "(" + parms + ")"
+                    display = "ari:/IANA:" + ari.data_model_name + "/" + ari.type_name + "." + ari.obj_name + "(" + parms + ")"
                     curr_ari = ari
                     curr_ari.display = display
                     curr_ari.param_names = names
@@ -158,7 +158,7 @@ async def all_ARI():
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for ari in result.all():
-            display = "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "()" if ari.parm_id is None else "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "(has parameters)"
+            display = "ari:/IANA:" + ari.data_model_name + "/" + ari.type_name + "." + ari.obj_name + "()" if ari.parm_id is None else "ari:/IANA:" + ari.data_model_name + "/" + ari.type_name + "." + ari.obj_name + "(has parameters)"
             curr_ari = ari
             curr_ari.display = display
             final_result.append(curr_ari)

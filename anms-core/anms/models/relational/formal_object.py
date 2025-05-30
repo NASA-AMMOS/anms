@@ -36,10 +36,10 @@ class FormalObject(Model):
     obj_metadata_id = Column(Integer, primary_key=True)
     type_name = Column(String, nullable=False)
     obj_name = Column(String, nullable=False)
-    namespace_id = Column(Integer, nullable=False)
-    adm_name = Column(String)
-    adm_enum = Column(Integer)
-    adm_enum_label = Column(String)
+    data_model_id = Column(Integer, nullable=False)
+    data_model_name = Column(String)
+    enumeration = Column(Integer)
+    namespace_type = Column(String)
     use_desc = Column(String)
     obj_formal_definition_id = Column(Integer, nullable=False)
     formal_desc = Column(String)
@@ -61,8 +61,8 @@ class Control(Model):
 
     obj_metadata_id = Column(Integer, primary_key=True)
     obj_name = Column(String, nullable=False)
-    namespace_id = Column(Integer, nullable=False)
-    adm_name = Column(String)
+    data_model_id = Column(Integer, nullable=False)
+    data_model_name = Column(String)
     obj_formal_definition_id = Column(Integer, nullable=False)
     fp_spec_id = Column(Integer)
     num_parms = Column(Integer)
@@ -85,8 +85,8 @@ class Control(Model):
 class EddFormal(Model):
     __tablename__ = 'vw_edd_formal'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
+    name = Column(String)
+    data_model_id = Column(Integer)
     obj_formal_definition_id = Column(Integer)
     fp_spec_id = Column(Integer)
     use_desc = Column(String, nullable=False)
@@ -122,8 +122,8 @@ class EddFormalDef(Model):
 class MacFormal(Model):
     __tablename__ = 'vw_mac_formal'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
+    name = Column(String)
+    data_model_id = Column(Integer)
     obj_formal_definition_id = Column(Integer)
     fp_spec_id = Column(Integer)
     use_desc = Column(String, nullable=False)
@@ -143,8 +143,8 @@ class MacFormal(Model):
 class RptFormal(Model):
     __tablename__ = 'vw_rptt_formal'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
+    name = Column(String)
+    data_model_id = Column(Integer)
     obj_formal_definition_id = Column(Integer)
     fp_spec_id = Column(Integer)
     use_desc = Column(String, nullable=False)

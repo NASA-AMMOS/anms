@@ -65,7 +65,7 @@ class TestAdm:
         '''
         #This mock the getall method of Adm that is used inside the getall function
         mock_result = [
-            NamespaceViewSchema(adm_enum=1, adm_name="amp", 
+            NamespaceViewSchema(enumeration=1, data_model_name="amp", 
                 name_string="amp/agent", version_name="v3.1", use_des="view result")
         ]
         mock_namespace_view.getall.return_value = mock_result

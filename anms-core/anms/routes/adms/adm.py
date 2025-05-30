@@ -84,43 +84,43 @@ async def getall():
 
 
 # download specific adm
-@router.get("/{adm_enum}", status_code=status.HTTP_200_OK)
-async def get_adm(adm_enum: int):
-    # stmt_1 = select(ADM).where(ADM.adm_enum == adm_enum)
+@router.get("/{enumeration}", status_code=status.HTTP_200_OK)
+async def get_adm(enumeration: int):
+    # stmt_1 = select(ADM).where(ADM.enumeration == enumeration)
     async with get_async_session() as session:
         # result: Result = await session.scalars(stmt_1)
-        result,_ =  await AdmData.get(adm_enum, session)
+        result,_ =  await AdmData.get(enumeration, session)
         if result:
             return result.data
 
 
 
-# async def remove_ace_adm(adm_enum: int):
+# async def remove_ace_adm(enumeration: int):
 #     async with get_async_session() as session:
-#         stmt = delete(ace.models.AdmFile).where(ace.models.AdmFile.enum == adm_enum)
+#         stmt = delete(ace.models.AdmFile).where(ace.models.AdmFile.enum == enumeration)
 #         await session.execute(stmt)
 #         session.commit()
 
 
 
-@router.delete("/{adm_enum}", status_code=status.HTTP_200_OK)
-async def remove_adm(adm_enum: int):
+@router.delete("/{enumeration}", status_code=status.HTTP_200_OK)
+async def remove_adm(enumeration: int):
     '''
-  :param namespace_id: id for the adm to delete
+  :param data_model_id: id for the adm to delete
   :return:
   '''
-    stmt_1 = delete(ADM).where(ADM.adm_enum == adm_enum)
+    stmt_1 = delete(ADM).where(ADM.enumeration == enumeration)
     async with get_async_session() as session:
-        nm_row = await ADM.get(adm_enum, session)
+        nm_row = await ADM.get(enumeration, session)
         if nm_row:
-            logger.info(f"Removing {nm_row.adm_name} ADM")
-            stmt_2 = delete(Namespace).where(Namespace.namespace_id == nm_row.namespace_id)
+            logger.info(f"Removing {nm_row.data_model_name} ADM")
+            stmt_2 = delete(Namespace).where(Namespace.data_model_id == nm_row.data_model_id)
             await session.execute(stmt_1)
             await session.execute(stmt_2)
             await session.commit()
             return status.HTTP_200_OK
         else:
-            logger.debug(f"ADM ENUM:{adm_enum} not a know ADM")
+            logger.debug(f"ADM ENUM:{enumeration} not a know ADM")
             return status.HTTP_400_BAD_REQUEST
 
 
@@ -138,7 +138,7 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmFile, session, 
             logger.info('Not replacing existing ADM name %s', adm_file.norm_name)
             return []
 
-        data_rec = await AdmData.get(namespace_view.adm_enum)
+        data_rec = await AdmData.get(namespace_view.enumeration)
         if data_rec:
             # Compare old and new contents
             logger.info("Checking existing ADM name %s", adm_file.norm_name)
@@ -172,7 +172,7 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmFile, session, 
     # Save the adm file of the new adm
     buf = io.BytesIO()
     ace.adm_json.Encoder().encode(adm_file, buf)
-    data = {"adm_enum": adm_file.enum, "data": buf.getvalue()}
+    data = {"enumeration": adm_file.enum, "data": buf.getvalue()}
     await AdmData.add_data(data, session)
 
     return []
@@ -264,7 +264,7 @@ async def update_adm(file: UploadFile, request: Request):
             try:
                 async with get_async_session() as session:
                     # Save the adm file of the new adm
-                    data = {"adm_enum": adm_file.enum, "data": adm_file_contents}
+                    data = {"enumeration": adm_file.enum, "data": adm_file_contents}
                     response, error_message = await AdmData.add_data(data, session)
                 if error_message:
                     raise Exception(error_message)

@@ -2783,7 +2783,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
@@ -2791,7 +2791,7 @@
                       "title": "Type Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -2825,7 +2825,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
@@ -2833,7 +2833,7 @@
                       "title": "Type Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -2881,19 +2881,19 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
-                  "adm_enum": {
+                  "enumeration": {
                       "title": "Adm Enum",
                       "type": "integer"
                   },
-                  "adm_enum_label": {
+                  "namespace_type": {
                       "title": "Adm Enum Label",
                       "type": "integer"
                   },
@@ -2985,23 +2985,23 @@
           "AdmView": {
               "title": "AdmView",
               "required": [
-                  "namespace_id"
+                  "data_model_id"
               ],
               "type": "object",
               "properties": {
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
-                  "adm_enum": {
+                  "enumeration": {
                       "title": "Adm Enum",
                       "type": "integer"
                   },
-                  "adm_enum_label": {
+                  "namespace_type": {
                       "title": "Adm Enum Label",
                       "type": "string"
                   },
@@ -3049,11 +3049,11 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
@@ -3121,7 +3121,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -3155,19 +3155,19 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
-                  "adm_enum": {
+                  "enumeration": {
                       "title": "Adm Enum",
                       "type": "integer"
                   },
-                  "adm_enum_label": {
+                  "namespace_type": {
                       "title": "Adm Enum Label",
                       "type": "integer"
                   },
@@ -3325,7 +3325,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -3662,7 +3662,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },

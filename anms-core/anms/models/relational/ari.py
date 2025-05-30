@@ -41,8 +41,8 @@ logger = OpenSearchLogger(__name__).logger
 class ARI(Model):
     __tablename__ = 'vw_ari_union'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    adm_name = Column(String)
+    name = Column(String)
+    data_model_name = Column(String)
     type_name = Column(String)
     data_model_id = Column(Integer)
     obj_id = Column(Integer, primary_key=True)
@@ -84,9 +84,9 @@ class ARICollection(Model):
 class ADM(Model):
     __tablename__ = 'adm'
     data_model_id = Column(Integer, primary_key=True)
-    adm_name = Column(String)
-    adm_enum = Column(Integer)
-    adm_enum_label = Column(String)
+    data_model_name = Column(String)
+    enumeration = Column(Integer)
+    namespace_type = Column(String)
     use_desc = Column(String)
 
     def __repr__(self) -> str:
@@ -101,13 +101,13 @@ class ADM(Model):
 
     @classmethod
     async def get(
-            cls, adm_enum: Integer, session: AsyncSession = None
+            cls, enumeration: Integer, session: AsyncSession = None
     ) -> Optional["adm"]:
         '''
         Retrieve all adms
 
         '''
-        stmt = select(cls).where(cls.adm_enum == adm_enum)
+        stmt = select(cls).where(cls.enumeration == enumeration)
         try:
             if session:
                 result = await session.execute(stmt)
@@ -126,11 +126,11 @@ class ObjMetadata(Model):
     __tablename__ = 'vw_obj_metadata'
     obj_metadata_id = Column(Integer, primary_key=True)
     data_type_id = Column(Integer)
-    obj_name = Column(String)
+    name = Column(String)
     data_model_id = Column(Integer)
-    adm_name = Column(String)
-    adm_enum = Column(Integer)
-    adm_enum_label = Column(String)
+    data_model_name = Column(String)
+    enumeration = Column(Integer)
+    namespace_type = Column(String)
     use_desc = Column(String)
 
     def __repr__(self) -> str:

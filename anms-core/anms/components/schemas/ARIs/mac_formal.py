@@ -31,7 +31,7 @@ from pydantic import BaseModel
 class MacFormalBase(BaseModel):
     obj_metadata_id: Optional[int] = None
     obj_name: Optional[str] = None
-    namespace_id: Optional[int] = None
+    data_model_id: Optional[int] = None
     obj_formal_definition_id: Optional[int] = None
     fp_spec_id: Optional[int] = None
     use_desc: Optional[str] = None

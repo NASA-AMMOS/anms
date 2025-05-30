@@ -35,11 +35,11 @@ class ActualObject(Model):
     __tablename__ = 'vw_obj_actual_def'
     obj_metadata_id = Column(Integer, primary_key=True)
     type_name = Column(String, nullable=False)
-    obj_name = Column(String, nullable=False)
-    namespace_id = Column(Integer, nullable=False)
-    adm_name = Column(String)
-    adm_enum = Column(Integer)
-    adm_enum_label = Column(String)
+    name = Column(String, nullable=False)
+    data_model_id = Column(Integer, nullable=False)
+    data_model_name = Column(String)
+    enumeration = Column(Integer)
+    namespace_type = Column(String)
     use_desc = Column(String)
     obj_actual_definition_id = Column(Integer, nullable=False)
     actual_desc = Column(String)
@@ -59,10 +59,11 @@ class ActualObject(Model):
 class VarActual(Model):
     __tablename__ = 'vw_var_actual'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
+    name = Column(String)
+    data_model_id = Column(Integer)
     obj_actual_definition_id = Column(Integer)
-    expression_id = Column(Integer)
+    expression = Column(String)
+    init_value = Column(String)
     data_type_id = Column(Integer)
     use_desc = Column(String)
 

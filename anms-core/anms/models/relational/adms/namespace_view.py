@@ -36,7 +36,7 @@ config = ConfigBuilder.get_config()
 
 class Namespace(Model):
     __tablename__ = 'namespace'
-    namespace_id = Column(Integer, unique=True, primary_key=True)
+    data_model_id = Column(Integer, unique=True, primary_key=True)
     namespace_type = Column(String)
     issuing_org = Column(String)
     name_string = Column(String)
@@ -56,8 +56,8 @@ class Namespace(Model):
 
 class NamespaceView(Model):
     __tablename__ = 'vw_namespace'
-    adm_enum = Column(Integer, unique=True, primary_key=True)
-    adm_name = Column(String)
+    enumeration = Column(Integer, unique=True, primary_key=True)
+    data_model_name = Column(String)
     name_string = Column(String)
     version_name = Column(String)
     use_desc = Column(String)
@@ -90,13 +90,13 @@ class NamespaceView(Model):
     
     @classmethod
     async def get(
-            cls, adm_enum: Integer,  session: AsyncSession = None
+            cls, enumeration: Integer,  session: AsyncSession = None
     ) -> Optional["NamespaceView"]:
         '''
         Retrieve all adms
 
         '''
-        stmt = select(cls).where(cls.adm_enum == adm_enum)
+        stmt = select(cls).where(cls.enumeration == enumeration)
         try:
             if session:
                 result = await session.execute(stmt)

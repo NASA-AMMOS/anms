@@ -26,8 +26,8 @@ from typing import Dict, Optional
 from pydantic import BaseModel
 
 class NamespaceViewSchema(BaseModel):
-    adm_enum: int
-    adm_name: str
+    enumeration: int
+    data_model_name: str
     name_string: Optional[str]
     version_name: Optional[str]
     use_desc: Optional[str]

@@ -140,11 +140,11 @@ async def _process_report_entries(x):
 @router.get("/entries/table/{agent_id}/{adm}/{report_name}", status_code=status.HTTP_200_OK,
             response_model=list)
 async def report_ac(agent_id: str, adm: str, report_name: str):
-    adm_name = adm.strip()
+    data_model_name = adm.strip()
     agent_id = agent_id.strip()
     report_name = report_name.strip()
 
-    stmt = select(ADM.namespace_id).where(ADM.adm_name == adm)
+    stmt = select(ADM.data_model_id).where(ADM.data_model_name == adm)
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         adm_id = result.one_or_none()
@@ -152,7 +152,7 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
     if adm_id:
         # get report template id
         stmt = select(RptFormal.obj_formal_definition_id).where(
-            (RptFormal.obj_name == report_name.strip()), (RptFormal.namespace_id == adm_id))
+            (RptFormal.obj_name == report_name.strip()), (RptFormal.data_model_id == adm_id))
 
         with get_session() as session:
             result: Result = session.scalars(stmt)
@@ -187,7 +187,7 @@ async def report_ac(agent_id: str, adm: str, report_name: str):
                     curr_type = await find_var_type(entry.obj_metadata_id)
                 ac_types_and_id.append((curr_type, entry.obj_metadata_id))
         
-        stmt = select(Report).where(Report.agent_id == agent_id , Report.ADM == adm_name
+        stmt = select(Report).where(Report.agent_id == agent_id , Report.ADM == data_model_name
                                                                , Report.report_name == report_name)
         # if a none formal report 
         if ac_id == None: 
