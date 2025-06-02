@@ -19,11 +19,24 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM docker.io/library/nginx:1.23
 
-COPY nginx.conf /etc/nginx/nginx.conf
+# Configure an Apache HTTPd to perform cookie-based authentication and
+# path-based authorization to emulate the JPL CAM client.
+#
+FROM localhost/anms-base
+
+# Install Apache
+RUN dnf -y install httpd-tools mod_ssl mod_session
+
+# Update Apache Configuration
+COPY httpd.conf /etc/httpd/conf/httpd.conf
+COPY htpasswd /etc/httpd/conf/htpasswd
+COPY html/ /var/www/html/
+COPY run_proxy.sh /root/run_proxy.sh
+
+RUN mkdir -p /etc/httpd/site.conf.d
+
+# Start Apache
+CMD ["/root/run_proxy.sh"]
 
 EXPOSE 80
-
-HEALTHCHECK --start-period=10s --interval=60s --timeout=60s --retries=20 \
-    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:80/"]

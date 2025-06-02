@@ -1,264 +1,71 @@
-# ##
-# ## Copyright (c) 2023 The Johns Hopkins University Applied Physics
-# ## Laboratory LLC.
-# ##
-# ## This file is part of the Asynchronous Network Management System (ANMS).
-# ##
-# ## Licensed under the Apache License, Version 2.0 (the "License");
-# ## you may not use this file except in compliance with the License.
-# ## You may obtain a copy of the License at
-# ##     http://www.apache.org/licenses/LICENSE-2.0
-# ## Unless required by applicable law or agreed to in writing, software
-# ## distributed under the License is distributed on an "AS IS" BASIS,
-# ## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# ## See the License for the specific language governing permissions and
-# ## limitations under the License.
-# ##
-# ## This work was performed for the Jet Propulsion Laboratory, California
-# ## Institute of Technology, sponsored by the United States Government under
-# ## the prime contract 80NM0018D0004 between the Caltech and NASA under
-# ## subcontract 1658085.
-# ##
+##
+## Copyright (c) 2023 The Johns Hopkins University Applied Physics
+## Laboratory LLC.
+##
+## This file is part of the Asynchronous Network Management System (ANMS).
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##     http://www.apache.org/licenses/LICENSE-2.0
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## This work was performed for the Jet Propulsion Laboratory, California
+## Institute of Technology, sponsored by the United States Government under
+## the prime contract 80NM0018D0004 between the Caltech and NASA under
+## subcontract 1658085.
+##
 
-# # This configuration uses the environment variables:
-# # DOCKER_CTR_PREFIX to contain a (default empty) container name prefix
-# # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
-# # DOCKER_IMAGE_TAG to contain the image tag for custom images
-# #
-# name: testenv
-
-# volumes:
-#   # postgres-data:
-#     # temporary storage
-#   sockdir:
-#     # shared sockets
-
-# networks:
-#   # This is entirely separate from the network in docker-compose.yml
-#   default:
-#     name: ${DOCKER_CTR_PREFIX}testenv
-#     attachable: true
-#     driver_opts:
-#       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}testenv
-#       com.docker.network.driver.mtu: 65535
-#     ipam:
-#       config:
-#         - subnet: 10.5.0.0/16
-#           gateway: 10.5.0.1
-
-# services:
-#   amp-manager:
-#     hostname: amp-manager
-#     build:
-#       context: deps
-#       dockerfile: reftools.Dockerfile
-#       target: amp-manager
-#     ports:
-#       - "8089:8089/tcp"
-#     depends_on:
-#       ion-manager:
-#         condition: service_started
-#     privileged: true
-#     tty: true
-#     cap_add:
-#       - NET_ADMIN
-#       - NET_RAW
-#       - SYS_NICE
-#     volumes:
-#       - "sockdir:${SOCKDIR}"
-#     environment:
-#       container: docker
-#       DTNMA_LOGLEVEL: debug
-#       AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
-#       DB_HOST: postgres
-#       DB_USER: ${DB_USER}
-#       DB_PASSWORD: ${DB_PASSWORD}
-#       DB_NAME: ${DB_NAME}
-
-#   ion-manager:
-#     hostname: ion-manager
-#     build:
-#       context: deps
-#       dockerfile:  reftools.Dockerfile
-#       target: ion-manager
-#     depends_on: {}
-#     privileged: true
-#     tty: true
-#     cap_add:
-#       - NET_ADMIN
-#       - NET_RAW
-#       - SYS_NICE
-#     volumes:
-#       - "/var/tmp/pcap:/var/log/pcap"
-#       - "sockdir:${SOCKDIR}"
-#     environment:
-#       container: docker
-#       DTNMA_LOGLEVEL: debug
-#       AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
-#       ION_NODE_NUM: 1
-#       MGR_NODE_NUM: 1
-#       DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
-#       DUMPCAP_OPTS: -i lo -i eth0
-#     networks:
-#       default:
-#         ipv4_address: 10.5.0.101
-
-#   ion-agent2: &ion-agent
-#     hostname: ion-agent2
-#     build:
-#       context: deps
-#       dockerfile: reftools.Dockerfile
-#       target: ion-agent
-#     depends_on:
-#       ion-manager:
-#         condition: service_started
-#     privileged: true
-#     tty: true
-#     cap_add:
-#       - NET_ADMIN
-#       - NET_RAW
-#       - SYS_NICE
-#     volumes:
-#       - "/var/tmp/pcap:/var/log/pcap"
-#     environment:
-#       container: docker
-#       DTNMA_LOGLEVEL: debug
-#       ION_NODE_NUM: 2
-#       MGR_NODE_NUM: 1
-#       DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
-#       DUMPCAP_OPTS: -i lo -i eth0
-#     # networks:
-#     #   default:
-#     #     ipv4_address: 10.5.0.102
-#         #
-  
-#   ion-agent3:
-#     <<: *ion-agent
-#     hostname: ion-agent3
-#     privileged: true
-#     tty: true
-#     cap_add:
-#       - NET_ADMIN
-#       - NET_RAW
-#       - SYS_NICE
-#     volumes:
-#       - "/var/tmp/pcap:/var/log/pcap"
-#     environment:
-#       container: docker
-#       DTNMA_LOGLEVEL: debug
-#       ION_NODE_NUM: 3
-#       MGR_NODE_NUM: 1
-#       DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
-#       DUMPCAP_OPTS: -i lo -i eth0
-#     # networks:
-#     #   default:
-#     #     ipv4_address: 10.5.0.102
-
+# This configuration uses the environment variables:
+# DOCKER_CTR_PREFIX to contain a (default empty) container name prefix
+# DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
+# DOCKER_IMAGE_TAG to contain the image tag for custom images
+#
 name: testenv
 
-# networks:
-#   # This is entirely separate from the network in docker-compose.yml
-#   default:
-#     name: ${DOCKER_CTR_PREFIX}testenv
-#     attachable: true
-#     driver_opts:
-#       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}testenv
-#       com.docker.network.driver.mtu: 65535
-#     ipam:
-#       config:
-#         - subnet: 10.5.0.0/16
-#           gateway: 10.5.0.1
-
-volumes:
-  # postgres-d÷≥÷÷ata:
-    # temporary storage
-  sockdir:
-    # shared sockets
+networks:
+  # This network is created by docker-compose.yml
+  default:
+    name: ${DOCKER_CTR_PREFIX}anms
+    external: true
 
 services:
 
-  # amp-manager:
-  #   hostname: amp-manager
-  #   build:
-  #     context: deps
-  #     dockerfile: reftools.Dockerfile
-  #     target: amp-manager
-  #   ports:
-  #     - "8089:8089/tcp"
-  #   depends_on:
-  #     # postgres:
-  #       # condition: service_healthy
-  #     ion-manager:
-  #       condition: service_started
-  #   privileged: true
-  #   tty: true
-  #   cap_add:
-  #     - NET_ADMIN
-  #     - NET_RAW
-  #     - SYS_NICE
-  #   volumes:
-  #     - "sockdir:${SOCKDIR}"
-  #   environment:
-  #     container: docker
-  #     DTNMA_LOGLEVEL: debug
-  #     AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
-  #     DB_HOST: postgres
-  #     DB_USER: ${DB_USER}
-  #     DB_PASSWORD: ${DB_PASSWORD}
-  #     DB_NAME: ${DB_NAME}
-
-  ion-manager:
-    hostname: ion-manager
-    build:
-      context: deps
-      dockerfile: reftools.Dockerfile
-      target: ion-manager
-    depends_on: {}
-    privileged: true
-    tty: true
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
-    volumes:
-      - "/var/tmp/pcap:/var/log/pcap"
-      - "sockdir:${SOCKDIR}"
-    environment:
-      container: docker
-      DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
-      DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
-      DUMPCAP_OPTS: -i lo -i eth0
-    # networks:
-    #   default:
-    #     ipv4_address: 10.5.0.101
-
-  agent1:
-    hostname: agent1
+  ion-agent2: &ion-agent
+    hostname: ion-agent2
+    image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
     build:
       context: deps
       dockerfile: reftools.Dockerfile
       target: ion-agent
-    depends_on:
-      ion-manager:
-        condition: service_started
+    expose:
+      - 1113/udp
+      - 4556/udp
+    depends_on: []
     privileged: true
     tty: true
     cap_add:
       - NET_ADMIN
       - NET_RAW
       - SYS_NICE
-    volumes:
-      - "/var/tmp/pcap:/var/log/pcap"
     environment:
       container: docker
-      DTNMA_LOGLEVEL: debug
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
-      DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
-      DUMPCAP_OPTS: -i lo -i eth0
-    # networks:
-    #   default:
-    #     ipv4_address: 10.5.0.102
+    networks:
+      default:
+        ipv4_address: 10.5.0.102
+  ion-agent3:
+    <<: *ion-agent
+    hostname: ion-agent3
+    networks:
+      default:
+        ipv4_address: 10.5.0.103
+    environment:
+      container: docker
+      ION_NODE_NUM: 3
+      MGR_NODE_NUM: 1

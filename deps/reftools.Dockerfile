@@ -157,14 +157,14 @@ RUN systemctl enable ion bpecho@4 ion-app-proxy dumpcap && \
 
 # Runtime config for this container
 COPY dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
-
+COPY test-ion-configs/mgr.rc etc/ion/
 EXPOSE 4556/udp
 
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
     CMD ["service_is_running", "ion", "ion-app-proxy"]
 
 
-FROM testenv AS agent
+FROM testenv AS ion-agent
 
 # Systemd services
 COPY dtnma-tools/integration-test-ion/tmpfiles.conf /etc/tmpfiles.d/ion.conf
@@ -175,6 +175,8 @@ RUN systemctl enable ion bpecho@4 refda-ion dumpcap && \
 
 # Runtime config for this container
 COPY dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
+COPY test-ion-configs/agent-2.rc etc/ion/
+COPY test-ion-configs/agent-3.rc etc/ion/
 
 EXPOSE 4556/udp
 
