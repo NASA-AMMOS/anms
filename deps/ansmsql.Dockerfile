@@ -20,9 +20,10 @@ FROM postgres:14
 
 RUN echo "TEST"
 
+COPY anms_db_tables/10-transcoder.sql /docker-entrypoint-initdb.d/
 COPY dtnma-tools/refdb-sql/postgres/Database_Scripts/*/*.sql /docker-entrypoint-initdb.d/
 COPY dtnma-tools/refdb-sql/postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/
-COPY anms_db_tables/*.sql /docker-entrypoint-initdb.d/
+
 
 # This is used for testing, it is easier to delete the amp_agent after inserting it using adm_amp_agent.sql instead of removing the script since other scripts are also relying on amp_agent
 # COPY postgres/Database_Scripts/Routines/amp_agent_delete.sql /docker-entrypoint-initdb.d/31-amp_agent_delete.sql

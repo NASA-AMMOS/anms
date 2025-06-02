@@ -22,14 +22,24 @@
 
 
 
-create table if not exists transcoder_log (
-  transcoder_log_id serial NOT NULL,
-  input_string VARCHAR ,
-  parsed_as VARCHAR, 
-  ari VARCHAR,
-  cbor VARCHAR,
-  uri VARCHAR,
-  PRIMARY KEY(transcoder_log_id)
+CREATE TABLE agent_parameter(
+    agent_parameter_id serial NOT NULL, 
+    command_name VARCHAR NOT NULL,
+    command_parameters VARCHAR,
+    PRIMARY KEY (agent_parameter_id),
+    UNIQUE (command_name,command_parameters)
 );
 
-
+CREATE TABLE agent_parameter_received(
+    ts TIMESTAMP default current_timestamp,
+    agent_parameter_received_id serial NOT NULL,
+    manager_id INT,
+    registered_agents_id INT NOT NULL,
+    agent_parameter_id INT NOT NULL,
+    command_parameters VARCHAR,
+    PRIMARY KEY (agent_parameter_received_id),
+    FOREIGN KEY (registered_agents_id)
+        REFERENCES registered_agents (registered_agents_id),
+    FOREIGN KEY (agent_parameter_id)
+        REFERENCES agent_parameter (agent_parameter_id)
+);

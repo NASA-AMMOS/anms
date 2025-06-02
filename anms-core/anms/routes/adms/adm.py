@@ -125,7 +125,7 @@ async def remove_adm(enumeration: int):
 
 
 
-async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmFile, session, replace=True):
+async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session, replace=True):
     ''' Process a received and decoded ADM into the ANMS DB.
 
     :param replace: If true and the ADM exists it will be checked and replaced.

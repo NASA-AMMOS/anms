@@ -31,7 +31,7 @@ from sqlalchemy import Column, select, exc
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import Boolean
-from sqlalchemy import LargeBinarys
+from sqlalchemy import LargeBinary
 from anms.shared.opensearch_logger import OpenSearchLogger
 
 logger = OpenSearchLogger(__name__).logger

@@ -325,85 +325,155 @@ services:
     ports:
       - "${ADMINER_PORT:-8080}:8080"
 
-  amp-manager:
-    hostname: amp-manager
-    build:
-      context: deps
-      dockerfile:  reftools.Dockerfile
-      target: amp-manager
-    ports:
-      - "8089:8089/tcp"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      ion-manager:
-        condition: service_healthy
-    privileged: true
-    tty: true
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
-    volumes:
-      - "sockdir:${SOCKDIR}"
-    environment:
-      container: docker
-      DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
-      DB_HOST: postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
 
-  ion-manager:
-    hostname: ion-manager
-    build:
-      context: deps
-      dockerfile:  reftools.Dockerfile
-      target: ion-manager
-    depends_on: {}
-    privileged: true
-    tty: true
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
-    volumes:
-      - "/var/tmp/pcap:/var/log/pcap"
-      - "sockdir:${SOCKDIR}"
-    environment:
-      container: docker
-      DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
-      DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
-      DUMPCAP_OPTS: -i lo -i eth0
+  # amp-manager:
+  #   hostname: amp-manager
+  #   image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
+  #   build:
+  #     context: deps
+  #     dockerfile: reftools.Dockerfile
+  #     target: amp-manager
+  #   ports:
+  #       - "8089:8089/tcp"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   privileged: true
+  #   tty: true
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_NICE
+  #   volumes:
+  #     - "${ANMS_RUN_DIR:-/run/anms}:${SOCKDIR}"
+  #   environment:
+  #     container: docker
+  #     DTNMA_LOGLEVEL: debug
+  #     AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
+  #     DB_HOST: postgres
+  #     DB_USER: ${DB_USER}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_NAME: ${DB_NAME}
 
-  agent1:
-    hostname: agent1
-    build:
-      context: deps
-      dockerfile:  reftools.Dockerfile
-      target: agent
-    depends_on:
-      ion-manager:
-        condition: service_started
-    privileged: true
-    tty: true
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
-    volumes:
-      - "/var/tmp/pcap:/var/log/pcap"
-    environment:
-      container: docker
-      DTNMA_LOGLEVEL: debug
-      ION_NODE_NUM: 2
-      MGR_NODE_NUM: 1
-      DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
-      DUMPCAP_OPTS: -i lo -i eth0
+  # amp-manager:
+  #   hostname: amp-manager
+  #   build:
+  #     context: deps
+  #     dockerfile:  reftools.Dockerfile
+  #     target: amp-manager
+  #   ports:
+  #     - "8089:8089/tcp"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     ion-manager:
+  #       condition: service_healthy
+  #   privileged: true
+  #   tty: true
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_NICE
+  #   volumes:
+  #     - "sockdir:${SOCKDIR}"
+  #   environment:
+  #     container: docker
+  #     DTNMA_LOGLEVEL: debug
+  #     AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
+  #     DB_HOST: postgres
+  #     DB_USER: ${DB_USER}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_NAME: ${DB_NAME}
+
+  # ion-manager:
+  #   hostname: ion-manager
+  #   build:
+  #     context: deps
+  #     dockerfile:  reftools.Dockerfile
+  #     target: ion-manager
+  #   depends_on: {}
+  #   privileged: true
+  #   tty: true
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_NICE
+  #   volumes:
+  #     - "/var/tmp/pcap:/var/log/pcap"
+  #     - "sockdir:${SOCKDIR}"
+  #   environment:
+  #     container: docker
+  #     DTNMA_LOGLEVEL: debug
+  #     AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
+  #     ION_NODE_NUM: 1
+  #     MGR_NODE_NUM: 1
+  #     DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
+  #     DUMPCAP_OPTS: -i lo -i eth0
+
+  # agent1:
+  #   hostname: agent1
+  #   build:
+  #     context: deps
+  #     dockerfile:  reftools.Dockerfile
+  #     target: agent
+  #   depends_on:
+  #     ion-manager:
+  #       condition: service_started
+  #   privileged: true
+  #   tty: true
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_NICE
+  #   volumes:
+  #     - "/var/tmp/pcap:/var/log/pcap"
+  #   environment:
+  #     container: docker
+  #     DTNMA_LOGLEVEL: debug
+  #     ION_NODE_NUM: 2
+  #     MGR_NODE_NUM: 1
+  #     DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
+  #     DUMPCAP_OPTS: -i lo -i eth0
 
 
+  # ion-agent2: &ion-agent
+  #   hostname: ion-agent2
+  #   image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
+  #   build:
+  #     context: deps
+  #     dockerfile: reftools.Dockerfile
+  #     target: ion-agent
+  #   expose:
+  #     - "1113/udp"
+  #     - "4556/udp"
+  #   depends_on: []
+  #   privileged: true
+  #   tty: true
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_NICE
+  #   environment:
+  #     container: docker
+  #     ION_NODE_NUM: 2
+  #     MGR_NODE_NUM: 1
+  #     REFDA_SOCKET: "${SOCKDIR}/refda.sock""
+  #     REFDM_SOCKET: "${SOCKDIR}/proxy.sock"
+
+  #   networks:
+  #     default:
+  #       ipv4_address: 10.5.0.102
+
+  # ion-agent3:
+  #   <<: *ion-agent
+  #   hostname: ion-agent3
+  #   networks:
+  #     default:
+  #       ipv4_address: 10.5.0.103
+  #   environment:
+  #     container: docker
+  #     ION_NODE_NUM: 3
+  #     MGR_NODE_NUM: 1
+  #     REFDA_SOCKET: "${SOCKDIR}/refda.sock""
+  #     REFDM_SOCKET: "${SOCKDIR}/proxy.sock"
     

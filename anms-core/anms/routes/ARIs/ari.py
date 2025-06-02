@@ -37,7 +37,7 @@ from anms.models.relational import get_async_session
 from anms.models.relational.actual_parameter import ActualParameter
 from anms.models.relational.ari import ARI
 from anms.models.relational.formal_parameter import FormalParameter
-from anms.models.relational.literal_object import LiteralObject
+
 
 from anms.shared.opensearch_logger import OpenSearchLogger
 from cachetools import Cache

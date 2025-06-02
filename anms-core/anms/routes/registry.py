@@ -27,7 +27,7 @@ from fastapi import APIRouter
 
 from anms.routes import hello, main, network_manager, logging, transcoder, system_status, user, agent_parameter
 from anms.routes.ARIs import agents, actual_objects, formal_parameter, formal_objects, \
-    ari, actual_parameter, literal_object, reports, alerts
+    ari, actual_parameter, reports, alerts
 from anms.routes.adms import adm
 from anms.routes.mappings import RoutesMapper
 from anms.shared.manager_checker import MANAGER_CECKER
@@ -60,7 +60,7 @@ class RoutesRegistry(object):
 
         self.routing_table[RoutesMapper.actual_parameter_api_prefix] = actual_parameter.router
         self.routing_table[RoutesMapper.formal_parameter_api_prefix] = formal_parameter.router
-        self.routing_table[RoutesMapper.literal_object_api_prefix] = literal_object.router
+        
         self.routing_table[RoutesMapper.reports_api_prefix] = reports.router
 
         self.routing_table[RoutesMapper.transcoder_api_prefix] = transcoder.router

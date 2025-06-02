@@ -40,7 +40,7 @@ class AdmCompare:
   def get_errors(self):
     return self._errs
 
-  def compare_adms(self, old_adm: ace.models.AdmFile, new_adm: ace.models.AdmFile) -> bool:
+  def compare_adms(self, old_adm: ace.models.AdmModule, new_adm: ace.models.AdmModule) -> bool:
     ''' Gurantee no structural changes, only new objects or allowed doc changes.
 
     :return: Any specific errors if the new ADM is not acceptable.

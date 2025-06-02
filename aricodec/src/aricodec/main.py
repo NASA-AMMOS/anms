@@ -90,9 +90,9 @@ class Executive:
             if adm_name:
                 LOGGER.info('Reloading one ADM: %s', adm_name)
                 curs = db_conn.execute('''\
-SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-    INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
+    INNER JOIN data_model ON adm_data.enumeration = data_model.enumeration
 WHERE adm_name = ?
 ''', [adm_name])
                 for row in curs.all():
@@ -102,9 +102,9 @@ WHERE adm_name = ?
                 LOGGER.info('Reloading all ADMS...')
 
                 curs = db_conn.execute('''\
-SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-    INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
+    INNER JOIN data_model ON adm_data.enumeration = data_model.enumeration
 ''')
                 for row in curs.all():
                     self._handle_adm(*row)
