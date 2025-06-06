@@ -16,7 +16,7 @@
         value="-1">-- Select Sent Reports --</b-form-select-option>
       <b-form-select-option v-for="rpt, index in rptts"
         :key="index"
-        :value="index">{{ rpt.adm }}.{{ rpt.name }}</b-form-select-option>
+        :value="index">{{ rpt }}</b-form-select-option>
     </b-form-select>
     <b-table sticky-header
       hover
@@ -54,9 +54,9 @@ export default {
       this.tableHeaders = [];
       this.tableItems = [];
       this.loading = true;
-      let rpt_name = this.rptts[this.selected].name;
-      let rpt_adm = this.rptts[this.selected].adm;
-      await api.methods.apiEntriesForReport(this.agentName, rpt_adm, rpt_name)
+      let correlator_nonce = this.rptts[this.selected].correlator_nonce;
+      // let rpt_adm = this.rptts[this.selected].adm;
+      await api.methods.apiEntriesForReport(this.agentName, correlator_nonce)
         .then(res => {
           this.processReport(res.data);
           this.reports[this.selected] = this.tableItems;
@@ -89,7 +89,7 @@ export default {
   mounted() {
     this.loading = true;
     this.rptts.forEach((rpt, index) => {
-      api.methods.apiEntriesForReport(this.agentName, rpt.adm, rpt.name)
+      api.methods.apiEntriesForReport(this.agentName, rpt.correlator_nonce)
         .then(res => {
           this.reports[index] = res.data
         }).catch(error => {

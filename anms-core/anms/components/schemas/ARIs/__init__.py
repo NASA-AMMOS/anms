@@ -49,9 +49,6 @@ from .ari import ARI
 from .ari import ARIInDB
 from .ari import ARIBase
 from .ari import ARIDisplayAndParams
-from .literal_object import LiteralObject
-from .literal_object import LiteralObjectInDB
-from .literal_object import LiteralObjectBase
 from .registered_agent import RegisteredAgentBase
 from .registered_agent import RegisteredAgent
 from .registered_agent import RegisteredAgentInDB

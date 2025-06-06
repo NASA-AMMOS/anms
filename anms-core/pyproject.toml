@@ -19,8 +19,8 @@ classifiers = [
 ]
 
 dependencies = [
-  "anms-ace",
-  "anms-camp",
+  "dtnma-ace",
+  "dtnma-camp",
   "anyio ~=3.6.1",
   "arrow ~=1.2.3",
   "asyncio ~=3.4.3",
@@ -33,7 +33,7 @@ dependencies = [
   "fastapi-pagination ~=0.9.1",
   "grpcio ~=1.50.0",
   "grpcio-tools ~=1.50.0",
-  "gunicorn ~=20.1.0",
+  "gunicorn ~=23.0.0",
   "httpx ~=0.24.0",
   "itsdangerous ~=2.1.2",
   "jinja2 ~=3.1.2",

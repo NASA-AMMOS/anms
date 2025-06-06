@@ -30,8 +30,8 @@ from pydantic import BaseModel
 # Shared properties
 class ControlBase(BaseModel):
     obj_name: Optional[str] = None
-    namespace_id: Optional[int] = None
-    adm_name: Optional[str] = None
+    data_model_id: Optional[int] = None
+    data_model_name: Optional[str] = None
     obj_formal_definition_id: Optional[int] = None
     fp_spec_id: Optional[int] = None
     num_parms: Optional[int] = None

@@ -31,9 +31,9 @@ from pydantic import BaseModel
 class ARIBase(BaseModel):
     obj_metadata_id: Optional[int] = None
     obj_name: Optional[str] = None
-    adm_name: Optional[str] = None
+    data_model_name: Optional[str] = None
     type_name: Optional[str] = None
-    namespace_id: Optional[int] = None
+    data_model_id: Optional[int] = None
     obj_id: Optional[int] = None
     parm_id: Optional[int] = None
     actual: Optional[bool] = None
@@ -65,12 +65,12 @@ class ARICollection(BaseModel):
     obj_metadata_id: Optional[int] = None
     use_desc: Optional[str] = None
     obj_name: Optional[str] = None
-    namespace_id: Optional[int] = None
+    data_model_id: Optional[int] = None
     namespace_type: Optional[str] = None
     issuing_org: Optional[str] = None
     name_string: Optional[str] = None
     version_name: Optional[str] = None
-    adm_enum: Optional[int] = None
+    enumeration: Optional[int] = None
     obj_enum: Optional[int] = None
     type_desc: Optional[str] = None
     ns_desc: Optional[str] = None
