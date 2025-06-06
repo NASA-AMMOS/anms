@@ -20,7 +20,7 @@ FROM postgres:14
 
 RUN echo "TEST"
 
-COPY anms_db_tables/10-transcoder.sql /docker-entrypoint-initdb.d/
+COPY anms_db_tables/*.sql /docker-entrypoint-initdb.d/
 COPY dtnma-tools/refdb-sql/postgres/Database_Scripts/*/*.sql /docker-entrypoint-initdb.d/
 COPY dtnma-tools/refdb-sql/postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/
 

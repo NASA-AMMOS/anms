@@ -29,21 +29,11 @@ from pydantic import BaseModel
 
 # Shared properties
 class RptEntryBase(BaseModel):
-    time: Optional[int] = None
+    reference_time: Optional[str] = None
     agent_id: Optional[str] = None
-    report_name: Optional[str] = None
-    ADM: Optional[str] = None
-    report_id: Optional[int] = None
-    string_values: Optional[str] = None
-    uint_values: Optional[str] = None
-    int_values: Optional[str] = None
-    real32_values: Optional[str] = None
-    real64_values: Optional[str] = None
-    uvast_values: Optional[str] = None
-    vast_values: Optional[str] = None
-    object_id_values: Optional[str] = None
-    AC_id_values: Optional[str] = None
-    TNVC_id_values: Optional[str] = None
+    correlator_nonce: Optional[str] = None
+    report_list: Optional[str] = None
+    ari_rptset_id: Optional[int] = None
 
 
 class RptEntryBaseInDBBase(RptEntryBase):

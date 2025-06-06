@@ -23,7 +23,7 @@
 #
 from typing import Any, Dict, Optional
 
-from sqlalchemy import (Column, Integer, String, select)
+from sqlalchemy import (Column, Integer, String, select, and_)
 from sqlalchemy import exc
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,14 +34,16 @@ from anms.shared.opensearch_logger import OpenSearchLogger
 logger = OpenSearchLogger(__name__).logger
 config = ConfigBuilder.get_config()
 
-class Namespace(Model):
-    __tablename__ = 'namespace'
+class DataModel(Model):
+    __tablename__ = 'data_model'
     data_model_id = Column(Integer, unique=True, primary_key=True)
     namespace_type = Column(String)
-    issuing_org = Column(String)
-    name_string = Column(String)
+    name = Column(String)
+    enumeration = Column(Integer)
+    namespace = Column(String)
     version_name = Column(String)
-
+    use_desc = Column(String)
+    
     def __repr__(self) -> str:
         return self.as_dict().__repr__()
 
@@ -51,21 +53,10 @@ class Namespace(Model):
         }
         return dict_obj
 
-
-
-
-class NamespaceView(Model):
-    __tablename__ = 'vw_namespace'
-    enumeration = Column(Integer, unique=True, primary_key=True)
-    data_model_name = Column(String)
-    name_string = Column(String)
-    version_name = Column(String)
-    use_desc = Column(String)
-
     @classmethod
     async def getall(
             cls, session: AsyncSession = None
-    ) -> Optional["NamespaceView"]:
+    ) -> Optional["DataModel"]:
         '''
         Retrieve all adms
 
@@ -78,25 +69,25 @@ class NamespaceView(Model):
                 async with get_async_session() as session:
                     result = await session.execute(stmt)
         except exc.SQLAlchemyError as e:
-            logger.error(f"NamespaceView::getall SQLAlchemyError: {str(e.args)}")
+            logger.error(f"DataModel::getall SQLAlchemyError: {str(e.args)}")
             return None
         
-        namespace_view_rows = result.all()
-        namespace_views = None
-        if namespace_view_rows != None:
-            namespace_views = [row['NamespaceView'] for row in namespace_view_rows]
+        data_model_view_rows = result.all()
+        data_model_views = None
+        if data_model_view_rows != None:
+            data_model_views = [row['DataModel'] for row in data_model_view_rows]
 
-        return namespace_views
+        return data_model_views
     
     @classmethod
     async def get(
-            cls, enumeration: Integer,  session: AsyncSession = None
-    ) -> Optional["NamespaceView"]:
+            cls, enumeration: Integer,  namespace: String, session: AsyncSession = None
+    ) -> Optional["DataModel"]:
         '''
         Retrieve all adms
 
         '''
-        stmt = select(cls).where(cls.enumeration == enumeration)
+        stmt = select(cls).where(and_(cls.enumeration == enumeration, cls.namespace == namespace))
         try:
             if session:
                 result = await session.execute(stmt)
@@ -104,11 +95,11 @@ class NamespaceView(Model):
                 async with get_async_session() as session:
                     result = await session.execute(stmt)
         except exc.SQLAlchemyError as e:
-            logger.error(f"NamespaceView::get SQLAlchemyError: {str(e.args)}")
+            logger.error(f"DataModel::get SQLAlchemyError: {str(e.args)}")
             return None 
 
-        namespace_view_row = result.scalar_one_or_none()
-        return namespace_view_row
+        data_model_view_row = result.scalar_one_or_none()
+        return data_model_view_row
     
     def __repr__(self) -> str:
         return self.as_dict().__repr__()

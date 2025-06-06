@@ -32,25 +32,26 @@ from sqlalchemy import LargeBinary
 
 
 # class for vw_ctrl_definition used for build ari
-class Report(Model):
-    __tablename__ = 'ari_rptset'
-    ari_rptset_id = Column(Integer, primary_key=True)
+class ExecutionSet(Model):
+    __tablename__ = 'vw_execution_set'
+    execution_set_id = Column(Integer, primary_key=True)
     correlator_nonce = Column(Integer)
-    reference_time = Column(Integer)
-    report_list	= Column(String)
-    report_list_cbor = Column(LargeBinary)
+    use_desc = Column(String)
     agent_id = Column(String)
+    num_entries = Column(Integer)
+    entries	 = Column(LargeBinary)
+
     def __repr__(self) -> str:
         return self.as_dict().__repr__()
 
     def as_dict(self) -> Dict[str, Any]:
         dict_obj = {
-                    'ari_rptset.ari_rptset_id': getattr(self, 'ari_rptset_id'),
-                    'ari_rptset.correlator_nonce': getattr(self, 'correlator_nonce'),        
-                    'ari_rptset.reference_time': getattr(self, 'reference_time'),
-                    'ari_rptset.report_list': getattr(self, 'report_list'),
-                    # 'ari_rptset.report_list_cbor': getattr(self, 'report_list_cbor'),
-                    'ari_rptset.agent_id': getattr(self, 'agent_id')       
+                    'execution_set_id': getattr(self, 'execution_set_id'),
+                    'correlator_nonce': getattr(self, 'correlator_nonce'),        
+                    'use_desc': getattr(self, 'use_desc'),
+                    'agent_id': getattr(self, 'agent_id'),
+                    'num_entries': getattr(self, 'num_entries'),
+                    'entries': getattr(self, 'entries')       
                     }
 
         return dict_obj

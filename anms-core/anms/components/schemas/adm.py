@@ -25,9 +25,11 @@ from typing import Dict, Optional
 
 from pydantic import BaseModel
 
-class NamespaceViewSchema(BaseModel):
+class DataModelSchema(BaseModel):
+    data_model_id: int
+    namespace_type: str
+    name: str
     enumeration: int
-    data_model_name: str
-    name_string: Optional[str]
-    version_name: Optional[str]
-    use_desc: Optional[str]
+    namespace: Optional[str] = ""
+    version_name: Optional[str] = "0.0.0"
+    use_desc: Optional[str] = ""

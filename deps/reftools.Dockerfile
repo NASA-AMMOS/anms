@@ -172,11 +172,13 @@ COPY --chmod=644 dtnma-tools/systemd/ion.service dtnma-tools/systemd/refda-ion.s
     /usr/local/lib/systemd/system/
 RUN systemctl enable ion bpecho@4 refda-ion dumpcap && \
     mkdir -p /var/run/ion
-
+    
 # Runtime config for this container
-COPY dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
-COPY test-ion-configs/agent-2.rc etc/ion/
-COPY test-ion-configs/agent-3.rc etc/ion/
+# COPY dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
+COPY test-ion-configs/agent-2.rc /etc/ion/node-2.rc
+COPY test-ion-configs/agent-3.rc /etc/ion/node-3.rc
+# COPY test-ion-configs/agent-2.rc etc/ion/
+# COPY test-ion-configs/agent-3.rc etc/ion/
 
 EXPOSE 4556/udp
 

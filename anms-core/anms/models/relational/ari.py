@@ -81,45 +81,6 @@ class ARICollection(Model):
         return dict_obj
 
 
-class ADM(Model):
-    __tablename__ = 'adm'
-    data_model_id = Column(Integer, primary_key=True)
-    data_model_name = Column(String)
-    enumeration = Column(Integer)
-    namespace_type = Column(String)
-    use_desc = Column(String)
-
-    def __repr__(self) -> str:
-        return self.as_dict().__repr__()
-
-    def as_dict(self) -> Dict[str, Any]:
-        dict_obj = {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
-        }
-
-        return dict_obj
-
-    @classmethod
-    async def get(
-            cls, enumeration: Integer, session: AsyncSession = None
-    ) -> Optional["adm"]:
-        '''
-        Retrieve all adms
-
-        '''
-        stmt = select(cls).where(cls.enumeration == enumeration)
-        try:
-            if session:
-                result = await session.execute(stmt)
-            else:
-                async with get_async_session() as session:
-                    result = await session.execute(stmt)
-        except exc.SQLAlchemyError as e:
-            logger.error(f"ADM::get SQLAlchemyError: {str(e.args)}")
-            return None
-
-        adm_row = result.scalar_one_or_none()
-        return adm_row
 
 
 class ObjMetadata(Model):

@@ -29,21 +29,21 @@ from fastapi import UploadFile
 from pydantic import BaseModel
 import io
 import traceback
+from typing import TextIO
 
 # Internal modules
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, and_
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from anms.models.relational.adms import (adm_data, namespace_view)
-from anms.models.relational.adms.namespace_view import Namespace
-from anms.models.relational.ari import ADM
+from anms.models.relational.adms import (adm_data, data_model_view)
+from anms.models.relational.adms.data_model_view import DataModel as ADM
 
 from anms.routes.adms.adm_compare import (AdmCompare)
 from anms.shared.opensearch_logger import OpenSearchLogger
 from anms.shared.mqtt_client import MQTT_CLIENT
 from anms.models.relational import get_async_session, get_session
-from anms.components.schemas.adm import NamespaceViewSchema
+from anms.components.schemas.adm import DataModelSchema
 import ace
 from camp.generators import (create_sql)
 
@@ -54,7 +54,7 @@ router = APIRouter(tags=["ADM"])
 logger = OpenSearchLogger(__name__).logger
 
 AdmData = adm_data.AdmData
-NamespaceView = namespace_view.NamespaceView
+DataModel = data_model_view.DataModel
 
 ACCEPT_FILE_CONTENT_TYPE = "application/json"
 
@@ -69,14 +69,14 @@ class UpdateAdmError(BaseModel):
 
 
 # API routes
-@router.get("/", status_code=status.HTTP_200_OK, responses={200: {"model": NamespaceViewSchema}})
+@router.get("/", status_code=status.HTTP_200_OK, responses={200: {"model": DataModelSchema}})
 async def getall():
     response = None
     # return True
     async with get_async_session() as session:
-        result = await NamespaceView.getall(session)
+        result = await DataModel.getall(session)
         if result == None:
-            message = f"Namespace view does not exist!"
+            message = f"DataModel view does not exist!"
             response = JSONResponse(status_code=404, content={"message": message})
         else:
             response = result
@@ -84,12 +84,13 @@ async def getall():
 
 
 # download specific adm
-@router.get("/{enumeration}", status_code=status.HTTP_200_OK)
-async def get_adm(enumeration: int):
+@router.get("/{enumeration}/{namespace}", status_code=status.HTTP_200_OK)
+async def get_adm(enumeration: int,namespace: str):
     # stmt_1 = select(ADM).where(ADM.enumeration == enumeration)
     async with get_async_session() as session:
         # result: Result = await session.scalars(stmt_1)
-        result,_ =  await AdmData.get(enumeration, session)
+        result_dm,_ =  await DataModel.get(enumeration, namespace, session)
+        result,_ =  await AdmData.get(result_dm.data_model_id, session)
         if result:
             return result.data
 
@@ -103,18 +104,18 @@ async def get_adm(enumeration: int):
 
 
 
-@router.delete("/{enumeration}", status_code=status.HTTP_200_OK)
-async def remove_adm(enumeration: int):
+@router.delete("/{enumeration}/{namespace}", status_code=status.HTTP_200_OK)
+async def remove_adm(enumeration: int, namespace:str):
     '''
   :param data_model_id: id for the adm to delete
   :return:
   '''
-    stmt_1 = delete(ADM).where(ADM.enumeration == enumeration)
+    stmt_1 = delete(DataModel).where(and_(DataModel.enumeration == enumeration,DataModel.namespace == namespace ))
     async with get_async_session() as session:
-        nm_row = await ADM.get(enumeration, session)
+        nm_row = await DataModel.get(enumeration, namespace, session)
         if nm_row:
             logger.info(f"Removing {nm_row.data_model_name} ADM")
-            stmt_2 = delete(Namespace).where(Namespace.data_model_id == nm_row.data_model_id)
+            stmt_2 = delete(AdmData).where(AdmData.enumeration == nm_row.data_model_id)
             await session.execute(stmt_1)
             await session.execute(stmt_2)
             await session.commit()
@@ -132,13 +133,13 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
     :return: A list of issues with the ADM, which is empty if successful.
     '''
     logger.info("Adm name: %s", adm_file.norm_name)
-    namespace_view = await NamespaceView.get(adm_file.enum)
-    if namespace_view:
+    data_model_view = await DataModel.get(adm_file.ns_model_enum,adm_file.ns_org_name )
+    if data_model_view:
         if not replace:
             logger.info('Not replacing existing ADM name %s', adm_file.norm_name)
             return []
 
-        data_rec = await AdmData.get(namespace_view.enumeration)
+        data_rec = await AdmData.get(data_model_view.data_model_id)
         if data_rec:
             # Compare old and new contents
             logger.info("Checking existing ADM name %s", adm_file.norm_name)
@@ -155,7 +156,8 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
     # Use CAmPython to generate sql
     out_path = ""  # This is empty string since we don't need to write the generated sql to a file
     sql_dialect = 'pgsql'
-    writer = create_sql.Writer(admset, adm_file, out_path, dialect=sql_dialect)
+    # (admset, adm, args.out, args.scrape, dialect='pgsql')
+    writer = create_sql.Writer(admset, adm_file, out_path, False, dialect=sql_dialect)
     string_buffer = io.StringIO()
     writer.write(string_buffer)
 
@@ -170,9 +172,13 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
         raise
 
     # Save the adm file of the new adm
+    
     buf = io.BytesIO()
-    ace.adm_json.Encoder().encode(adm_file, buf)
-    data = {"enumeration": adm_file.enum, "data": buf.getvalue()}
+    buf = io.StringIO()
+    ace.adm_yang.Encoder().encode(adm_file, buf)
+    ret_dm = await DataModel.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
+    
+    data = {"enumeration":ret_dm.data_model_id, "data": io.BytesIO(buf.getvalue().encode('utf-8')).getvalue()}
     await AdmData.add_data(data, session)
 
     return []
@@ -197,7 +203,7 @@ async def update_adm(file: UploadFile, request: Request):
         try:
             adm_file_contents = await file.read()
             try:
-                adm_file = admset.load_from_data(io.BytesIO(adm_file_contents), del_dupe=False)
+                adm_file = admset.load_from_data(io.BytesIO(adm_file_contents).getvalue(), del_dupe=False)
             except Exception as err:
                 adm_file = None
                 status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -206,14 +212,21 @@ async def update_adm(file: UploadFile, request: Request):
 
             if adm_file:
                 logger.info("Adm name: %s", adm_file.norm_name)
-                data_rec, error_message = await AdmData.get(adm_file.enum)
+                # get data_model_id
+                data_model_rec, error_message = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name )
+                logger.info(data_model_rec)
+                if error_message:
+                    raise Exception(error_message)
+
+
+                data_rec, error_message = await AdmData.get(data_model_rec.data_model_id )
                 logger.info(data_rec)
                 if error_message:
-                    raise Exception(message)
+                    raise Exception(error_message)
                 # Compare with existing adm
                 if data_rec:
                     # Compare old and new contents
-                    old_adm = admset.load_from_data(io.BytesIO(data_rec.data), del_dupe=False)
+                    old_adm = admset.load_from_data(io.BytesIO(data_rec.data).getvalue(), del_dupe=False)
                     status_code = status.HTTP_200_OK
                     if not comp.compare_adms(old_adm, adm_file):
                         message = f"Updating existing adm {adm_file.norm_name}"
@@ -263,8 +276,10 @@ async def update_adm(file: UploadFile, request: Request):
 
             try:
                 async with get_async_session() as session:
+                    # get data_model_id 
+                    
                     # Save the adm file of the new adm
-                    data = {"enumeration": adm_file.enum, "data": adm_file_contents}
+                    data = {"enumeration": data_model_rec.data_model_id, "data": adm_file_contents}
                     response, error_message = await AdmData.add_data(data, session)
                 if error_message:
                     raise Exception(error_message)

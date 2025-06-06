@@ -32,7 +32,7 @@ import traceback
 import paho.mqtt.client as mqtt
 import ace
 from ace import cborutil
-
+from typing import BinaryIO, List, Set, Union
 
 LOGGER = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class Executive:
                 curs = db_conn.execute('''\
 SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-    INNER JOIN data_model ON adm_data.enumeration = data_model.enumeration
+    INNER JOIN data_model ON adm_data.enumeration = data_model..data_model_id
 WHERE adm_name = ?
 ''', [adm_name])
                 for row in curs.all():
@@ -104,7 +104,7 @@ WHERE adm_name = ?
                 curs = db_conn.execute('''\
 SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-    INNER JOIN data_model ON adm_data.enumeration = data_model.enumeration
+    INNER JOIN data_model ON adm_data.enumeration = data_model.data_model_id
 ''')
                 for row in curs.all():
                     self._handle_adm(*row)
@@ -112,8 +112,10 @@ FROM adm_data
         LOGGER.info('ADMS present for: %s', self._adms.names())
                     
     def _handle_adm(self, adm_name, timestamp, data):
+        LOGGER.info(data)
+        LOGGER.info(io.BytesIO(data))
         LOGGER.info('Handling ADM: %s', adm_name)
-        self._adms.load_from_data(io.BytesIO(data))
+        self._adms.load_from_data(BinaryIO(data))
         LOGGER.info('Handling finished')
 
     def _on_ari_in(self, client, userdata, msg):
@@ -142,7 +144,8 @@ FROM adm_data
                     dec = ace.ari_cbor.Decoder()
                     ari = dec.decode(io.BytesIO(in_bytes))
                     LOGGER.debug('as ARI %s', ari)
-                    ace.nickname.Converter(ace.nickname.Mode.FROM_NN, self._adms, True)(ari)
+                    # mode:Mode, db_sess:Session, must_nickname:bool=False
+                    ace.nickname.Converter(ace.nickname.Mode.FROM_NN, self._dbeng, True)(ari)
                 except Exception as err:
                     raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
                 res_obj['cbor'] = in_text
