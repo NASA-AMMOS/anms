@@ -45,12 +45,12 @@ class Report(Model):
 
     def as_dict(self) -> Dict[str, Any]:
         dict_obj = {
-                    'ari_rptset.ari_rptset_id': getattr(self, 'ari_rptset_id'),
-                    'ari_rptset.correlator_nonce': getattr(self, 'correlator_nonce'),        
-                    'ari_rptset.reference_time': getattr(self, 'reference_time'),
-                    'ari_rptset.report_list': getattr(self, 'report_list'),
-                    # 'ari_rptset.report_list_cbor': getattr(self, 'report_list_cbor'),
-                    'ari_rptset.agent_id': getattr(self, 'agent_id')       
+                    'ari_rptset_id': getattr(self, 'ari_rptset_id'),
+                    'correlator_nonce': getattr(self, 'correlator_nonce'),        
+                    'reference_time': getattr(self, 'reference_time'),
+                    'report_list': getattr(self, 'report_list'),
+                    'report_list_cbor': getattr(self, 'report_list_cbor'),
+                    'agent_id': getattr(self, 'agent_id')       
                     }
 
         return dict_obj

@@ -30,7 +30,8 @@ from pydantic import BaseModel
 # Shared properties
 class ARIBase(BaseModel):
     obj_metadata_id: Optional[int] = None
-    obj_name: Optional[str] = None
+    name: Optional[str] = None
+    namespace: Optional[str] = None
     data_model_name: Optional[str] = None
     type_name: Optional[str] = None
     data_model_id: Optional[int] = None
@@ -58,27 +59,10 @@ class ARIDisplayAndParams(ARIInDB):
 
 
 class ARICollection(BaseModel):
-    ac_entry_id: Optional[int] = None
     ac_id: Optional[int] = None
-    order_num: Optional[int] = None
-    obj_actual_definition_id: Optional[int] = None
-    obj_metadata_id: Optional[int] = None
+    num_entries: Optional[int] = None
+    entries: Optional[int] = None
     use_desc: Optional[str] = None
-    obj_name: Optional[str] = None
-    data_model_id: Optional[int] = None
-    namespace_type: Optional[str] = None
-    issuing_org: Optional[str] = None
-    name_string: Optional[str] = None
-    version_name: Optional[str] = None
-    enumeration: Optional[int] = None
-    obj_enum: Optional[int] = None
-    type_desc: Optional[str] = None
-    ns_desc: Optional[str] = None
-    adm_type: Optional[int] = None
-    tnvc_id: Optional[int] = None
-    fp_spec_id: Optional[int] = None
-    ap_spec_id: Optional[int] = None
-    data_type_id: Optional[int] = None
-    data_value: Optional[str] = None
-    num_operands: Optional[int] = None
-    expression_id: Optional[int] = None
+   
+    
+    

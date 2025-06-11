@@ -32,7 +32,7 @@ from sqlalchemy.engine import Result
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session
-from anms.models.relational.formal_object import FormalObject, Control, EddFormal, MacFormal, RptFormal
+from anms.models.relational.formal_object import FormalObject, Control, EddFormal, MacFormal
 
 from anms.shared.opensearch_logger import OpenSearchLogger
 
@@ -103,26 +103,6 @@ async def mac_formal():
 @router.get("/mac/id/{obj_metadata_id}", status_code=status.HTTP_200_OK, response_model=ARIs.MacFormal, tags=["FORMAL"])
 async def mac_formal_by_id(obj_metadata_id: int):
     stmt = select(MacFormal).where(MacFormal.obj_metadata_id == obj_metadata_id)
-    async with get_async_session() as session:
-        result: Result = await session.scalars(stmt)
-        return result.one_or_none()
-
-
-####
-# rptt defs
-####
-@router.get("/rptt/all", status_code=status.HTTP_200_OK, response_model=List[ARIs.RptFormal], tags=["FORMAL"])
-async def all_rpt_formal():
-    stmt = select(RptFormal)
-    async with get_async_session() as session:
-        result: Result = await session.scalars(stmt)
-        return result.all()
-
-
-@router.get("/rptt/id/{obj_metadata_id}", status_code=status.HTTP_200_OK, response_model=ARIs.RptFormal,
-            tags=["FORMAL"])
-async def rpt_formal_by_id(obj_metadata_id: int):
-    stmt = select(RptFormal).where(RptFormal.obj_metadata_id == obj_metadata_id)
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         return result.one_or_none()

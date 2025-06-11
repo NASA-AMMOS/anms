@@ -55,6 +55,7 @@ export default {
       this.tableItems = [];
       this.loading = true;
       let correlator_nonce = this.rptts[this.selected].correlator_nonce;
+      correlator_nonce = correlator_nonce;
       // let rpt_adm = this.rptts[this.selected].adm;
       await api.methods.apiEntriesForReport(this.agentName, correlator_nonce)
         .then(res => {

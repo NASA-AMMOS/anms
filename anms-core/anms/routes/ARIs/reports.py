@@ -22,15 +22,14 @@
 # subcontract 1658085.
 #
 from typing import List
-
+import re
 from fastapi import APIRouter, Depends
 from fastapi import status
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
-import io
-import asyncio
+from io import StringIO
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session, get_session
@@ -39,8 +38,8 @@ from anms.models.relational.report import Report
 from anms.models.relational.execution_set import ExecutionSet
 from anms.shared.opensearch_logger import OpenSearchLogger
 
-from ace import ari_text, ari_cbor
 
+import anms.routes.transcoder as transcoder
 
 
 logger = OpenSearchLogger(__name__, log_console=True)
@@ -72,23 +71,20 @@ async def report_def_by_id(agent_id: str):
     stmt = select(Report).where(Report.agent_id == agent_id)
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
-        for res in result.all():
-            # byte = res.entries
-
-            text_dec = ari_text.Decoder()
-            text_enc = ari_text.Encoder()
-            cbor_dec = ari_cbor.Decoder()
-            cbor_enc = ari_cbor.Encoder()
-            
-            logger.info(res.correlator_nonce)
-            addition = {'correlator_nonce':res.correlator_nonce}
+        for res in result.all():   
             # select from exec_set 
-            stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == res.correlator_nonce) )
+            correlator_nonce = res.correlator_nonce
+            stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == correlator_nonce) )
             result: Result = await session.scalars(stmt)
             res = result.one_or_none()
-            # logger.info(res.entries)
-            ari = cbor_dec.decode(io.BytesIO(res.entries))
-            logger.info(ari)
+            ari_val = ""
+            if(res):
+                ari_val = await transcoder.transcoder_put_cbor_await("ari:0x"+res.entries.hex())
+                ari_val =  ari_val['data']   
+
+        
+            addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}
+    
             if addition not in final_res:
                 final_res.append(addition)
     return final_res
@@ -105,22 +101,45 @@ async def report_ac(agent_id: str, correlator_nonce: int):
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         result = result.one_or_none()
+        exec_set_entry=["time"]
         if result:
             exec_set = result.entries.hex()
-            # translate hex to ari 
-             
-        
+            exec_set = await transcoder.transcoder_put_cbor_await("ari:0x"+exec_set)
+            exec_set =  exec_set['data']  
+            # format 
+            # TODO HANDLE RPTT and split up multiple entries 
+            "ari:/EXECSET/n=12345;(//ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/sw-version))"
+            execset_pattern = r"ari:/EXECSET/n=.+;\((.*)\)"
+            match = re.match(execset_pattern,exec_set)
+            if match:
+                exec_set_entry.extend(match.group(1).split(';'))
+            else:
+                exec_set_entry.extend([exec_set])
+        final_res.append(exec_set_entry)
 
     stmt = select(Report).where(and_(Report.agent_id == agent_id, Report.correlator_nonce == correlator_nonce) )
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for res in result.all():
-            curr = res.report_list.split(';')
-            curr = curr[2:]
-            
+            # translate the cbor
+            logger.info(res)
+            rpt_set = res.report_list_cbor.hex()
+            rpt_set = await transcoder.transcoder_put_cbor_await("ari:0x"+rpt_set)
+            rpt_set =  rpt_set['data']   
+            logger.info(rpt_set)
 
+            # match 
+            # ari:/RPTSET/n=12345;r=/TP/20250611T114420.009992304Z;(t=/TD/PT0S;s=//1/1/CTRL/5(//1/1/EDD/1);(%220.0…
+            rptset_pattern = r"ari:/RPTSET/n=.+;r=.*;\(t=.*;s=.*;\((.*)\)\)"
+            match = re.match(rptset_pattern,rpt_set)
             addition = [res.reference_time] 
-            addition.extend(curr)
+            if match:
+                # report entries 
+                rpt_entr = match.group(1)
+                addition.extend(rpt_entr.split(";"))
+            else:
+                addition.append(rpt_set)
+            
             if addition not in final_res:
                 final_res.append(addition)
     return final_res

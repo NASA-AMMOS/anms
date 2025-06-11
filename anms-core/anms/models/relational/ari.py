@@ -42,6 +42,7 @@ class ARI(Model):
     __tablename__ = 'vw_ari_union'
     obj_metadata_id = Column(Integer, primary_key=True)
     name = Column(String)
+    namespace = Column(String)
     data_model_name = Column(String)
     type_name = Column(String)
     data_model_id = Column(Integer)

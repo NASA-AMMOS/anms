@@ -86,9 +86,7 @@ async def getall():
 # download specific adm
 @router.get("/{enumeration}/{namespace}", status_code=status.HTTP_200_OK)
 async def get_adm(enumeration: int,namespace: str):
-    # stmt_1 = select(ADM).where(ADM.enumeration == enumeration)
     async with get_async_session() as session:
-        # result: Result = await session.scalars(stmt_1)
         result_dm,_ =  await DataModel.get(enumeration, namespace, session)
         result,_ =  await AdmData.get(result_dm.data_model_id, session)
         if result:
@@ -96,11 +94,11 @@ async def get_adm(enumeration: int,namespace: str):
 
 
 
-# async def remove_ace_adm(enumeration: int):
-#     async with get_async_session() as session:
-#         stmt = delete(ace.models.AdmFile).where(ace.models.AdmFile.enum == enumeration)
-#         await session.execute(stmt)
-#         session.commit()
+async def remove_ace_adm(enumeration: int):
+    async with get_async_session() as session:
+        stmt = delete(ace.models.AdmFile).where(ace.models.AdmFile.enum == enumeration)
+        await session.execute(stmt)
+        session.commit()
 
 
 
@@ -156,7 +154,6 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
     # Use CAmPython to generate sql
     out_path = ""  # This is empty string since we don't need to write the generated sql to a file
     sql_dialect = 'pgsql'
-    # (admset, adm, args.out, args.scrape, dialect='pgsql')
     writer = create_sql.Writer(admset, adm_file, out_path, False, dialect=sql_dialect)
     string_buffer = io.StringIO()
     writer.write(string_buffer)
@@ -173,12 +170,17 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
 
     # Save the adm file of the new adm
     
-    buf = io.BytesIO()
+
     buf = io.StringIO()
     ace.adm_yang.Encoder().encode(adm_file, buf)
     ret_dm = await DataModel.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
     
-    data = {"enumeration":ret_dm.data_model_id, "data": io.BytesIO(buf.getvalue().encode('utf-8')).getvalue()}
+    # Write the encoded string data to the BytesIO object
+    bytes_io = io.BytesIO()
+    bytes_io.write(buf.getvalue().encode('utf-8'))
+    # Reset the pointer to the beginning
+    bytes_io.seek(0)
+    data = {"enumeration":ret_dm.data_model_id, "data": bytes_io.getvalue()}
     await AdmData.add_data(data, session)
 
     return []
@@ -214,13 +216,11 @@ async def update_adm(file: UploadFile, request: Request):
                 logger.info("Adm name: %s", adm_file.norm_name)
                 # get data_model_id
                 data_model_rec, error_message = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name )
-                logger.info(data_model_rec)
                 if error_message:
                     raise Exception(error_message)
 
 
                 data_rec, error_message = await AdmData.get(data_model_rec.data_model_id )
-                logger.info(data_rec)
                 if error_message:
                     raise Exception(error_message)
                 # Compare with existing adm

@@ -29,22 +29,13 @@ from pydantic import BaseModel
 
 # Shared properties
 class ActualParameterBase(BaseModel):
-    ap_spec_id: Optional[int] = None
-    tnvc_id: Optional[int] = None
     fp_spec_id: Optional[int] = None
+    num_parms: Optional[int] = None
+    parameters: Optional[bytes] = None
+    ap_spec_id: Optional[int] = None
+    value_set: Optional[bytes] = None
     use_desc: Optional[str] = None
-    fp_values: Optional[str] = None
-    str_values: Optional[str] = None
-    uint_values: Optional[str] = None
-    int_values: Optional[str] = None
-    obj_values: Optional[str] = None
-    ac_values: Optional[str] = None
-    tnvc_values: Optional[str] = None
-    real32_values: Optional[str] = None
-    real64_values: Optional[str] = None
-    uvast_values: Optional[str] = None
-    vast_values: Optional[str] = None
-
+    
 
 # Additional properties stored in DB
 class ActualParameterInDB(ActualParameterBase):

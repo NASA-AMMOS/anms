@@ -42,9 +42,7 @@ from .edd_formal import EddFormalBase
 from .mac_formal import MacFormal
 from .mac_formal import MacFormalInDB
 from .mac_formal import MacFormalBase
-from .rpt_formal import RptFormal
-from .rpt_formal import RptFormalInDB
-from .rpt_formal import RptFormalBase
+
 from .ari import ARI
 from .ari import ARIInDB
 from .ari import ARIBase
