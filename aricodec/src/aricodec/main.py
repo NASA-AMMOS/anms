@@ -175,7 +175,7 @@ FROM adm_data
                     dec = ace.ari_text.Decoder()
                     ari = dec.decode(io.StringIO(in_text))
                     LOGGER.debug('decoded as ARI %s', ari)
-                    ari = ace.nickname.Converter(ace.nickname.Mode.TO_NN, self._adms, False)(ari)
+                    ari = ace.nickname.Converter(ace.nickname.Mode.TO_NN, self._adms.db_session(), False)(ari)
                 except Exception as err:
                     raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
                 res_obj['uri'] = in_text

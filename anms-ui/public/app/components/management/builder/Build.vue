@@ -22,7 +22,7 @@
       </div>
       <template v-if="!stringMode">
         <v-select v-model="ariKey" label="display" :options="ARIs" ></v-select>
-        <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" @updateResult="updateResults($event)"></ParameterView>
+        <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" :agentModal="agentModal" @updateResult="updateResults($event)"></ParameterView>
       </template>
     </div>
   </div>
@@ -42,6 +42,10 @@ export default {
     cbor: {
       type: String,
       default: undefined
+    },
+    agentModal:{
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -67,7 +71,7 @@ export default {
       this.$emit("updateResult", this.finResultStr);
     },
     updateResults: function (result) {
-      let head = result[0].value.includes("ari") ? "" : "ari:/";
+      let head = result[0].value.includes("ari") ? "" : "ari:";
       this.finResultStr = head + result[0].value;
       this.$emit("updateResult", this.finResultStr);
     },

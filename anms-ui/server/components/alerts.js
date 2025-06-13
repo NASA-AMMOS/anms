@@ -69,7 +69,6 @@ exports.getAlerts = async function(req, res, next){
 exports.putAlerts = async function (req, res, next) {
     try {
       const new_alerts = req.body.data
-      console.log(new_alerts)
       // add to alert list
       new_alerts.forEach((alert) => {
         // agents.addAlert(alert);

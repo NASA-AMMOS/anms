@@ -95,7 +95,6 @@ export default {
 
           api.methods.apiEntriesForReportTemplate(res.data.agent_id_string)
             .then(res => {
-              console.log(res.data)
               commit('rptt', res.data)
             }).catch(error => {
               // handle error

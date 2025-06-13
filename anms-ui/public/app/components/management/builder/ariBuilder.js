@@ -37,7 +37,7 @@ export default {
         return {
             parameters: null,
             finResult: [],
-            types: ["CONST", "CTRL", "EDD", "LIT", "MAC", "OPER", "RPT", "RPTT", "SBR", "TBL", "TBLT", "TBR", "VAR", "MDAT", "BOOL", "BYTE", "STR", "INT", "UINT", "VAST", "UVAST", "REAL32", "REAL64", "TV", "TS", "TNV", "TNVC", "ARI", "AC", "EXPR", "BYTESTR"]
+            types: ["LITERAL", "NULL", "BOOL", "BYTE", "INT", "UINT", "VAST", "UVAST", "REAL32", "REAL64", "TEXTSTR", "BYTESTR", "TP", "TD", "LABEL", "CBOR", "ARITYPE", "AC", "AM", "TBL", "EXECSET", "RPTSET", "OBJECT", "TYPEDEF", "IDENT", "CONST", "EDD", "VAR", "CTRL", "OPER", "SBR", "TBR"]
         }
     },
     methods: {
@@ -47,6 +47,7 @@ export default {
             var distParms = [];
             let finResult = []
             let paramInfo;
+            
             if (ariKey.actual || ariKey.parm_id == null) {
                 distParms = [];
                 return [[], ""];
@@ -58,96 +59,105 @@ export default {
                 let names = [];
                 parms = paramInfo.param_types
                 names = paramInfo.param_names
-
+                
                 let combined = collect(parms).zip(names);
                 let typeLabel = "";
                 description = paramInfo.use_desc;
                 combined.each((info, index) => {
                     let parm = info.items[0];
                     let name = info.items[1];
+                    
                     switch (parm) {
-                        case "STR":
-                            finResult.push({ "index": index, "type": "STR", "value": " " });
-                            typeLabel = "STR";
+                        case "/ARITYPE/TEXTSTR":
+                            finResult.push({ "index": index, "type": "/ARITYPE/TEXTSTR", "value": " " });
+                            typeLabel = "TEXTSTR";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "BYTESTR":
-                            finResult.push({ "index": index, "type": "BYTESTR", "value": " " });
+                        case "/ARITYPE/BYTESTR":
+                            finResult.push({ "index": index, "type": "/ARITYPE/BYTESTR", "value": " " });
                             typeLabel = "BYTESTR";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "BYTE":
-                            finResult.push({ "index": index, "type": "BYTE", "value": " " });
+                        case "/ARITYPE/BYTE":
+                            finResult.push({ "index": index, "type": "/ARITYPE/BYTE", "value": " " });
                             typeLabel = "BYTE";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "INT":
-                            finResult.push({ "index": index, "type": "INT", "value": 0 });
+                        case "/ARITYPE/INT":
+                            finResult.push({ "index": index, "type": "/ARITYPE/INT", "value": 0 });
                             typeLabel = "INT";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "UINT":
-                            finResult.push({ "index": index, "type": "UINT", "value": 0 });
+                        case "/ARITYPE/UINT":
+                            finResult.push({ "index": index, "type": "/ARITYPE/UINT", "value": 0 });
                             typeLabel = "UINT";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "VAST":
-                            finResult.push({ "index": index, "type": "VAST", "value": 0 });
+                        case "/ARITYPE/VAST":
+                            finResult.push({ "index": index, "type": "/ARITYPE/VAST", "value": 0 });
                             typeLabel = "VAST";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "UVAST":
-                            finResult.push({ "index": index, "type": "UVAST", "value": 0 });
+                        case "/ARITYPE/UVAST":
+                            finResult.push({ "index": index, "type": "/ARITYPE/UVAST", "value": 0 });
                             typeLabel = "UVAST";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "REAL32":
-                            finResult.push({ "index": index, "type": "REAL32", "value": 0 })
-                            Label = "REAL32";
+                        case "/ARITYPE/REAL32":
+                            finResult.push({ "index": index, "type": "/ARITYPE/REAL32", "value": 0 })
+                            typeLabel = "REAL32";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "REAL64":
-                            finResult.push({ "index": index, "type": "REAL64", "value": 0 })
-                            Label = "REAL64";
+                        case "/ARITYPE/REAL64":
+                            finResult.push({ "index": index, "type": "/ARITYPE/REAL64", "value": 0 })
+                            typeLabel = "REAL64";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "TV":
-                            finResult.push({ "index": index, "type": "TV", "value": 0 });
+                        case "/ARITYPE/BOOL":
+                                finResult.push({ "index": index, "type": "/ARITYPE/BOOl", "value": 0 })
+                                typeLabel = "BOOl";
+                                distParms.push({
+                                    type: prim_parameter,// TODO update to its own 
+                                    parameter: { index: index, result: "", name: name, type: typeLabel },
+                                });
+                                break;
+                        case "/ARITYPE/TP":
+                            finResult.push({ "index": index, "type": "/ARITYPE/TP", "value": 0 });
                             typeLabel = "TV";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-                        case "TS":
-                            finResult.push({ "index": index, "type": "TS", "value": 0 });
+                        case "/ARITYPE/TD":
+                            finResult.push({ "index": index, "type": "/ARITYPE/TD", "value": 0 });
                             typeLabel = "TS";
                             distParms.push({
                                 type: prim_parameter,
@@ -155,32 +165,18 @@ export default {
                             });
                             break;
 
-                        case "TNVC": //tnvc
-                            finResult.push({ "index": index, "type": "TNVC", "value": [] });
-
-                            distParms.push({
-                                type: TypeNameValueCollectionParameter,
-                                parameter: {
-                                    index: index,
-
-                                    result: [],
-                                    types: ["CONST", "CTRL", "EDD", "LIT", "MAC", "OPER", "RPT", "RPTT", "SBR", "TBL", "TBLT", "TBR", "VAR", "MDAT", "BOOL", "BYTE", "STR", "INT", "UINT", "VAST", "UVAST", "REAL32", "REAL64", "TV", "TS", "TNV", "TNVC", "ARI", "AC", "EXPR", "BYTESTR"],
-                                    name: name,
-                                    listComponents: [],
-                                },
-                            });
-                            break;
-                        case "ARI": //ari
-                            finResult.push({ "index": index, "type": "ARI", "value": "" });
+                
+                        case "/ARITYPE/OBJECT": //ari
+                            finResult.push({ "index": index, "type": "/ARITYPE/OBJECT", "value": "" });
                             typeLabel = "ARI";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },
                             });
                             break;
-
-                        case "AC": //ac
-                            finResult.push({ "index": index, "type": "AC", "value": [] });
+                            
+                        case "/ARITYPE/AC": //ac
+                            finResult.push({ "index": index, "type": "/ARITYPE/AC", "value": [] });
 
                             distParms.push({
                                 type: ActionParameter,
@@ -190,11 +186,12 @@ export default {
                                     name: name,
                                     type: "AC",
                                     listComponents: aris,
+                                    count: 10000000000000, //TODO make infinite large 
                                 },
                             });
                             break;
-                        case "EXPR": //EXPR
-                            finResult.push({ "index": index, "type": "EXPR", "value": [] });
+                        case "/ARITYPE/EXECSET": //EXPR
+                            finResult.push({ "index": index, "type": "/ARITYPE/EXECSET", "value": [] });
 
                             distParms.push({
                                 type: ExpressionParameter,
@@ -206,6 +203,31 @@ export default {
                                     listComponents: aris,
                                 },
                             });
+                            break;
+                        default:
+                            if (parm.includes("TYPEDEF")){
+                                finResult.push({ "index": index, "type": "/ARITYPE/TYPEDEF", "value": [] });
+                                //  TODO make more complex handle on the actual required 
+                                distParms.push({
+                                    type: ActionParameter,
+                                    parameter: {
+                                        index: index,
+                                        result: [],
+                                        name: name,
+                                        type: "TYPEDEF",
+                                        listComponents: aris,
+                                        count: 1, 
+                                    },
+                                });
+                            }
+                            else{
+                                finResult.push({ "index": index, "type": parm, "value": "" });
+                                typeLabel = parm;
+                                distParms.push({
+                                    type: prim_parameter,
+                                    parameter: { index: index, result: "", name: name, type: typeLabel },
+                               });
+                            }
                             break;
 
                     }

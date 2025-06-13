@@ -25,7 +25,7 @@
             </div>
             <b-button block
               variant="outline-success"
-              :disabled="!ariString || this.loading"
+              :disabled="this.loading"
               @click="submitTranscodedString">
               <b-spinner v-if="this.loading"
                 small
@@ -34,7 +34,7 @@
             </b-button>
           </b-col>
           <b-col cols="9">
-            <build :cbor="cbor" @updateResult="updateResults($event)"></build>
+            <build :cbor="cbor" :agentModal=true @updateResult="updateResults($event)"></build>
           </b-col>
         </b-row>
       </div>
@@ -89,29 +89,43 @@ export default {
       this.ariString = undefined;
     },
     updateResults(result) {
-      this.ariString = result;
+      if(result.startsWith("0x")){
+        this.ariCBOR = result;
+        // submitRawCommand2Agents();
+        
+      }else{
+        this.ariString = result;
+        // submitTranscodedString();
+      }
+      
     },
     submitTranscodedString() {
       this.loading = true;
       this.sendButtonText = "Submitting ARI String";
-      api.methods
-        .apiPutTranscodedString(this.ariString)
-        .then((response) => {
-          this.transcoderLogId = response.data.id;
-          this.sendButtonText = "Transcoding ARI String";
-          this.queryTranscoderLog();
-        })
-        .catch((error) => {
-          console.error(error);
-          toastr.error(error.response.data);
-        });
+      // short circuit submitting command if already cbor 
+      if(this.ariCBOR){
+        this.submitRawCommand2Agents();
+      }
+      else{
+        api.methods
+          .apiPutTranscodedString(this.ariString)
+          .then((response) => {
+            this.transcoderLogId = response.data.id;
+            this.sendButtonText = "Transcoding ARI String";
+            this.queryTranscoderLog();
+          })
+          .catch((error) => {
+            console.error(error);
+            toastr.error(error.response.data);
+          });
+      }
     },
     queryTranscoderLog() {
       api.methods
         .apiGetTranscoderLogById(this.transcoderLogId)
         .then((response) => {
           if (response.data.parsed_as == "pending") {
-            setTimeout(() => this.queryTranscoderLog(), 5000);
+            setTimeout(() => this.queryTranscoderLog(), 8000);
           } else {
             this.ariCBOR = response.data.cbor;
             this.submitRawCommand2Agents();
@@ -139,6 +153,8 @@ export default {
       });
       this.loading = false;
       this.closeModal();
+      this.ariCBOR = null;
+      this.ariString=null;
     },
   },
 }

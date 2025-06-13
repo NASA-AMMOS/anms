@@ -121,13 +121,12 @@ async def report_ac(agent_id: str, correlator_nonce: int):
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for res in result.all():
-            # translate the cbor
-            logger.info(res)
-            rpt_set = res.report_list_cbor.hex()
-            rpt_set = await transcoder.transcoder_put_cbor_await("ari:0x"+rpt_set)
-            rpt_set =  rpt_set['data']   
-            logger.info(rpt_set)
-
+            # TODO translating the CBOR route might want to relook at currently cause large amount of transcoding vs just loading the string below              
+            # # translate the cbor
+            # rpt_set = res.report_list_cbor.hex()
+            # rpt_set = await transcoder.transcoder_put_cbor_await("ari:0x"+rpt_set)
+            # rpt_set =  rpt_set['data']   
+            rpt_set = res.report_list
             # match 
             # ari:/RPTSET/n=12345;r=/TP/20250611T114420.009992304Z;(t=/TD/PT0S;s=//1/1/CTRL/5(//1/1/EDD/1);(%220.0…
             rptset_pattern = r"ari:/RPTSET/n=.+;r=.*;\(t=.*;s=.*;\((.*)\)\)"

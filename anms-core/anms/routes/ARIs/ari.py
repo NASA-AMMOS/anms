@@ -65,7 +65,7 @@ async def _generate_aris(ari_id):
         
         if ari is not None:
             if ari.parm_id is None and ari.actual: # has no paramterized 
-                display = "ari:/" + ari.namespace + "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name
+                display = "ari://" + ari.namespace + "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name
                 curr_ari = ari
                 curr_ari.display = display
                 curr_ari.param_names = []
@@ -83,6 +83,7 @@ async def _generate_aris(ari_id):
                     param_names = []
                     # TODO look at nested parameters 
                     for param   in formal_param.split(','):
+                        param = param.upper()    
                         param_split = param.split('/')
                         if len(param_split) > 1:
                             type_names.append('/'.join(param_split[:-1]))
@@ -92,7 +93,7 @@ async def _generate_aris(ari_id):
                     # value_set
                     a_parm_values = actual_param.value_set.decode('utf-8')
                             
-                    results = "ari:/" + ari.namespace + "/"  + ari.data_model_name + "/" + ari.type_name + "/" + ari.name 
+                    results = "ari://" + ari.namespace + "/"  + ari.data_model_name + "/" + ari.type_name + "/" + ari.name 
                     if a_parm_values:
                         results = results+ "(" + a_parm_values + ")"
                     curr_ari = ari
@@ -109,6 +110,7 @@ async def _generate_aris(ari_id):
                     param_names = []
                     # TODO look at nested parameters 
                     for param   in formal_param.split(','):
+                        param = param.upper() 
                         param_split = param.split('/')
                         if len(param_split) > 1:
                             type_names.append('/'.join(param_split[:-1]))
@@ -116,7 +118,7 @@ async def _generate_aris(ari_id):
                             type_names.append('')
                         param_names.append(param_split[-1])
 
-                    display = "ari:/" + ari.namespace + "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name + "(" + str(formal_param) + ")"
+                    display = "ari://" + ari.namespace + "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name + "(" + str(formal_param) + ")"
                     curr_ari = ari
                     curr_ari.display = display
                     curr_ari.param_names = param_names
@@ -149,7 +151,7 @@ async def all_ARI():
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for ari in result.all():
-            display = "ari:/"+ ari.namespace+ "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name  if ari.parm_id is None else "ari:/" + ari.namespace+ ":" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name + "(has parameters)"
+            display = "ari://"+ ari.namespace+ "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name  if ari.parm_id is None else "ari://" + ari.namespace+ ":" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name + "(has parameters)"
             curr_ari = ari
             curr_ari.display = display
             final_result.append(curr_ari)

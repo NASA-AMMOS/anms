@@ -129,12 +129,10 @@ class AgentParameterHandler:
                     logger.info(f"Agent parameter entry {command.command_name}({command.command_parameter})" +
                                 " already added updating command list")
                     prim_id = prim_id[0]
-                    logger.info(prim_id)
                 else:
                     result = db_see.execute(stmt)
                     db_see.commit()
                     prim_id = result.inserted_primary_key[0]
-                    logger.info(prim_id)
                 lock.acquire()
                 try:
                     self.agent_parameters[prim_id] = AgentParam(prim_id, command.command_name,

@@ -124,7 +124,6 @@ async def transcoder_put_cbor_await(cbor: str):
 def transcoder_put_await_str(ari: str):
     ari = ari.strip()
     msg = json.dumps({"uri": ari})
-    logger.info(ari)
     transcoder_log_id = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter_by(input_string=ari).first()
@@ -161,7 +160,6 @@ def transcoder_put_await_str(ari: str):
 def transcoder_put_str(ari: str):
     ari = ari.strip()
     msg = json.dumps({"uri": ari})
-    logger.info(ari)
     transcoder_log_id = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter_by(input_string=ari).first()

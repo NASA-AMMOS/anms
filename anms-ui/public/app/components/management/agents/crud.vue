@@ -59,7 +59,6 @@ export default {
       api.methods
         .apiPutCRUD(this.agentId, this.selected.agent_parameter_id, this.final_values)
         .then((response) => {
-          console.log(response);
           toastr.success(`${response.statusText} ${response.data}`);
           this.selected = -1;
           this.params = []
