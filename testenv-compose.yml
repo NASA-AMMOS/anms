@@ -39,26 +39,29 @@ services:
     hostname: ion-agent2
     image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
     build:
-      context: ion
-      dockerfile: Dockerfile
+      context: deps
+      dockerfile: reftools.Dockerfile
       target: ion-agent
-    expose:
-      - 1113/udp
-      - 4556/udp
-    depends_on: []
     privileged: true
     tty: true
     cap_add:
       - NET_ADMIN
       - NET_RAW
       - SYS_NICE
+    volumes:
+      - "/var/tmp/pcap:/var/log/pcap"
     environment:
       container: docker
+      DTNMA_LOGLEVEL: debug
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
+      DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
+      DUMPCAP_OPTS: -i lo -i eth0
     networks:
       default:
         ipv4_address: 10.5.0.102
+
+        
   ion-agent3:
     <<: *ion-agent
     hostname: ion-agent3

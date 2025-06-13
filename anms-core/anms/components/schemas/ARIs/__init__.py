@@ -42,16 +42,11 @@ from .edd_formal import EddFormalBase
 from .mac_formal import MacFormal
 from .mac_formal import MacFormalInDB
 from .mac_formal import MacFormalBase
-from .rpt_formal import RptFormal
-from .rpt_formal import RptFormalInDB
-from .rpt_formal import RptFormalBase
+
 from .ari import ARI
 from .ari import ARIInDB
 from .ari import ARIBase
 from .ari import ARIDisplayAndParams
-from .literal_object import LiteralObject
-from .literal_object import LiteralObjectInDB
-from .literal_object import LiteralObjectBase
 from .registered_agent import RegisteredAgentBase
 from .registered_agent import RegisteredAgent
 from .registered_agent import RegisteredAgentInDB

@@ -31,11 +31,8 @@ from pydantic import BaseModel
 class FormalParameterBase(BaseModel):
     fp_spec_id: Optional[int] = None
     num_parms: Optional[int] = None
+    parameters: Optional[bytes] = None
     use_desc: Optional[str] = None
-    parm_names: Optional[str] = None
-    parm_type_name: Optional[str] = None
-    parm_value_id: Optional[str] = None
-
 
 # Additional properties stored in DB
 class FormalParameterInDB(FormalParameterBase):

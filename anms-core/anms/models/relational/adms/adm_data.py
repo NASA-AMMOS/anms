@@ -39,10 +39,10 @@ logger = OpenSearchLogger(__name__).logger
 config = ConfigBuilder.get_config()
 
 
-# TODO: maybe add adm_enum, adm_name to the table
+# TODO: maybe add enumeration, data_model_name to the table
 class AdmData(Model):
     __tablename__ = 'adm_data'
-    adm_enum = Column(Integer, primary_key=True)
+    enumeration = Column(Integer, primary_key=True)
     data = Column(LargeBinary, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
@@ -65,7 +65,7 @@ class AdmData(Model):
 
         try:
             admdata = AdmData()
-            admdata.adm_enum = values["adm_enum"]
+            admdata.enumeration = values["enumeration"]
             admdata.data = values["data"]
         except Exception as e:
             error_message = f"AdmData add_data: Extracting value errors: {str(e.args)}"
@@ -83,13 +83,13 @@ class AdmData(Model):
 
     @classmethod
     async def get(
-            cls, adm_enum: int, session: AsyncSession = None
+            cls, enumeration: int, session: AsyncSession = None
     ) -> Optional["AdmData"]:
         '''
-        Retrieve data by adm_enum
+        Retrieve data by enumeration
         '''
         stmt = select(cls).where(
-            cls.adm_enum == adm_enum)
+            cls.enumeration == enumeration)
         try:
             if session:
                 result = await session.execute(stmt)
@@ -105,14 +105,14 @@ class AdmData(Model):
 
     @classmethod
     async def update_data(
-            cls, adm_enum: int,
+            cls, enumeration: int,
             new_values: Dict[str, Any],
             session: AsyncSession = None
     ) -> bool:
         '''
-        Update stored data based on adm_enum
+        Update stored data based on enumeration
         '''
-        stmt = update(cls).values(new_values).where(cls.adm_enum == adm_enum).execution_options(
+        stmt = update(cls).values(new_values).where(cls.enumeration == enumeration).execution_options(
             synchronize_session="fetch")
         response = 200
         try:
@@ -124,11 +124,11 @@ class AdmData(Model):
                     result = await session.execute(stmt)
                     await session.commit()
             if result.rowcount < 1:
-                raise Exception(f"No row with adm_enum {adm_enum}, is updated")
+                raise Exception(f"No row with enumeration {enumeration}, is updated")
             elif result.rowcount > 1:
-                raise Exception(f"More than one rows with adm_enum {adm_enum}, are updated")
+                raise Exception(f"More than one rows with enumeration {enumeration}, are updated")
             else:
-                logger.info(f"Update AdmData {adm_enum} successfully")
+                logger.info(f"Update AdmData {enumeration} successfully")
         except exc.SQLAlchemyError as e:
             error_message = f"AdmData update_data SQLAlchemyError: {str(e.args)}"
             logger.error(error_message)

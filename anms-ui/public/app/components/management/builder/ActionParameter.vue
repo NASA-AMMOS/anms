@@ -1,6 +1,7 @@
 <template>
   <div>
-    <label>ARIs:</label>
+    <label>{{name}}:</label>
+    {{ count }}
     <div>
       <b-form-group>
         <v-select v-model="ariKey"
@@ -48,7 +49,7 @@ export default {
     ParameterView: () => import("./ParameterView.vue"),
     vSelect,
   },
-  props: ["listComponents", "name", "parms", "type", "index"],
+  props: ["listComponents", "name", "parms", "type", "index", "count"],
   data() {
     return {
       ariKey: undefined,
@@ -60,13 +61,18 @@ export default {
     };
   },
   methods: {
-    addARI(newARI) {
+    addARI(newARI ) {
       this.ariKey = { "display": newARI, "actual": true }
       this.addToList();
     },
     addToList: function () {
+
       if (this.ariKey != null) {
         this.ac.push(this.ariKey)
+      }
+
+      if(this.ac.length > this.count){
+        this.ac.pop();
       }
       this.ariKey = null;
       this.createAC();
@@ -77,7 +83,7 @@ export default {
     },
     updateResults: function (result, index) {
       let value = result[0].value;
-      let head = value.includes("ari") ? "" : "ari:/";
+      let head = value.includes("ari") ? "" : "ari://";
       let realIndex = this.keysRealIndex[index];
 
       this.currAc[realIndex] = head + value;

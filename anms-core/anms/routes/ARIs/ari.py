@@ -36,8 +36,9 @@ from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session
 from anms.models.relational.actual_parameter import ActualParameter
 from anms.models.relational.ari import ARI
+from anms.models.relational.adms.data_model_view import DataModel 
 from anms.models.relational.formal_parameter import FormalParameter
-from anms.models.relational.literal_object import LiteralObject
+
 
 from anms.shared.opensearch_logger import OpenSearchLogger
 from cachetools import Cache
@@ -48,22 +49,23 @@ router = APIRouter(tags=["ARIs"])
 
 #Note: this patch is needed due to bool('False') is True
 bool_convert = {"True": True, "False": False} 
-
-# expensive to compute, generating string ari from the database values  
 async def _generate_aris(ari_id):
     obj_metadata_id, obj_id, actual = ari_id.split('.')
     stmt = select(ARI).where(and_(ARI.obj_metadata_id == int(obj_metadata_id), ARI.obj_id == int(obj_id), ARI.actual == bool_convert[actual]))
+
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         ari = None
         try:
             ari = result.one_or_none()
         except Exception as e:
-            logger.error(f"_generate_aris ERROR: obj_metadata_id: {obj_metadata_id} obj_id: {obj_id}")
-            logger.error(e.args)
+            logger.info(f"_generate_aris ERROR: obj_metadata_id: {obj_metadata_id} obj_id: {obj_id}")
+            logger.info(e)
+            return None
+        
         if ari is not None:
-            if ari.parm_id is None and ari.actual:
-                display = "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name
+            if ari.parm_id is None and ari.actual: # has no paramterized 
+                display = "ari://" + ari.namespace + "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name
                 curr_ari = ari
                 curr_ari.display = display
                 curr_ari.param_names = []
@@ -74,46 +76,26 @@ async def _generate_aris(ari_id):
                     a_parm_values = []
                     actual_parameter: Result = await session.scalars(
                         select(ActualParameter).where(ActualParameter.ap_spec_id == ari.parm_id))
+                    
                     actual_param = actual_parameter.all()[0]
-                    formal_parameter: Result = await session.scalars(
-                        select(FormalParameter).where(FormalParameter.fp_spec_id == actual_param.fp_spec_id))
-                    formal_param = formal_parameter.all()[0]
-                    type_names = formal_param.parm_type_name.split(",")
-                    param_names = formal_param.parm_names.split(",")
-
-                    list_of_values = {
-                        "fp_values": None if actual_param.fp_values is None else actual_param.fp_values.split(","),
-                        "obj_values": None if actual_param.obj_values is None else actual_param.obj_values.split(
-                            ","), "STR": None if actual_param.str_values is None else actual_param.str_values.split(","),
-                        "INT": None if actual_param.int_values is None else actual_param.int_values.split(","),
-                        "UINT": None if actual_param.uint_values is None else actual_param.uint_values.split(","),
-                        "VAST": None if actual_param.vast_values is None else actual_param.vast_values.split(","),
-                        "UVAST": None if actual_param.uvast_values is None else actual_param.uvast_values.split(
-                            ","),
-                        "REAL32": None if actual_param.real32_values is None else actual_param.real32_values.split(
-                            ","),
-                        "REAL64": None if actual_param.real64_values is None else actual_param.real64_values.split(
-                            ",")}
-
-                    for i in range(0, formal_param.num_parms):
-                        type_name_upper = type_names[i].upper()
-                        if list_of_values["fp_values"] is not None:
-                            # reference ari should not be in builder since need value from wrapping ari
-                            return None
-                        # check if the values is stored as a literal if so pull its actual value 
-                        if list_of_values["obj_values"] is not None: 
-                                lit_results: Result = await session.scalars(
-                                    select(LiteralObject).where(
-                                        LiteralObject.obj_actual_definition_id == int(
-                                            list_of_values["obj_values"].pop())))
-                                lit_results = lit_results.all()[0].data_value
-                                a_parm_values.append(type_name_upper + "." + lit_results)
-                        # if not just pop from values list 
+                    formal_param = actual_parameter.parameters.decode('utf-8').split(",")
+                    type_names = []
+                    param_names = []
+                    # TODO look at nested parameters 
+                    for param   in formal_param.split(','):
+                        param = param.upper()    
+                        param_split = param.split('/')
+                        if len(param_split) > 1:
+                            type_names.append('/'.join(param_split[:-1]))
                         else:
-                            a_parm_values.append(type_name_upper + "." + list_of_values[type_name_upper].pop())
+                            type_names.append('')
+                        param_names.append(param_split[-1])
+                    # value_set
+                    a_parm_values = actual_param.value_set.decode('utf-8')
                             
-                    results = "ari://IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "(" + ' '.join(
-                        str(e) for e in a_parm_values) + ")"
+                    results = "ari://" + ari.namespace + "/"  + ari.data_model_name + "/" + ari.type_name + "/" + ari.name 
+                    if a_parm_values:
+                        results = results+ "(" + a_parm_values + ")"
                     curr_ari = ari
                     curr_ari.display = results
                     curr_ari.param_names = param_names
@@ -122,15 +104,25 @@ async def _generate_aris(ari_id):
                 else:  # has params and is formal ari
                     formal_parameter: Result = await session.scalars(
                         select(FormalParameter).where(FormalParameter.fp_spec_id == ari.parm_id))
-                    curr_formal_param = formal_parameter.all()
-                    parms = curr_formal_param[0].parm_type_name
-                    types = parms.split(",")
-                    names = curr_formal_param[0].parm_names.split(",")
-                    display = "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "(" + parms + ")"
+                    formal_param = formal_parameter.all()[0]
+                    formal_param = formal_param.parameters.decode('utf-8')
+                    type_names = []
+                    param_names = []
+                    # TODO look at nested parameters 
+                    for param   in formal_param.split(','):
+                        param = param.upper() 
+                        param_split = param.split('/')
+                        if len(param_split) > 1:
+                            type_names.append('/'.join(param_split[:-1]))
+                        else:
+                            type_names.append('')
+                        param_names.append(param_split[-1])
+
+                    display = "ari://" + ari.namespace + "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name + "(" + str(formal_param) + ")"
                     curr_ari = ari
                     curr_ari.display = display
-                    curr_ari.param_names = names
-                    curr_ari.param_types = types
+                    curr_ari.param_names = param_names
+                    curr_ari.param_types = type_names
                     return curr_ari
         return None
 
@@ -151,6 +143,7 @@ async def paged_ARI(params: Params = Depends()):
         return await paginate(session, select(ARI), params)
 
 
+
 @router.get("/all", status_code=status.HTTP_200_OK, response_model=List[ARIs.ARI])
 async def all_ARI():
     stmt = select(ARI)
@@ -158,7 +151,7 @@ async def all_ARI():
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for ari in result.all():
-            display = "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "()" if ari.parm_id is None else "ari:/IANA:" + ari.adm_name + "/" + ari.type_name + "." + ari.obj_name + "(has parameters)"
+            display = "ari://"+ ari.namespace+ "/" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name  if ari.parm_id is None else "ari://" + ari.namespace+ ":" + ari.data_model_name + "/" + ari.type_name + "/" + ari.name + "(has parameters)"
             curr_ari = ari
             curr_ari.display = display
             final_result.append(curr_ari)
@@ -177,7 +170,7 @@ async def all_ARI_display():
             key = str(ari.obj_metadata_id) + "." + str(ari.obj_id) + "." + str(ari.actual)
             response = await resource_cache[key]
             if response is None:
-                logger.info(f"all_ARI_display key: {key} return None value")
+                logger.warn(f"all_ARI_display key: {key} return None value")
             else:
                 ret.append(response)
 
@@ -192,7 +185,8 @@ async def ari_display_by_id(obj_metadata_id: int, obj_id: int):
     if res is None:
         res = await resource_cache[key.format(actual=False)]
     if res is None:
-        logger.info(f"ari_display_by_id key: {key} has None value")
+        logger.warn(f"ari_display_by_id key: {key} has None value")
+        return[ARIs.ARIDisplayAndParams]
     return [res]
 
 

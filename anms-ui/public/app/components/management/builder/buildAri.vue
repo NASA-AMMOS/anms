@@ -111,7 +111,7 @@ export default {
     computedList: function () {
       let vm = this;
       return vm.ctrls.value.filter(function (item) {
-        return item.obj_name.indexOf(vm.query.toLowerCase()) !== -1;
+        return item.name.indexOf(vm.query.toLowerCase()) !== -1;
       });
     },
     computedParmsList: function () {
@@ -133,8 +133,8 @@ export default {
       let aris = [];
       vm.ARIs.forEach((ari) => {
         if (
-          ari.obj_name.toLowerCase().includes(search.toLowerCase()) ||
-          ari.adm_name.toLowerCase().includes(search.toLowerCase()) ||
+          ari.name.toLowerCase().includes(search.toLowerCase()) ||
+          ari.data_model_name.toLowerCase().includes(search.toLowerCase()) ||
           ari.type_name.toLowerCase().includes(search.toLowerCase())
         ) {
           aris.push(ari);
@@ -160,7 +160,7 @@ export default {
       this.$refs.transcoder.reloadTranscoderLog();
     },
     updateResults: function (result) {
-      let head = result[0].value.includes("ari") ? "" : "ari:/";
+      let head = result[0].value.includes("ari") ? "" : "ari://";
       this.finResultStr = head + result[0].value;
     },
     submitAriString() {

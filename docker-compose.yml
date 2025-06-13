@@ -44,6 +44,9 @@ volumes:
   opensearch: {}
   ammos-tls:
     external: true
+  sockdir:
+    # shared sockets
+
 
 services:
   builder-base:
@@ -127,9 +130,10 @@ services:
 
   postgres:
     hostname: postgres
-    image: ${DOCKER_CTR_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_CTR_PREFIX}refdb-sql:${DOCKER_IMAGE_TAG}
     build:
-      context: amp-sql
+      context: deps
+      dockerfile: ansmsql.Dockerfile
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -197,7 +201,7 @@ services:
 
   grafana-image-renderer:
     hostname: grafana-image-renderer
-    image: docker.io/grafana/grafana-image-renderer:3.6.1
+    image: docker.io/grafana/grafana-image-renderer
     restart: unless-stopped
     security_opt:
       - "label=type:grafana-image-renderer.process"
@@ -307,45 +311,105 @@ services:
     ports:
       - "${ADMINER_PORT:-8080}:8080"
 
-  ion-manager:
-    hostname: ion-manager
-    image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+  amp-manager:
+    hostname: amp-manager
     build:
-      context: ion
-      dockerfile: Dockerfile
-      target: ion-manager
-    restart: unless-stopped
-    security_opt:
-      - "label=type:ion-manager.process"
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: amp-manager
     ports:
-      - "1113:1113/udp"
-      - "4556:4556/udp"
-      - "${ION_MGR_PORT:-8089}:8089"
-    networks:
-      default:
-        ipv4_address: 10.5.0.101
-    extra_hosts:
-      - ion-agent2:10.5.0.102
-      - ion-agent3:10.5.0.103
+      - "8089:8089/tcp"
     depends_on:
-      builder-init:
-          # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
       postgres:
         condition: service_healthy
+      ion-manager:
+        condition: service_started
     privileged: true
     tty: true
     cap_add:
       - NET_ADMIN
       - NET_RAW
       - SYS_NICE
+    volumes:
+      - "sockdir:${SOCKDIR}"
     environment:
       container: docker
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+
+  ion-manager:
+    hostname: ion-manager
+    build:
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: ion-manager
+    depends_on: {}
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - "/var/tmp/pcap:/var/log/pcap"
+      - "sockdir:${SOCKDIR}"
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
+      ION_NODE_NUM: 1
+      MGR_NODE_NUM: 1
+      DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
+      DUMPCAP_OPTS: -i lo -i eth0
+    networks:
+      default:
+        ipv4_address: 10.5.0.101
+
+  # ion-manager:
+  #   hostname: ion-manager
+  #   image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
+  #   build:
+  #     context: deps
+  #     dockerfile: reftools.Dockerfile
+  #     target: ion-manager
+  #   restart: unless-stopped
+  #   security_opt:
+  #     - "label=type:ion-manager.process"
+  #   ports:
+  #     - "1113:1113/udp"
+  #     - "4556:4556/udp"
+  #     - "${ION_MGR_PORT:-8089}:8089"
+  #   networks:
+  #     default:
+  #       ipv4_address: 10.5.0.101
+  #   extra_hosts:
+  #     - ion-agent2:10.5.0.102
+  #     - ion-agent3:10.5.0.103
+  #   depends_on:
+  #     builder-init:
+  #         # Not expected to run, but needed here to ensure build dependency
+  #       condition: service_started
+  #     postgres:
+  #       condition: service_healthy
+  #   privileged: true
+  #   tty: true
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_NICE
+  #   environment:
+  #     container: docker
+  #     ION_NODE_NUM: 1
+  #     MGR_NODE_NUM: 1
+  #     DB_HOST: postgres
+  #     DB_USER: ${DB_USER}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_NAME: ${DB_NAME}
+
+
 
     
