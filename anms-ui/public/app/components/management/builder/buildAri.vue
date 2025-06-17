@@ -68,7 +68,9 @@ import vSelect from "vue-select";
 import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 import Transcoder from "./transcoder.vue";
-import { ToggleButton } from 'vue-js-toggle-button'
+import { ToggleButton } from 'vue-js-toggle-button';
+import toastr from "toastr";
+
 
 Vue.component('ToggleButton', ToggleButton)
 
@@ -149,11 +151,15 @@ export default {
         .apiPutTranscodedString(inputString)
         .then((response) => {
           this.finResultCbor = response.data
+          this.results = response.status
+          toastr.success(`${response.status}, 'Transcoder Log Id: ${response.data}`);
+
         })
         .catch((error) => {
           console.error(error);
           this.errored = true;
           this.results = "error translating " + error;
+          toastr.error(`${this.results}`);
         })
         .finally(() => (this.loading = false));
       this.finResultStr = inputString;

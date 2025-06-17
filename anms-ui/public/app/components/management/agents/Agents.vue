@@ -106,6 +106,7 @@ import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 import AgentModal from "./AgentModal.vue";
 import AgentsManageModal from "./AgentsManageModal.vue";
+import toastr from "toastr";
 
 export default {
   name: "Agents",
@@ -215,9 +216,15 @@ export default {
       nodeList.forEach((node) => {
         api.methods
           .apiPostAgent(node.trim())
-          .then((response) => (this.results = response.status + " " + response.statusText))
+          .then((response) => {
+            this.results = response.status + " " + response.statusText;
+            toastr.success(this.results);
+            
+          })
           .catch((error) => {
             console.error(error);
+            toastr.error(error);
+
           });
       });
     },
