@@ -34,7 +34,7 @@
             </b-button>
           </b-col>
           <b-col cols="9">
-            <build :cbor="cbor" :agentModal=true @updateResult="updateResults($event)"></build>
+            <build :cbor="cbor" @updateResult="updateResults($event)"></build>
           </b-col>
         </b-row>
       </div>
@@ -44,7 +44,7 @@
 <script>
 import api from "../../../shared/api.js";
 import Build from "../builder/Build.vue";
-import toastr from "toastr"
+import toastr from "toastr";
 export default {
   name: "AgentsManageModal",
   components: { Build },

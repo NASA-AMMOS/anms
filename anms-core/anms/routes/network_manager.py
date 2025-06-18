@@ -73,9 +73,11 @@ async def nm_register_agent(addr: Data):
     url = nm_url + "/agents"
     logger.info('POST to nm manager %s with addr %s' % (url, addr.data))
     try:
-        request = requests.post(url=url, data="'"+addr.data+"'", headers={'Content-Type: text/plain'} )
-    except Exception:
+        request = requests.post(url=url, data=addr.data, headers={'Content-Type': 'text/plain'} )
+    except Exception as e:
+        logger.info(e)
         return status.HTTP_500_INTERNAL_SERVER_ERROR
+    
     return request.status_code
 
 

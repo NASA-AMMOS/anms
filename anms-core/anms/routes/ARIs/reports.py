@@ -81,12 +81,10 @@ async def report_def_by_id(agent_id: str):
             if(res):
                 ari_val = await transcoder.transcoder_put_cbor_await("ari:0x"+res.entries.hex())
                 ari_val =  ari_val['data']   
-
-        
-            addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}
-    
+            addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}    
             if addition not in final_res:
                 final_res.append(addition)
+
     return final_res
 
 

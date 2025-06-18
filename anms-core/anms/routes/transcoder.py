@@ -104,10 +104,17 @@ async def transcoder_put_cbor_await(cbor: str):
             MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
         else:
             transcoder_log_id = curr_uri.transcoder_log_id
+            if curr_uri.parsed_as != "pending":
+                if curr_uri.parsed_as == "ERROR":
+                    curr_uri = "ARI://BADARI"
+                else:
+                    curr_uri = curr_uri.uri
+                return  {"data": curr_uri}
+
     
     while True:
         with get_session() as session:
-            curr_uri = TranscoderLog.query.filter_by(transcoder_log_id=transcoder_log_id).first()
+            curr_uri = TranscoderLog.query.filter_by(TranscoderLog.transcoder_log_id==transcoder_log_id).first()
         if curr_uri.parsed_as == "CBOR":
             curr_uri = curr_uri.uri
             break

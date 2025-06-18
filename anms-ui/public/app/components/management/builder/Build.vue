@@ -21,8 +21,19 @@
         </template>
       </div>
       <template v-if="!stringMode">
+        <label>
+          <input type="checkbox" v-model="isExecutionCheck"/>
+          Execution Set?
+        </label>
+        <div v-if="isExecutionCheck">
+          <!-- <label>correlator_nonce:</label> -->
+          <b-form-input 
+          size="sm"
+          v-model="correlator_nonce"
+          @change="updateResults"/>
+          </div>
         <v-select v-model="ariKey" label="display" :options="ARIs" ></v-select>
-        <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" :agentModal="agentModal" @updateResult="updateResults($event)"></ParameterView>
+        <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" :nonce="correlator_nonce" @updateResult="updateResults($event)"></ParameterView>
       </template>
     </div>
   </div>
@@ -55,6 +66,8 @@ export default {
       finResultStr: undefined,
       stringMode: false,
       cborString: "",
+      correlator_nonce: undefined,
+      isExecutionCheck: false,
     }
   },
   mounted(){
