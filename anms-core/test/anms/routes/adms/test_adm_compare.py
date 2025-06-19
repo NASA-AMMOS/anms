@@ -52,8 +52,8 @@ class TestAdmCompare:
 
     def test_equal(self):
         comp = AdmCompare(self._admset)
-        adm1 = self._load_adm('test_adm_reference.json')
-        adm2 = self._load_adm('test_adm_reference.json')
+        adm1 = self._load_adm('example-adm-minimal.yang')
+        adm2 = self._load_adm('example-adm-minimal.yang')
         assert comp.compare_adms(adm1, adm2)
         assert [] == comp.get_errors()
 
@@ -66,8 +66,8 @@ class TestAdmCompare:
 
     def test_different(self):
         comp = AdmCompare(self._admset)
-        adm1 = self._load_adm('test_adm_reference.json')
-        adm2 = self._load_adm('test_adm_modified.json')
+        adm1 = self._load_adm('example-adm-minimal.yang')
+        adm2 = self._load_adm('example-adm-minimal-modified.yang')
         assert not comp.compare_adms(adm1, adm2)
         expect_errors = [
             {'obj_type': 'Edd',
