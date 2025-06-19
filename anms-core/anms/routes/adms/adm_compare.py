@@ -49,10 +49,7 @@ class AdmCompare:
       ['const', ace.models.Const, self.compare_const],
       ['ctrl', ace.models.Ctrl, self.compare_ctrl],
       ['edd', ace.models.Edd, self.compare_edd],
-      ['mac', ace.models.Mac, self.compare_mac],
       ['oper', ace.models.Oper, self.compare_oper],
-      ['rptt', ace.models.Rptt, self.compare_rptt],
-      ['tblt', ace.models.Tblt, self.compare_tblt],
       ['var', ace.models.Var, self.compare_var],
     ]
 
@@ -114,21 +111,10 @@ class AdmCompare:
     self._compare_attr(old_obj, new_obj, 'enum')
     self._compare_attr(old_obj, new_obj, 'type')
 
-  def compare_mac(self, old_obj, new_obj):
-    self._compare_attr(old_obj, new_obj, 'enum')
-    # The action doesn't affect the manager
 
   def compare_oper(self, old_obj, new_obj):
     self._compare_attr(old_obj, new_obj, 'enum')
     # The result_type and in_type don't affect the manager
-
-  def compare_rptt(self, old_obj, new_obj):
-    self._compare_attr(old_obj, new_obj, 'enum')
-    self._compare_ac(old_obj, new_obj, 'definition')
-
-  def compare_tblt(self, old_obj, new_obj):
-    self._compare_attr(old_obj, new_obj, 'enum')
-    self._compare_tnl(old_obj, new_obj, 'columns')
 
   def compare_var(self, old_obj, new_obj):
     self._compare_attr(old_obj, new_obj, 'enum')

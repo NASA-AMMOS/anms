@@ -57,7 +57,7 @@ class MockAdmFile:
 
 class TestAdm:
     @pytest.mark.anyio
-    @patch('anms.routes.adms.adm.DataModelView', new_callable=AsyncMock)
+    @patch('anms.routes.adms.adm.DataModel', new_callable=AsyncMock)
     async def test_getall(self, mock_datamodel_view):
         '''
         This only test the flow of the getall function.
@@ -79,7 +79,7 @@ class TestAdm:
         assert res == mock_result
 
     @pytest.mark.anyio
-    @patch('anms.routes.adms.adm.DataModelView', new_callable=AsyncMock)
+    @patch('anms.routes.adms.adm.DataModel', new_callable=AsyncMock)
     async def test_getall_empty(self, mock_adm):
         '''
         This test the result when there is no data or the function is failed
