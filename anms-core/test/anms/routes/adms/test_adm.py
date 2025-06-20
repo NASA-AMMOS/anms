@@ -66,10 +66,10 @@ class TestAdm:
 
         #This mock the getall method of Adm that is used inside the getall function
         mock_result = [
-            DataModelSchema(enumeration=1, data_model_name="amp", 
-                name_string="dtnma-agent", version_name="v3.1", use_des="Updated for latest ADM document.")
+            DataModelSchema(data_model_id=0, enumeration=1, name="dtnma-agent",  
+                 version_name="v3.1", namespace_type='adm', use_des="Updated for latest ADM document.")
         ]
-        mock_namespace_view.getall.return_value = mock_result
+        mock_datamodel_view.getall.return_value = mock_result
         res = await getall()
         '''
             Ideally, the res is a JSONResponse object. Yet, fastapi

@@ -52,6 +52,7 @@ class TestAdmCompare:
 
     def test_equal(self):
         comp = AdmCompare(self._admset)
+        self._load_adm('ietf-amm.yang')
         adm1 = self._load_adm('example-adm-minimal.yang')
         adm2 = self._load_adm('example-adm-minimal.yang')
         assert comp.compare_adms(adm1, adm2)
@@ -66,15 +67,17 @@ class TestAdmCompare:
 
     def test_different(self):
         comp = AdmCompare(self._admset)
+        self._load_adm('ietf-amm.yang')
         adm1 = self._load_adm('example-adm-minimal.yang')
         adm2 = self._load_adm('example-adm-minimal-modified.yang')
         assert not comp.compare_adms(adm1, adm2)
         expect_errors = [
             {'obj_type': 'Edd',
             'name': 'edd1',
-            'issue':'changed type value from INT to REAL32'
+            'issue': "changed typeobj value from TypeUse(type_text='/ARITYPE/int', type_ari=LiteralARI(value=<StructType.INT: 4>, type_id=<StructType.ARITYPE: 16>), base=None, units=None, constraints=[]) to TypeUse(type_text='/ARITYPE/real32', type_ari=LiteralARI(value=<StructType.REAL32: 8>, type_id=<StructType.ARITYPE: 16>), base=None, units=None, constraints=[])"
             }
         ]
+        
         for actual_error in comp.get_errors():
             has_equivalent_error = False
             for expect_error in expect_errors:

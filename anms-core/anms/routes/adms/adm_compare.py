@@ -102,14 +102,14 @@ class AdmCompare:
 
   def compare_const(self, old_obj, new_obj):
     self._compare_attr(old_obj, new_obj, 'enum')
-    self._compare_attr(old_obj, new_obj, 'type')
+    self._compare_attr(old_obj, new_obj, 'typeobj')
 
   def compare_ctrl(self, old_obj, new_obj):
     self._compare_attr(old_obj, new_obj, 'enum')
 
   def compare_edd(self, old_obj, new_obj):
     self._compare_attr(old_obj, new_obj, 'enum')
-    self._compare_attr(old_obj, new_obj, 'type')
+    self._compare_attr(old_obj, new_obj, 'typeobj')
 
 
   def compare_oper(self, old_obj, new_obj):
@@ -118,5 +118,5 @@ class AdmCompare:
 
   def compare_var(self, old_obj, new_obj):
     self._compare_attr(old_obj, new_obj, 'enum')
-    self._compare_attr(old_obj, new_obj, 'type')
+    self._compare_attr(old_obj, new_obj, 'typeobj')
     # The initializer doesn't affect the manager
