@@ -34,13 +34,14 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     cd ${APP_WORK_DIR} && \
     mkdir src && \
     pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml -vv && \
-    pip3 install -r requirements.txt
+    ${PIP} install -r requirements.txt
 # Actual main package
 COPY src ${APP_WORK_DIR}/src
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install ${APP_WORK_DIR}
+    ${PIP} install ${APP_WORK_DIR}
 
-COPY --chmod=755 docker-entrypoint.sh /root/docker-entrypoint.sh
-#USER ${APP_USER}
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
 ENV SQLALCHEMY_SILENCE_UBER_WARNING=1
-CMD ["/root/docker-entrypoint.sh"]
+# Remaining commands as the local user
+USER ${APP_USER}
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

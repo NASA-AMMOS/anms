@@ -16,7 +16,7 @@
             <tr :key="index">
               <td>{{ adm.adm_enum }}</td>
               <td v-b-tooltip.hover
-                  title="Download ADM JSON" @click="download(adm)" ><b>{{ adm.adm_name }}</b></td>
+                  title="Download ADM JSON" @click="download(adm)" ><b>{{ adm.data_model_name }}</b></td>
               <td>{{ adm.name_string }}</td>
               <td>{{ adm.version_name }}</td>
               <td>{{ adm.use_desc }}</td>
@@ -125,7 +125,7 @@ export default {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = adm.adm_name +".json";
+        link.download = adm.data_model_name +".json";
         link.click();
         URL.revokeObjectURL(url);
       })

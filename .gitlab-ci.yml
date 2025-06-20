@@ -173,7 +173,7 @@ anms-core_unit-test:
     - *prep-install-ca
     - *prep-install-python
     - pip3 wheel deps/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
-    - pip3 wheel deps/anms-camp -w ${PY_WHEEL_DIR} --no-deps
+    - pip3 wheel deps/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
     - (cd anms-core &&
         pip-compile --find-links ${PY_WHEEL_DIR} --extra test pyproject.toml &&
         pip3 install --find-links ${PY_WHEEL_DIR} -r requirements.txt)

@@ -28,6 +28,6 @@ sed -i "s/^port=.*/port=${MQTT_PORT_NAME:-1883}/" src/config.ini
 sed -i "s/^password=.*/password=${MQTT_HOST_PASSWORD:-}/" src/config.ini
 sed -i "s/^username=.*/username=${MQTT_HOST_USERNAME:-}/" src/config.ini
 
-exec python3 src/main.py
+exec ${PYTHON} src/main.py
 
 

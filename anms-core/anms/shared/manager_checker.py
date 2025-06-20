@@ -57,7 +57,6 @@ class ManagerChecker:
     # set visibility to false so no longer displayed
     def acknowledge(self, index):
         logger.info(f"ACK {index}")
-        logger.info(self.alerts)
         curr_alert = self.alerts.get(index)
         if curr_alert:
             curr_alert.update({"visible": False})

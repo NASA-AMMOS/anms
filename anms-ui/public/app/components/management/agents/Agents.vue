@@ -96,7 +96,7 @@
       :cbor="cbor"></agents-manage-modal>
 
     <footer class="footer">
-      <p><a :href="info.split(' - ')[1]" target="_blank">Amp Version: {{ info.split(" - ")[0] }}</a></p>
+      <p><a>Amp Version: {{ info }}</a></p>
     </footer>
   </div>
 </template>
@@ -134,7 +134,7 @@ export default {
         },
       ],
       node: null,
-      info: null,
+      info: "",
       results: "",
       pageSizes: [10, 20, 50, 100],
       nodes: "",
@@ -157,7 +157,9 @@ export default {
     api.methods
       .apiAmpVersion()
       .then((response) => {
-        vm.info = response.data.amp_version_str;
+        if(response.data.build_date != null){
+          vm.info = response.data.build_date + " " + response.data.build_time;
+        }
       })
       .catch(function (error) {
         console.error(error);

@@ -25,4 +25,7 @@
 #
 set -e
 
-exec python3 -m aricodec.main --mqtt-host=${MQTT_HOST} --db-uri=${DB_URI}
+PYTHON=${PYTHON:-python3}
+
+echo "Running with python ${PYTHON}"
+exec ${PYTHON} -m aricodec.main --mqtt-host=${MQTT_HOST} --db-uri=${DB_URI}

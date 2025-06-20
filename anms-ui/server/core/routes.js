@@ -149,7 +149,7 @@
       // --Reports Routes -- //
       const reports = require('../components/reports')
       router.get('/report/entry/name/:obj_agent_id', reports.getReportNameByAgent);
-      router.get('/report/entries/table/:obj_agent_id/:adm/:report_name', reports.getReportEntriesByAgent);
+      router.get('/report/entries/table/:obj_agent_id/:correlator_nonce', reports.getReportEntriesByAgent);
 
       //------------- Unknown API Routes -------------//
       router.all('/*', function (req, res, next) {

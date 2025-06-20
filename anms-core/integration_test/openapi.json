@@ -1925,75 +1925,6 @@
               }
           }
       },
-      "/formal_objects/rptt/all": {
-          "get": {
-              "tags": [
-                  "ARIs",
-                  "FORMAL"
-              ],
-              "summary": "All Rpt Formal",
-              "operationId": "all_rpt_formal_formal_objects_rptt_all_get",
-              "responses": {
-                  "200": {
-                      "description": "Successful Response",
-                      "content": {
-                          "application/json": {
-                              "schema": {
-                                  "title": "Response All Rpt Formal Formal Objects Rptt All Get",
-                                  "type": "array",
-                                  "items": {
-                                      "$ref": "#/components/schemas/RptFormal"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-          }
-      },
-      "/formal_objects/rptt/id/{obj_metadata_id}": {
-          "get": {
-              "tags": [
-                  "ARIs",
-                  "FORMAL"
-              ],
-              "summary": "Rpt Formal By Id",
-              "operationId": "rpt_formal_by_id_formal_objects_rptt_id__obj_metadata_id__get",
-              "parameters": [
-                  {
-                      "required": true,
-                      "schema": {
-                          "title": "Obj Metadata Id",
-                          "type": "integer"
-                      },
-                      "name": "obj_metadata_id",
-                      "in": "path"
-                  }
-              ],
-              "responses": {
-                  "200": {
-                      "description": "Successful Response",
-                      "content": {
-                          "application/json": {
-                              "schema": {
-                                  "$ref": "#/components/schemas/RptFormal"
-                              }
-                          }
-                      }
-                  },
-                  "422": {
-                      "description": "Validation Error",
-                      "content": {
-                          "application/json": {
-                              "schema": {
-                                  "$ref": "#/components/schemas/HTTPValidationError"
-                              }
-                          }
-                      }
-                  }
-              }
-          }
-      },
       "/formal_objects/ctrl/all": {
           "get": {
               "tags": [
@@ -2783,7 +2714,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
@@ -2791,7 +2722,7 @@
                       "title": "Type Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -2825,7 +2756,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
@@ -2833,7 +2764,7 @@
                       "title": "Type Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -2881,19 +2812,19 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
-                  "adm_enum": {
+                  "enumeration": {
                       "title": "Adm Enum",
                       "type": "integer"
                   },
-                  "adm_enum_label": {
+                  "namespace_type": {
                       "title": "Adm Enum Label",
                       "type": "integer"
                   },
@@ -2985,23 +2916,23 @@
           "AdmView": {
               "title": "AdmView",
               "required": [
-                  "namespace_id"
+                  "data_model_id"
               ],
               "type": "object",
               "properties": {
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
-                  "adm_enum": {
+                  "enumeration": {
                       "title": "Adm Enum",
                       "type": "integer"
                   },
-                  "adm_enum_label": {
+                  "namespace_type": {
                       "title": "Adm Enum Label",
                       "type": "string"
                   },
@@ -3049,11 +2980,11 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
@@ -3121,7 +3052,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -3155,19 +3086,19 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
-                  "adm_name": {
+                  "data_model_name": {
                       "title": "Adm Name",
                       "type": "string"
                   },
-                  "adm_enum": {
+                  "enumeration": {
                       "title": "Adm Enum",
                       "type": "integer"
                   },
-                  "adm_enum_label": {
+                  "namespace_type": {
                       "title": "Adm Enum Label",
                       "type": "integer"
                   },
@@ -3325,7 +3256,7 @@
                       "title": "Obj Name",
                       "type": "string"
                   },
-                  "namespace_id": {
+                  "data_model_id": {
                       "title": "Namespace Id",
                       "type": "integer"
                   },
@@ -3647,36 +3578,6 @@
                       "title": "Message",
                       "type": "string",
                       "default": "Method is not allowed"
-                  }
-              }
-          },
-          "RptFormal": {
-              "title": "RptFormal",
-              "type": "object",
-              "properties": {
-                  "obj_metadata_id": {
-                      "title": "Obj Metadata Id",
-                      "type": "integer"
-                  },
-                  "obj_name": {
-                      "title": "Obj Name",
-                      "type": "string"
-                  },
-                  "namespace_id": {
-                      "title": "Namespace Id",
-                      "type": "integer"
-                  },
-                  "obj_formal_definition_id": {
-                      "title": "Obj Formal Definition Id",
-                      "type": "integer"
-                  },
-                  "fp_spec_id": {
-                      "title": "Fp Spec Id",
-                      "type": "integer"
-                  },
-                  "use_desc": {
-                      "title": "Use Desc",
-                      "type": "string"
                   }
               }
           },

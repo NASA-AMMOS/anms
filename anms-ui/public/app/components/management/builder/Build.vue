@@ -21,8 +21,19 @@
         </template>
       </div>
       <template v-if="!stringMode">
+        <label>
+          <input type="checkbox" v-model="isExecutionCheck"/>
+          Execution Set?
+        </label>
+        <div v-if="isExecutionCheck">
+          <!-- <label>correlator_nonce:</label> -->
+          <b-form-input 
+          size="sm"
+          v-model="correlator_nonce"
+          @change="updateResults"/>
+          </div>
         <v-select v-model="ariKey" label="display" :options="ARIs" ></v-select>
-        <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" @updateResult="updateResults($event)"></ParameterView>
+        <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" :nonce="correlator_nonce" @updateResult="updateResults($event)"></ParameterView>
       </template>
     </div>
   </div>
@@ -42,6 +53,10 @@ export default {
     cbor: {
       type: String,
       default: undefined
+    },
+    agentModal:{
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -51,6 +66,8 @@ export default {
       finResultStr: undefined,
       stringMode: false,
       cborString: "",
+      correlator_nonce: undefined,
+      isExecutionCheck: false,
     }
   },
   mounted(){
@@ -67,7 +84,7 @@ export default {
       this.$emit("updateResult", this.finResultStr);
     },
     updateResults: function (result) {
-      let head = result[0].value.includes("ari") ? "" : "ari:/";
+      let head = result[0].value.includes("ari") ? "" : "ari:";
       this.finResultStr = head + result[0].value;
       this.$emit("updateResult", this.finResultStr);
     },

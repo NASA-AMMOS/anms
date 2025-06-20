@@ -45,7 +45,7 @@ class RoutesMapper(str, Enum):
     actual_parameter_api_prefix = posixpath.join(base_prefix, "actual_parameter") + "/"
     formal_objects_api_prefix = posixpath.join(base_prefix, "formal_objects") + "/"
     formal_parameter_api_prefix = posixpath.join(base_prefix, "formal_parameter") + "/"
-    literal_object_api_prefix = posixpath.join(base_prefix, "literal_object") + "/"
+    
     reports_api_prefix = posixpath.join(base_prefix, "report") + "/"
 
     logging_api_prefix = posixpath.join(base_prefix, "logging") + "/"
