@@ -85,3 +85,5 @@ RUN ${PIP} -v wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
 
 COPY deps/dtnma-camp /usr/src/dtnma-camp
 RUN ${PIP} wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
+
+COPY deps/dtnma-adms /usr/src/dtnma-adms
