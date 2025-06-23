@@ -28,26 +28,18 @@ from anms.models.relational import Model
 from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
+from sqlalchemy import LargeBinary
 
 
 # class for vw_ctrl_definition used for build ari
 class ActualParameter(Model):
     __tablename__ = 'vw_actual_parameters'
     ap_spec_id = Column(Integer, primary_key=True)
-    tnvc_id = Column(Integer)
     fp_spec_id = Column(Integer)
+    num_parms = Column(Integer)
     use_desc = Column(String)
-    fp_values = Column(String)
-    str_values = Column(String)
-    uint_values = Column(String)
-    int_values = Column(String)
-    obj_values = Column(String)
-    ac_values = Column(String)
-    tnvc_values = Column(String)
-    real32_values = Column(String)
-    real64_values = Column(String)
-    uvast_values = Column(String)
-    vast_values = Column(String)
+    parameters = Column(LargeBinary) # formal parameters 
+    value_set = Column(LargeBinary) # actual parameters 
 
     def __repr__(self) -> str:
         return self.as_dict().__repr__()

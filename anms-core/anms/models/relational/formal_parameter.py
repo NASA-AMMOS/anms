@@ -28,7 +28,7 @@ from anms.models.relational import Model
 from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
-
+from sqlalchemy import LargeBinary
 
 # class for vw_ctrl_definition used for build ari
 class FormalParameter(Model):
@@ -36,9 +36,8 @@ class FormalParameter(Model):
     fp_spec_id = Column(Integer, primary_key=True)
     num_parms = Column(Integer, nullable=False)
     use_desc = Column(String, nullable=False)
-    parm_names = Column(String)
-    parm_type_name = Column(String)
-    parm_value_ids = Column(String)
+    parameters = Column(LargeBinary)
+    
 
     def __repr__(self) -> str:
         return self.as_dict().__repr__()

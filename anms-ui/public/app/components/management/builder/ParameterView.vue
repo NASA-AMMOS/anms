@@ -2,7 +2,7 @@
   <div>
     <b-card bg-variant="dark"
       class="my-3 border-grey">
-      <b-form-group :label="ariKey.adm_name + '/' + ariKey.obj_name"
+      <b-form-group :label="ariKey.data_model_name + '/' + ariKey.name"
         label-cols-lg="3"
         label-size="md"
         label-class="font-weight-bold pt-0 label-color"
@@ -51,6 +51,7 @@
             :result="parameter.parameter.result"
             :index="parameter.parameter.index"
             :key="index"
+            :count="parameter.parameter.count"
             @updateResult="updateResults($event)"></component>
         </div>
       </b-form-group>
@@ -67,7 +68,7 @@ export default {
   components: {
     vSelect,
   },
-  props: ["ariKey", "ACs"],
+  props: ["ariKey", "ACs", "nonce"],
   data() {
     return {
       parameters: [],
@@ -91,6 +92,7 @@ export default {
     generateParameters() {
       parameter_builder.methods.genParms(this.ariKey, this.ARIs).then(response => {
         this.parameters = response[0];
+        
         this.description = response[1];
         this.finResult = response[2];
         this.finResultBase = this.finResult;
@@ -116,7 +118,7 @@ export default {
     submitCommand() {
       let testResult = [];
       if (this.ariKey.actual) {
-        this.$emit("updateResult", [{ type: "ARI", value: this.ariKey.display }]);
+        this.$emit("updateResult", [{ type: "/ARITYPE/OBJECT", value: this.ariKey.display }]);
         this.finResult = this.finResultBase;
       } else {
         this.finResult.forEach((element) => {
@@ -124,56 +126,51 @@ export default {
           let value = element["value"];
           let currValue = [];
           switch (type) {
-            case "STR":
-              testResult.push(JSON.stringify(value));
+            case "/ARITYPE/TEXTSTR":
+              testResult.push(encodeURIComponent(JSON.stringify(value)));
               break;
-            case "BYTESTR":
-              testResult.push(JSON.stringify(value));
+            case "/ARITYPE/BYTESTR":
+              testResult.push(encodeURIComponent(JSON.stringify(value)));
               break;
-            case "BYTE":
-              testResult.push(JSON.stringify(value));
+            case "/ARITYPE/BYTE":
+              testResult.push(encodeURIComponent(JSON.stringify(value)));
               break;
-            case "INT":
-              testResult.push(JSON.stringify(value).replaceAll('"', ""));
+            case "/ARITYPE/INT":
+              testResult.push(encodeURIComponent(JSON.stringify(value).replaceAll('"', "")));
               break;
-            case "UINT":
-              testResult.push(JSON.stringify(value).replaceAll('"', ""));
+            case "/ARITYPE/UINT":
+              testResult.push(encodeURIComponent(JSON.stringify(value).replaceAll('"', "")));
               break;
-            case "VAST":
-              testResult.push(JSON.stringify(value).replaceAll('"', ""));
+            case "/ARITYPE/VAST":
+              testResult.push(encodeURIComponent(JSON.stringify(value).replaceAll('"', "")));
               break;
-            case "UVAST":
+            case "/ARITYPE/UVAST":
               testResult.push(
-                JSON.stringify(value).replaceAll('"', "")
+                encodeURIComponent(JSON.stringify(value).replaceAll('"', ""))
               );
               break;
-            case "REAL32":
+            case "/ARITYPE/REAL32":
               testResult.push(
-                JSON.stringify(value).replaceAll('"', "")
+                encodeURIComponent(JSON.stringify(value).replaceAll('"', ""))
               );
               break;
-            case "REAL64":
+            case "/ARITYPE/REAL64":
               testResult.push(
-                JSON.stringify(value).replaceAll('"', "")
+                encodeURIComponent(JSON.stringify(value).replaceAll('"', ""))
               );
               break;
-            case "TV":
-              testResult.push(JSON.stringify(value).replaceAll('"', ""));
+            case "/ARITYPE/TP":
+              testResult.push(encodeURIComponent(JSON.stringify(value).replaceAll('"', "")));
               break;
-            case "TS":
-              testResult.push(JSON.stringify(value).replaceAll('"', ""));
+            case "/ARITYPE/TD":
+              testResult.push(encodeURIComponent(JSON.stringify(value).replaceAll('"', "")));
               break;
-
-            case "TNVC": //tnvc
-              testResult.push(JSON.stringify(value));
-              break;
-            case "ARI": //ari
-              let head = value.includes("ari:/") ? "" : "ari:/";
+            case "/ARITYPE//ARITYPE/OBJECT": //ari
+              let head = value.includes("ari:/") ? "" : "ari://";
 
               testResult.push(JSON.stringify(head + value).replaceAll('"', ""));
               break;
-
-            case "AC": //ac
+            case "/ARITYPE/AC": //ac
               currValue = [];
               value.forEach((ari) => {
                 currValue.push(ari.replaceAll('"', "'"));
@@ -183,7 +180,7 @@ export default {
 
               break;
 
-            case "EXPR": //ac
+            case "/ARITYPE/EXPR": //ac
               currValue = [];
               var parts = value.split("%")
               parts[1].split(',').forEach((ari) => {
@@ -193,20 +190,35 @@ export default {
               testResult.push(parts[0] + JSON.stringify(currValue).replaceAll('"', ""));
 
               break;
+            default:
+            if (type.includes("TYPEDEF")){
+              testResult.push(JSON.stringify(ari[0]));
+            }else{testResult.push((JSON.stringify(value)));}
+            
+            break;
           }
         });
 
         if (this.ariKey.obj_metadata_id != null) {
           this.finResultStr =
-            "ari:/IANA:" +
-            this.ariKey.adm_name +
+            "ari://" +
+            this.ariKey.namespace +
+            "/" +
+            this.ariKey.data_model_name +
             "/" +
             this.ariKey.type_name +
-            "." +
-            this.ariKey.obj_name +
+            "/" +
+            this.ariKey.name +
             "(" +
             testResult +
             ")";
+             // if using in agentModal adding 	ari:/EXECSET/ portion 
+          if(typeof this.nonce !== 'undefined'){
+            // correlator_nonc
+            // TODO currently random mayube make it increment or a choice
+            // let nonce = Math.floor(Math.random() * 99999) + 1;
+            this.finResultStr = 	"ari:/EXECSET/n=" + this.nonce + ";(" + this.finResultStr +")";
+          }
           this.$emit("updateResult", [{ type: "ARI", value: this.finResultStr }]);
           this.finResult = this.finResultBase;
         }

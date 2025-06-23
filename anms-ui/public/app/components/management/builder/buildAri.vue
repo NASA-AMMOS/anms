@@ -33,13 +33,24 @@
 
         <b-container>
           <h5>ARI Builder</h5>
+          <label>
+          <input type="checkbox" v-model="isExecutionCheck" onchange="updateNonce"/>
+          Execution Set?
+        </label>
+        <div v-if="isExecutionCheck">
+          <label>correlator_nonce:</label>
+          <b-form-input 
+          size="sm"
+          v-model="correlator_nonce"
+          @change="updateResults"/>
+          </div>
           <v-select v-model="ariKey"
             label="display"
             :options="ARIs"></v-select>
-
           <ParameterView v-if="ariKey"
             :ariKey="ariKey"
             :ACs="ARIs"
+            :nonce="correlator_nonce"
             @updateResult="updateResults($event)"></ParameterView>
 
           <div v-if="ariKey" class="text-center my-3">
@@ -98,6 +109,8 @@ export default {
       cborString: "",
       checkbox: false,
       stringMode: false,
+      correlator_nonce: undefined,
+      isExecutionCheck: false,
     };
   },
   computed: {
@@ -111,7 +124,7 @@ export default {
     computedList: function () {
       let vm = this;
       return vm.ctrls.value.filter(function (item) {
-        return item.obj_name.indexOf(vm.query.toLowerCase()) !== -1;
+        return item.name.indexOf(vm.query.toLowerCase()) !== -1;
       });
     },
     computedParmsList: function () {
@@ -123,6 +136,9 @@ export default {
       reloadARIs: "reloadARIs",
       setSearchString: "setSearchString"
     }),
+    updateNonce(){
+      this.correlator_nonce = undefined;
+    },
     onSearch(search, loading) {
       if (search.length) {
         loading(true);
@@ -133,8 +149,8 @@ export default {
       let aris = [];
       vm.ARIs.forEach((ari) => {
         if (
-          ari.obj_name.toLowerCase().includes(search.toLowerCase()) ||
-          ari.adm_name.toLowerCase().includes(search.toLowerCase()) ||
+          ari.name.toLowerCase().includes(search.toLowerCase()) ||
+          ari.data_model_name.toLowerCase().includes(search.toLowerCase()) ||
           ari.type_name.toLowerCase().includes(search.toLowerCase())
         ) {
           aris.push(ari);
@@ -160,7 +176,7 @@ export default {
       this.$refs.transcoder.reloadTranscoderLog();
     },
     updateResults: function (result) {
-      let head = result[0].value.includes("ari") ? "" : "ari:/";
+      let head = result[0].value.includes("ari") ? "" : "ari://";
       this.finResultStr = head + result[0].value;
     },
     submitAriString() {

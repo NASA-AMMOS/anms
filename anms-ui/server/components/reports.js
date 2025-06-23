@@ -46,10 +46,10 @@
     try {
       // /entry/values/{agent_id}/{ADM}/{report_name}
       let obj_agent_id = req.params.obj_agent_id
-      let adm = req.params.adm
-      let report_name = req.params.report_name
+      let correlator_nonce = req.params.correlator_nonce
+  
       
-      const url = utils.generateAnmsCoreUrl(['report','entries','table', obj_agent_id, adm, report_name]);
+      const url = utils.generateAnmsCoreUrl(['report','entries','table', obj_agent_id, correlator_nonce]);
       const name_entries = await axios.get(url);
       return res.status(200).json(name_entries.data);
     } catch (err) {

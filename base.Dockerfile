@@ -66,17 +66,24 @@ RUN systemctl disable dnf-makecache.timer
 #
 FROM anms-base AS dtnma-acelib
 
+
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install python3 python3-pip python3-wheel python3-setuptools iputils && \
-    pip3 install --upgrade pip pip-tools 
+    dnf -y install gcc-c++ python3.11-devel python3.11 python3.11-pip python3.11-wheel python3.11-setuptools iputils && \
+    pip3.11 install pip-tools
 
+# Use specific OS python version
+ENV PIP=pip3.11
+ENV PYTHON=python3.11
 # Submodules with dependencies
 ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
+RUN ${PIP} install --upgrade pip
+
 COPY deps/dtnma-ace /usr/src/dtnma-ace
-RUN pip3 wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
+RUN ${PIP} -v wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
 
-COPY deps/anms-camp /usr/src/anms-camp
-RUN pip3 wheel /usr/src/anms-camp -w ${PY_WHEEL_DIR} --no-deps
+COPY deps/dtnma-camp /usr/src/dtnma-camp
+RUN ${PIP} wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
 
+COPY deps/dtnma-adms /usr/src/dtnma-adms

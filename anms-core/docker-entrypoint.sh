@@ -20,9 +20,14 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
+
+# Perform DB initialization before starting the anms-core daemon
+#
 set -e
 
-# initialize DB state
-runuser -u ${APP_USER} -- python3 -m anms.init_adms
+PYTHON=${PYTHON:-python3}
 
-exec runuser -u ${APP_USER} -- python3 -m anms.run_gunicorn
+# initialize DB state
+${PYTHON} -m anms.init_adms
+
+exec ${PYTHON} -m anms.run_gunicorn

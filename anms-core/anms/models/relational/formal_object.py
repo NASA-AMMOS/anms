@@ -36,10 +36,10 @@ class FormalObject(Model):
     obj_metadata_id = Column(Integer, primary_key=True)
     type_name = Column(String, nullable=False)
     obj_name = Column(String, nullable=False)
-    namespace_id = Column(Integer, nullable=False)
-    adm_name = Column(String)
-    adm_enum = Column(Integer)
-    adm_enum_label = Column(String)
+    data_model_id = Column(Integer, nullable=False)
+    data_model_name = Column(String)
+    enumeration = Column(Integer)
+    namespace_type = Column(String)
     use_desc = Column(String)
     obj_formal_definition_id = Column(Integer, nullable=False)
     formal_desc = Column(String)
@@ -61,8 +61,8 @@ class Control(Model):
 
     obj_metadata_id = Column(Integer, primary_key=True)
     obj_name = Column(String, nullable=False)
-    namespace_id = Column(Integer, nullable=False)
-    adm_name = Column(String)
+    data_model_id = Column(Integer, nullable=False)
+    data_model_name = Column(String)
     obj_formal_definition_id = Column(Integer, nullable=False)
     fp_spec_id = Column(Integer)
     num_parms = Column(Integer)
@@ -85,8 +85,8 @@ class Control(Model):
 class EddFormal(Model):
     __tablename__ = 'vw_edd_formal'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
+    name = Column(String)
+    data_model_id = Column(Integer)
     obj_formal_definition_id = Column(Integer)
     fp_spec_id = Column(Integer)
     use_desc = Column(String, nullable=False)
@@ -122,8 +122,8 @@ class EddFormalDef(Model):
 class MacFormal(Model):
     __tablename__ = 'vw_mac_formal'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
+    name = Column(String)
+    data_model_id = Column(Integer)
     obj_formal_definition_id = Column(Integer)
     fp_spec_id = Column(Integer)
     use_desc = Column(String, nullable=False)
@@ -138,40 +138,3 @@ class MacFormal(Model):
 
         return dict_obj
 
-
-# class for vw_ctrl_definition used for build ari
-class RptFormal(Model):
-    __tablename__ = 'vw_rptt_formal'
-    obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
-    obj_formal_definition_id = Column(Integer)
-    fp_spec_id = Column(Integer)
-    use_desc = Column(String, nullable=False)
-
-    def __repr__(self) -> str:
-        return self.as_dict().__repr__()
-
-    def as_dict(self) -> Dict[str, Any]:
-        dict_obj = {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
-        }
-
-        return dict_obj
-
-
-class RptFormalDef(Model):
-    __tablename__ = 'report_template_formal_definition'
-    obj_formal_definition_id = Column(Integer, primary_key=True)
-    fp_spec_id = Column(Integer)
-    ac_id = Column(Integer)
-
-    def __repr__(self) -> str:
-        return self.as_dict().__repr__()
-
-    def as_dict(self) -> Dict[str, Any]:
-        dict_obj = {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
-        }
-
-        return dict_obj

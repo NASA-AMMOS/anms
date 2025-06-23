@@ -62,7 +62,7 @@
             "columns": [
                 {
                     "type": "STR",
-                    "name": "adm_name"
+                    "name": "data_model_name"
                 }
             ],
             "description": "This table lists all the adms that are supported by the agent."

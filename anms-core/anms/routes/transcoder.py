@@ -20,6 +20,7 @@
 # subcontract 1658085.
 #
 import json
+import time
 
 from fastapi import APIRouter, Depends
 from fastapi import status
@@ -68,26 +69,104 @@ async def transcoder_log_by_id(id: str):
 @router.put("/ui/incoming/{cbor}/hex", status_code=status.HTTP_200_OK)
 async def transcoder_put_cbor(cbor: str):
     msg = json.dumps({'uri': cbor})
-
+    transcoder_log_id = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter_by(input_string=cbor).first()
         if curr_uri is None:
             c1 = TranscoderLog(input_string=cbor, parsed_as='pending')
             session.add(c1)
+            session.flush()
+            session.refresh(c1)
+            transcoder_log_id = c1.transcoder_log_id
             session.commit()
 
     logger.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
     MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
 
-    return status.HTTP_200_OK
+    return  {"id": transcoder_log_id}
 
+# get 	/ui/incoming/{cbor}/hex
+@router.get("/ui/incoming/await/{cbor}/hex", status_code=status.HTTP_200_OK)
+async def transcoder_put_cbor_await(cbor: str):
+    curr_uri = ""
+    msg = json.dumps({'uri': cbor})
+    transcoder_log_id = None
+    with get_session() as session:
+        curr_uri = TranscoderLog.query.filter_by(input_string=cbor).first()
+        if curr_uri is None:
+            c1 = TranscoderLog(input_string=cbor, parsed_as='pending')
+            session.add(c1)
+            session.flush()
+            session.refresh(c1)
+            transcoder_log_id = c1.transcoder_log_id
+            session.commit()
+            logger.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
+            MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
+        else:
+            transcoder_log_id = curr_uri.transcoder_log_id
+            if curr_uri.parsed_as != "pending":
+                if curr_uri.parsed_as == "ERROR":
+                    curr_uri = "ARI://BADARI"
+                else:
+                    curr_uri = curr_uri.uri
+                return  {"data": curr_uri}
+
+    
+    while True:
+        with get_session() as session:
+            curr_uri = TranscoderLog.query.filter_by(TranscoderLog.transcoder_log_id==transcoder_log_id).first()
+        if curr_uri.parsed_as == "CBOR":
+            curr_uri = curr_uri.uri
+            break
+        if curr_uri.parsed_as == "ERROR":
+            curr_uri = "ARI://BADARI"
+            break
+        time.sleep(1)
+
+
+    return  {"data": curr_uri}
+
+# PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
+@router.get("/ui/incomin/await/str", status_code=status.HTTP_200_OK)
+def transcoder_put_await_str(ari: str):
+    ari = ari.strip()
+    msg = json.dumps({"uri": ari})
+    transcoder_log_id = None
+    with get_session() as session:
+        curr_uri = TranscoderLog.query.filter_by(input_string=ari).first()
+        if curr_uri is None:
+            c1 = TranscoderLog(input_string=ari, parsed_as='pending')
+            session.add(c1)
+            session.flush()
+            session.refresh(c1)
+            transcoder_log_id = c1.transcoder_log_id
+            session.commit()
+            logger.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
+            MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
+        else:
+            transcoder_log_id = curr_uri.transcoder_log_id
+
+    
+    while(True):
+        with get_session() as session:
+            curr_uri = TranscoderLog.query.filter_by(transcoder_log_id=transcoder_log_id).first()
+        if curr_uri.parsed_as == "URI":
+            curr_uri = curr_uri.uri
+            break
+        if curr_uri.parsed_as == "ERROR":
+            curr_uri = "ARI://BADARI"
+            break
+        time.sleep(1)
+
+
+    return  {"data": curr_uri}
+    
 
 # PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
 @router.put("/ui/incoming/str", status_code=status.HTTP_200_OK)
 def transcoder_put_str(ari: str):
     ari = ari.strip()
     msg = json.dumps({"uri": ari})
-    logger.info(ari)
     transcoder_log_id = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter_by(input_string=ari).first()
@@ -105,3 +184,6 @@ def transcoder_put_str(ari: str):
     MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
 
     return {"id": transcoder_log_id}
+
+
+

@@ -230,7 +230,7 @@ The two output paths for ADM C files are:
 
 To regenerate agent source, scraping the pre-existing source to avoid clearing out agent implementations, run:
 ```sh
-PYTHONPATH=deps/dtnma-ace/src/:deps/anms-camp/src/ python3 -m camp.tools.camp ion/src/nm/doc/adms/ion_bp_admin.json -o ion/src/bpv7/nm/ --only-ch --scrape
+PYTHONPATH=deps/dtnma-ace/src/:deps/dtnma-camp/src/ python3 -m camp.tools.camp ion/src/nm/doc/adms/ion_bp_admin.json -o ion/src/bpv7/nm/ --only-ch --scrape
 ```
 
 ### Manual Agent exercising

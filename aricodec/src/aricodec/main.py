@@ -27,12 +27,12 @@ import io
 import json
 import sys
 import sqlalchemy
-from sqlalchemy.orm import Session
+# from sqlalchemy.orm import Session
+from sqlalchemy.orm.session import Session
 import traceback
 import paho.mqtt.client as mqtt
 import ace
-from ace import cborutil
-
+from typing import BinaryIO, List, Set, Union
 
 LOGGER = logging.getLogger(__name__)
 
@@ -90,9 +90,9 @@ class Executive:
             if adm_name:
                 LOGGER.info('Reloading one ADM: %s', adm_name)
                 curs = db_conn.execute('''\
-SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-    INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
+    INNER JOIN data_model ON adm_data.enumeration = data_model..data_model_id
 WHERE adm_name = ?
 ''', [adm_name])
                 for row in curs.all():
@@ -102,18 +102,23 @@ WHERE adm_name = ?
                 LOGGER.info('Reloading all ADMS...')
 
                 curs = db_conn.execute('''\
-SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-    INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
+    INNER JOIN data_model ON adm_data.enumeration = data_model.data_model_id
 ''')
                 for row in curs.all():
                     self._handle_adm(*row)
 
         LOGGER.info('ADMS present for: %s', self._adms.names())
                     
-    def _handle_adm(self, adm_name, timestamp, data):
+    def _handle_adm(self, adm_name, timestamp, data): 
         LOGGER.info('Handling ADM: %s', adm_name)
-        self._adms.load_from_data(io.BytesIO(data))
+        LOGGER.info(type(data))
+        # LOGGER.info(data.tos())
+
+        io_buffer = io.StringIO(data.tobytes().decode('utf-8'))
+
+        self._adms.load_from_data(io_buffer)
         LOGGER.info('Handling finished')
 
     def _on_ari_in(self, client, userdata, msg):
@@ -137,12 +142,13 @@ FROM adm_data
                     in_text = in_text[4:]
 
                 try:
-                    in_bytes = cborutil.from_hexstr(in_text)
-
+                    in_bytes = ace.cborutil.from_hexstr(in_text)
                     dec = ace.ari_cbor.Decoder()
                     ari = dec.decode(io.BytesIO(in_bytes))
-                    LOGGER.debug('as ARI %s', ari)
-                    ace.nickname.Converter(ace.nickname.Mode.FROM_NN, self._adms, True)(ari)
+                    LOGGER.debug('decoded as ARI %s', ari)
+                    # ace.nickname.Converter(ace.nickname.Mode.FROM_NN, self._admsSession(self._dbeng), True)(ari)
+                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, self._adms.db_session(), False)(ari)
+                    
                 except Exception as err:
                     raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
                 res_obj['cbor'] = in_text
@@ -156,7 +162,7 @@ FROM adm_data
                     out_text = buf.getvalue()
                     if not out_text.startswith('ari:'):
                         out_text = 'ari:' + out_text
-                    LOGGER.debug('as text %s', out_text)
+                    LOGGER.debug('encoded as text %s', out_text)
                 except Exception as err:
                     raise RuntimeError(f"Error encoding from {ari}: {err}") from err
                 res_obj['uri'] = out_text
@@ -168,8 +174,8 @@ FROM adm_data
                 try:
                     dec = ace.ari_text.Decoder()
                     ari = dec.decode(io.StringIO(in_text))
-                    LOGGER.debug('as ARI %s', ari)
-                    ace.nickname.Converter(ace.nickname.Mode.TO_NN, self._adms, True)(ari)
+                    LOGGER.debug('decoded as ARI %s', ari)
+                    ari = ace.nickname.Converter(ace.nickname.Mode.TO_NN, self._adms.db_session(), False)(ari)
                 except Exception as err:
                     raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
                 res_obj['uri'] = in_text
@@ -180,14 +186,15 @@ FROM adm_data
                     buf = io.BytesIO()
                     enc.encode(ari, buf)
 
-                    hex_str = cborutil.to_hexstr(buf.getvalue())
-                    LOGGER.debug('as binary %s', hex_str)
+                    hex_str = ace.cborutil.to_hexstr(buf.getvalue())
+                    LOGGER.debug('encoded as binary %s', hex_str)
                 except Exception as err:
                     raise RuntimeError(f"Error encoding from {ari}: {err}") from err
                 res_obj['cbor'] = hex_str
 
         except Exception as err:
             res_obj['ari'] = f'Failed to process: {err}'
+            res_obj['parsedAs'] = 'ERROR'
             LOGGER.error('Failed to process: %s', err)
             LOGGER.info('Traceback:\n%s', traceback.format_exc())
 

@@ -32,10 +32,10 @@ class FormalObjectBase(BaseModel):
     obj_metadata_id: Optional[int] = None
     type_name: Optional[str] = None
     obj_name: Optional[str] = None
-    namespace_id: Optional[int] = None
-    adm_name: Optional[str] = None
-    adm_enum: Optional[int] = None
-    adm_enum_label: Optional[int] = None
+    data_model_id: Optional[int] = None
+    data_model_name: Optional[str] = None
+    enumeration: Optional[int] = None
+    namespace_type: Optional[int] = None
     use_desc: Optional[str] = None
     obj_formal_definition_id: Optional[int] = None
     formal_desc: Optional[str] = None

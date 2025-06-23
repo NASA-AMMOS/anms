@@ -31,7 +31,7 @@ from sqlalchemy import Column, select, exc
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import Boolean
-
+from sqlalchemy import LargeBinary
 from anms.shared.opensearch_logger import OpenSearchLogger
 
 logger = OpenSearchLogger(__name__).logger
@@ -41,10 +41,11 @@ logger = OpenSearchLogger(__name__).logger
 class ARI(Model):
     __tablename__ = 'vw_ari_union'
     obj_metadata_id = Column(Integer, primary_key=True)
-    obj_name = Column(String)
-    adm_name = Column(String)
+    name = Column(String)
+    namespace = Column(String)
+    data_model_name = Column(String)
     type_name = Column(String)
-    namespace_id = Column(Integer)
+    data_model_id = Column(Integer)
     obj_id = Column(Integer, primary_key=True)
     parm_id = Column(Integer)
     actual = Column(Boolean, primary_key=True)
@@ -64,49 +65,10 @@ class ARI(Model):
 
 
 class ARICollection(Model):
-    __tablename__ = 'vw_ac'
-    ac_entry_id = Column(Integer, primary_key=True)
-    ac_id = Column(Integer)
-    order_num = Column(Integer)
-    obj_actual_definition_id = Column(Integer)
-    obj_metadata_id = Column(Integer)
-    use_desc = Column(String)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
-    namespace_type = Column(String)
-    issuing_org = Column(String)
-    name_string = Column(String)
-    version_name = Column(String)
-    adm_enum = Column(Integer)
-    obj_enum = Column(Integer)
-    type_desc = Column(String)
-    ns_desc = Column(String)
-    adm_type = Column(Integer)
-    tnvc_id = Column(Integer)
-    fp_spec_id = Column(Integer)
-    ap_spec_id = Column(Integer)
-    data_type_id = Column(Integer)
-    data_value = Column(String)
-    num_operands = Column(Integer)
-    expression_id = Column(Integer)
-
-    def __repr__(self) -> str:
-        return self.as_dict().__repr__()
-
-    def as_dict(self) -> Dict[str, Any]:
-        dict_obj = {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
-        }
-
-        return dict_obj
-
-
-class ADM(Model):
-    __tablename__ = 'adm'
-    namespace_id = Column(Integer, primary_key=True)
-    adm_name = Column(String)
-    adm_enum = Column(Integer)
-    adm_enum_label = Column(String)
+    __tablename__ = 'ari_collection'
+    ac_id = Column(Integer, primary_key=True)
+    num_entries = Column(Integer)
+    entries = Column(LargeBinary)
     use_desc = Column(String)
 
     def __repr__(self) -> str:
@@ -119,38 +81,18 @@ class ADM(Model):
 
         return dict_obj
 
-    @classmethod
-    async def get(
-            cls, adm_enum: Integer, session: AsyncSession = None
-    ) -> Optional["adm"]:
-        '''
-        Retrieve all adms
 
-        '''
-        stmt = select(cls).where(cls.adm_enum == adm_enum)
-        try:
-            if session:
-                result = await session.execute(stmt)
-            else:
-                async with get_async_session() as session:
-                    result = await session.execute(stmt)
-        except exc.SQLAlchemyError as e:
-            logger.error(f"ADM::get SQLAlchemyError: {str(e.args)}")
-            return None
-
-        adm_row = result.scalar_one_or_none()
-        return adm_row
 
 
 class ObjMetadata(Model):
     __tablename__ = 'vw_obj_metadata'
     obj_metadata_id = Column(Integer, primary_key=True)
     data_type_id = Column(Integer)
-    obj_name = Column(String)
-    namespace_id = Column(Integer)
-    adm_name = Column(String)
-    adm_enum = Column(Integer)
-    adm_enum_label = Column(String)
+    name = Column(String)
+    data_model_id = Column(Integer)
+    data_model_name = Column(String)
+    enumeration = Column(Integer)
+    namespace_type = Column(String)
     use_desc = Column(String)
 
     def __repr__(self) -> str:

@@ -32,7 +32,7 @@ from anms.routes.adms.adm_compare import (AdmCompare)
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
 from unittest.mock import (patch, MagicMock, AsyncMock, PropertyMock)
-from anms.components.schemas.adm import NamespaceViewSchema
+from anms.components.schemas.adm import DataModelSchema
 
 from fastapi import File, UploadFile, Request
 
@@ -57,18 +57,19 @@ class MockAdmFile:
 
 class TestAdm:
     @pytest.mark.anyio
-    @patch('anms.routes.adms.adm.NamespaceView', new_callable=AsyncMock)
-    async def test_getall(self, mock_namespace_view):
+    @patch('anms.routes.adms.adm.DataModel', new_callable=AsyncMock)
+    async def test_getall(self, mock_datamodel_view):
         '''
         This only test the flow of the getall function.
         The actual execution is not tested due to no access to database
         '''
+
         #This mock the getall method of Adm that is used inside the getall function
         mock_result = [
-            NamespaceViewSchema(adm_enum=1, adm_name="amp", 
-                name_string="amp/agent", version_name="v3.1", use_des="view result")
+            DataModelSchema(data_model_id=0, enumeration=1, name="dtnma-agent",  
+                 version_name="v3.1", namespace_type='adm', use_des="Updated for latest ADM document.")
         ]
-        mock_namespace_view.getall.return_value = mock_result
+        mock_datamodel_view.getall.return_value = mock_result
         res = await getall()
         '''
             Ideally, the res is a JSONResponse object. Yet, fastapi
@@ -78,7 +79,7 @@ class TestAdm:
         assert res == mock_result
 
     @pytest.mark.anyio
-    @patch('anms.routes.adms.adm.NamespaceView', new_callable=AsyncMock)
+    @patch('anms.routes.adms.adm.DataModel', new_callable=AsyncMock)
     async def test_getall_empty(self, mock_adm):
         '''
         This test the result when there is no data or the function is failed

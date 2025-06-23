@@ -42,16 +42,16 @@ def get_adms():
     return LOCALDATA.adms
 
 
-def _adm_reload(adm_name):
+def _adm_reload(data_model_name):
     with get_session() as db_conn:
-        if adm_name:
-            LOGGER.info('Reloading one ADM: %s', adm_name)
+        if data_model_name:
+            LOGGER.info('Reloading one ADM: %s', data_model_name)
             curs = db_conn.execute('''\
-SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+SELECT adm.data_model_name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
-WHERE adm_name = ?
-''', [adm_name])
+INNER JOIN adm ON adm_data.enumeration = adm.enumeration
+WHERE data_model_name = ?
+''', [data_model_name])
             for row in curs.all():
                 _handle_adm(*row)
 
@@ -59,16 +59,16 @@ WHERE adm_name = ?
             LOGGER.info('Reloading all ADMS...')
 
             curs = db_conn.execute('''\
-SELECT adm.adm_name, adm_data.updated_at, adm_data.data
+SELECT adm.data_model_name, adm_data.updated_at, adm_data.data
 FROM adm_data 
-INNER JOIN adm ON adm_data.adm_enum = adm.adm_enum
+INNER JOIN adm ON adm_data.enumeration = adm.enumeration
 ''')
             for row in curs.all():
                 _handle_adm(*row)
 
     LOGGER.info('ADMS present for: %s', LOCALDATA.adms.names())
                 
-def _handle_adm(adm_name, timestamp, data):
-    LOGGER.info('Handling ADM: %s', adm_name)
+def _handle_adm(data_model_name, timestamp, data):
+    LOGGER.info('Handling ADM: %s', data_model_name)
     LOCALDATA.adms.load_from_data(io.BytesIO(data))
     LOGGER.info('Handling finished')
