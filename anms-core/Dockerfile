@@ -39,7 +39,7 @@ COPY anms ${APP_WORK_DIR}/anms
 RUN ${PIP} install ${APP_WORK_DIR}
 
 RUN mkdir -p /usr/local/share/ace && \
-    cp -R /usr/src/dtnma-ace/tests/adms /usr/local/share/ace/adms
+    cp -R /usr/src/dtnma-adms /usr/local/share/ace/adms
 COPY anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
 
 RUN setcap cap_net_raw=ep /usr/bin/ping

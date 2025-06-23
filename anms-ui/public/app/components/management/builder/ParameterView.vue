@@ -68,7 +68,11 @@ export default {
   components: {
     vSelect,
   },
+<<<<<<< HEAD
   props: ["ariKey", "ACs", "agentModal"],
+=======
+  props: ["ariKey", "ACs", "nonce"],
+>>>>>>> origin/main
   data() {
     return {
       parameters: [],
@@ -214,11 +218,19 @@ export default {
             testResult +
             ")";
              // if using in agentModal adding 	ari:/EXECSET/ portion 
+<<<<<<< HEAD
           if(this.agentModal){
             // correlator_nonce
             // TODO currently random mayube make it increment or a choice
             let nonce = Math.floor(Math.random() * 99999) + 1;
             this.finResultStr = 	"ari:/EXECSET/n=" + nonce + ";(" + this.finResultStr +")";
+=======
+          if(typeof this.nonce !== 'undefined'){
+            // correlator_nonc
+            // TODO currently random mayube make it increment or a choice
+            // let nonce = Math.floor(Math.random() * 99999) + 1;
+            this.finResultStr = 	"ari:/EXECSET/n=" + this.nonce + ";(" + this.finResultStr +")";
+>>>>>>> origin/main
           }
           this.$emit("updateResult", [{ type: "ARI", value: this.finResultStr }]);
           this.finResult = this.finResultBase;

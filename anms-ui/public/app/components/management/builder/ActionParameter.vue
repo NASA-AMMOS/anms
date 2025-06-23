@@ -66,14 +66,24 @@ export default {
       this.addToList();
     },
     addToList: function () {
+<<<<<<< HEAD
+=======
+      if(this.ac.length >= this.count){
+        this.ac.pop();
+      }
+>>>>>>> origin/main
 
       if (this.ariKey != null) {
         this.ac.push(this.ariKey)
       }
+<<<<<<< HEAD
 
       if(this.ac.length > this.count){
         this.ac.pop();
       }
+=======
+      
+>>>>>>> origin/main
       this.ariKey = null;
       this.createAC();
     },

@@ -44,7 +44,7 @@
 <script>
 import api from "../../../shared/api.js";
 import Build from "../builder/Build.vue";
-import toastr from "toastr"
+import toastr from "toastr";
 export default {
   name: "AgentsManageModal",
   components: { Build },
