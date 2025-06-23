@@ -9,3 +9,6 @@
 [submodule "deps/dtnma-camp"]
 	path = deps/dtnma-camp
 	url = https://github.com/JHUAPL-DTNMA/dtnma-camp.git
+[submodule "deps/dtnma-adms"]
+	path = deps/dtnma-adms
+	url = https://github.com/JHUAPL-DTNMA/dtnma-adms.git
