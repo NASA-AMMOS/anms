@@ -45,7 +45,7 @@
     try {
       // /transcoder/ui/incoming/str
       const reqBody = req.body;
-      const params = {'ari': req.body.ari};
+      const params = {'input_ari': req.body.ari};
       const url = utils.generateAnmsCoreUrl(['transcoder','ui','incoming','str'],params);
       const uri = await axios.put(url);
       return res.status(200).json(uri.data);

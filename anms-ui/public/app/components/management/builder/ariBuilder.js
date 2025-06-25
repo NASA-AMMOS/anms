@@ -23,12 +23,10 @@ import collect from "collect.js";
 import api from "../../../shared/api";
 import ActionParameter from "./ActionParameter";
 import prim_parameter from "./primParameter.vue";
-import TypeNameValueCollectionParameter from "./TypeNameValueCollectionParameter.vue";
 import ExpressionParameter from "./ExprParameter.vue";
 
 export default {
     components: {
-        TypeNameValueCollectionParameter,
         prim_parameter,
         ActionParameter,
         ExpressionParameter,

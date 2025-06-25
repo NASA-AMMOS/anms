@@ -20,17 +20,6 @@
         </div>
       </b-form-group>
       <b-form-group>
-        <div v-for="(parameter, index) in tnvcParameters">
-          <component v-bind:is="parameter.type"
-            :listComponents="parameter.parameter.listComponents"
-            :type="parameter.parameter.type"
-            :types="parameter.parameter.types"
-            :name="parameter.parameter.name"
-            :result="parameter.parameter.result"
-            :index="parameter.parameter.index"
-            :key="index"
-            @updateResult="updateResults($event)"></component>
-        </div>
         <div v-for="(parameter, index) in exprParameters">
           <component v-bind:is="parameter.type"
             :listComponents="ACs"
@@ -78,7 +67,6 @@ export default {
       description: "",
       primParameters: [],
       actionParameters: [],
-      tnvcParameters: [],
       exprParameters: [],
     };
   },
@@ -97,7 +85,6 @@ export default {
         this.finResult = response[2];
         this.finResultBase = this.finResult;
         this.primParameters = this.getParametersByType("prim");
-        this.tnvcParameters = this.getParametersByType("TypeNameValueCollectionParameter");
         this.exprParameters = this.getParametersByType("ExpressionParameter");
         this.actionParameters = this.getParametersByType("ActionParameter");
       });
@@ -116,6 +103,7 @@ export default {
       this.submitCommand();
     },
     submitCommand() {
+    
       let testResult = [];
       if (this.ariKey.actual) {
         this.$emit("updateResult", [{ type: "/ARITYPE/OBJECT", value: this.ariKey.display }]);

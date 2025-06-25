@@ -16,7 +16,7 @@
         value="-1">-- Select Sent Reports --</b-form-select-option>
       <b-form-select-option v-for="rpt, index in rptts"
         :key="index"
-        :value="index">{{ decodeURI(rpt) }}</b-form-select-option>
+        :value="index">{{ rpt }}</b-form-select-option>
     </b-form-select>
     <b-table sticky-header
       hover

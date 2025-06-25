@@ -46,7 +46,8 @@
           </div>
           <v-select v-model="ariKey"
             label="display"
-            :options="ARIs"></v-select>
+            :options="ARIs" 
+            :clearSearchOnSelect="false"></v-select>
           <ParameterView v-if="ariKey"
             :ariKey="ariKey"
             :ACs="ARIs"
@@ -79,7 +80,9 @@ import vSelect from "vue-select";
 import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 import Transcoder from "./transcoder.vue";
-import { ToggleButton } from 'vue-js-toggle-button'
+import { ToggleButton } from 'vue-js-toggle-button';
+import toastr from "toastr";
+
 
 Vue.component('ToggleButton', ToggleButton)
 
@@ -165,11 +168,16 @@ export default {
         .apiPutTranscodedString(inputString)
         .then((response) => {
           this.finResultCbor = response.data
+          console.log(response)
+          this.results = response.data.status
+          toastr.success(`${response.data.status}, 'Transcoder Log Id: ${response.data.id}`);
+
         })
         .catch((error) => {
           console.error(error);
           this.errored = true;
           this.results = "error translating " + error;
+          toastr.error(`${this.results}`);
         })
         .finally(() => (this.loading = false));
       this.finResultStr = inputString;
