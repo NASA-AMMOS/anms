@@ -30,6 +30,7 @@ from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
 from io import StringIO
+from urllib.parse import unquote
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session, get_session
@@ -133,9 +134,9 @@ async def report_ac(agent_id: str, correlator_nonce: int):
             if match:
                 # report entries 
                 rpt_entr = match.group(1)
-                addition.extend(rpt_entr.split(";"))
+                addition.extend(unquote(rpt_entr).split(";"))
             else:
-                addition.append(rpt_set)
+                addition.append(unquote(rpt_set))
             
             if addition not in final_res:
                 final_res.append(addition)

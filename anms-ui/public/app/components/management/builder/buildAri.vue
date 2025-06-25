@@ -46,7 +46,8 @@
           </div>
           <v-select v-model="ariKey"
             label="display"
-            :options="ARIs"></v-select>
+            :options="ARIs" 
+            :clearSearchOnSelect="false"></v-select>
           <ParameterView v-if="ariKey"
             :ariKey="ariKey"
             :ACs="ARIs"
@@ -167,8 +168,9 @@ export default {
         .apiPutTranscodedString(inputString)
         .then((response) => {
           this.finResultCbor = response.data
-          this.results = response.status
-          toastr.success(`${response.status}, 'Transcoder Log Id: ${response.data}`);
+          console.log(response)
+          this.results = response.data.status
+          toastr.success(`${response.data.status}, 'Transcoder Log Id: ${response.data.id}`);
 
         })
         .catch((error) => {

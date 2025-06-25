@@ -7,7 +7,8 @@
         <v-select v-model="ariKey"
           label="display"
           :options="listComponents"
-          @input="addToList">
+          @input="addToList"
+          :clearSearchOnSelect="false">
           <template v-slot:no-options="{ search, searching }">
             <template v-if="searching">
               <b-button @click="addARI(search)">Add ARI</b-button>
@@ -66,24 +67,14 @@ export default {
       this.addToList();
     },
     addToList: function () {
-<<<<<<< HEAD
-=======
       if(this.ac.length >= this.count){
         this.ac.pop();
       }
->>>>>>> origin/main
 
       if (this.ariKey != null) {
         this.ac.push(this.ariKey)
       }
-<<<<<<< HEAD
-
-      if(this.ac.length > this.count){
-        this.ac.pop();
-      }
-=======
       
->>>>>>> origin/main
       this.ariKey = null;
       this.createAC();
     },

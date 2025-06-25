@@ -100,8 +100,6 @@
       }
       let requestUrl = utils.generateAnmsCoreUrl(["adms"]);
       console.info("Upload requestUrl: ", requestUrl);
-      // console.info("File originalname:", file.originalname);
-      // console.info("File buffer:", file.buffer);
      
       const formData = new FormData();
       //Reference: https://maximorlov.com/send-a-file-with-axios-in-nodejs/

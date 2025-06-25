@@ -33,11 +33,7 @@
           @change="updateResults"/>
           </div>
         <v-select v-model="ariKey" label="display" :options="ARIs" ></v-select>
-<<<<<<< HEAD
-        <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" :agentModal="agentModal" @updateResult="updateResults($event)"></ParameterView>
-=======
         <ParameterView v-if="ariKey" :ariKey="ariKey" :ACs="ARIs" :nonce="correlator_nonce" @updateResult="updateResults($event)"></ParameterView>
->>>>>>> origin/main
       </template>
     </div>
   </div>

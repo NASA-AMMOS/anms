@@ -126,7 +126,15 @@ export default {
         .then((response) => {
           if (response.data.parsed_as == "pending") {
             setTimeout(() => this.queryTranscoderLog(), 8000);
-          } else {
+          } else if(response.data.parsed_as == "ERROR") {
+            console.log(`Error translating transcoder log ID: ${this.transcoderLogId}! See transcoder log table for details`);
+            toastr.error(`Error translating transcoder log ID: ${this.transcoderLogId}! See transcoder log table for details`);
+            this.loading = false;
+            this.closeModal();
+            this.ariCBOR = null;
+            this.ariString=null;
+           } 
+          else {
             this.ariCBOR = response.data.cbor;
             this.submitRawCommand2Agents();
           }
