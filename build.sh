@@ -40,9 +40,9 @@ mkdir -p anms-ui/data
 
 echo "Running image build"
 declare -A BASEIMGS=(
-    [anms-base]=". -f base.Dockerfile --target anms-base"
-    [anms-init]=". -f base.Dockerfile --target anms-init"
-    [dtnma-acelib]=". -f base.Dockerfile --target dtnma-acelib"
+    [localhost/anms-base]=". -f base.Dockerfile --target anms-base"
+    [localhost/anms-init]=". -f base.Dockerfile --target anms-init"
+    [localhost/dtnma-acelib]=". -f base.Dockerfile --target dtnma-acelib"
 )
 declare -A IMAGES=(
     [authnz]=""
@@ -109,13 +109,6 @@ for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
     docker compose ${!OPTS_NAME} up --detach
 done
 
-if true; then
-    # Restart ducts to cache DNS name resolution after containers are up
-    for CTR in ion-manager ion-agent2 ion-agent3; do
-        docker exec ${CTR} ion_restart_ducts
-    done
-fi
-
 if [ "$1" = "check" ]
 then
     # The longest "--start-period" of all container HEALTHCHECK
@@ -123,9 +116,9 @@ then
 
     TMPFILE=$(mktemp)
     for OPTS_NAME in ANMS_COMPOSE_OPTS AGENT_COMPOSE_OPTS; do
-    for BADSTATUS in stopped restarting; do
+        for BADSTATUS in stopped restarting; do
             docker compose ${!OPTS_NAME} ps --services --filter status=${BADSTATUS} | tee -a "${TMPFILE}"
-    done
+        done
     done
     # Show hints at what may be wrong
     for SERVNAME in $(cat "${TMPFILE}"); do
@@ -136,7 +129,7 @@ then
     rm "${TMPFILE}"
 
     # ION connectivity test
-    docker exec ion-manager ion_ping_peers 1 2 3
+    docker compose -p anms exec -T ion-manager ion_ping_peers 1 2 3
 fi
 
 # If 'tar' was passed as a cmd line argument, stop the containers and tar up the images
