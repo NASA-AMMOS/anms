@@ -98,6 +98,7 @@ async def transcoder_put_cbor_await(cbor: str):
     transcoder_log_id = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter(or_(TranscoderLog.input_string==cbor, TranscoderLog.cbor==cbor)).first()
+
         if curr_uri is None:
             c1 = TranscoderLog(input_string=cbor, parsed_as='pending')
             session.add(c1)
@@ -120,12 +121,12 @@ async def transcoder_put_cbor_await(cbor: str):
     while True:
         with get_session() as session:
             curr_uri = TranscoderLog.query.filter_by(TranscoderLog.transcoder_log_id==transcoder_log_id).first()
-        if curr_uri.parsed_as == "CBOR":
-            curr_uri = curr_uri.uri
-            break
-        if curr_uri.parsed_as == "ERROR":
-            curr_uri = "ARI://BADARI"
-            break
+            if curr_uri.parsed_as != "pending":
+                if curr_uri.parsed_as == "ERROR":
+                    curr_uri = "ARI://BADARI"
+                else:
+                    curr_uri = curr_uri.uri
+                break
         time.sleep(1)
 
 
@@ -133,13 +134,14 @@ async def transcoder_put_cbor_await(cbor: str):
 
 # PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
 @router.get("/ui/incoming/await/str", status_code=status.HTTP_200_OK)
-def transcoder_put_await_str(input_ari: str):
+async def transcoder_put_await_str(input_ari: str):
     input_ari = input_ari.strip()
     msg = json.dumps({"uri": input_ari})
     transcoder_log_id = None
+    curr_uri = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter(or_(TranscoderLog.input_string==input_ari,TranscoderLog.ari==input_ari, TranscoderLog.cbor==input_ari)).first()
-
+        
         if curr_uri is None:
             c1 = TranscoderLog(input_string=input_ari, parsed_as='pending')
             session.add(c1)
@@ -151,21 +153,25 @@ def transcoder_put_await_str(input_ari: str):
             MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
         else:
             transcoder_log_id = curr_uri.transcoder_log_id
+            if curr_uri.parsed_as != "pending":
+                if curr_uri.parsed_as == "ERROR":
+                    curr_uri = "ARI://BADARI"
+                else:
+                    curr_uri = curr_uri.uri
+                return  {"data": curr_uri}
+            
 
     
     while(True):
         with get_session() as session:
             curr_uri = TranscoderLog.query.filter_by(transcoder_log_id=transcoder_log_id).first()
-        if curr_uri.parsed_as == "URI":
-            curr_uri = curr_uri.uri
-            break
-        if curr_uri.parsed_as == "CBOR":
-            curr_uri = curr_uri.uri
-            break
-        if curr_uri.parsed_as == "ERROR":
-            curr_uri = "ARI://BADARI"
-            break
-        time.sleep(1)
+            if curr_uri.parsed_as != "pending":
+                if curr_uri.parsed_as == "ERROR":
+                    curr_uri = "ARI://BADARI"
+                else:
+                    curr_uri = curr_uri.uri
+                break
+            time.sleep(1)
 
 
     return  {"data": curr_uri}
@@ -173,7 +179,7 @@ def transcoder_put_await_str(input_ari: str):
 
 # PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
 @router.put("/ui/incoming/str", status_code=status.HTTP_200_OK)
-def transcoder_put_str(input_ari: str):
+async def transcoder_put_str(input_ari: str):
     input_ari = input_ari.strip()
     msg = json.dumps({"uri": input_ari})
     transcoder_log_id = None
