@@ -116,7 +116,6 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                 in_bytes = ace.cborutil.from_hexstr(in_text)
                 dec = ace.ari_cbor.Decoder()
                 ari = dec.decode(io.BytesIO(in_bytes))
-                ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN,  ace.AdmSet(cache_dir=False).db_session(), False)(ari)
                 
             except Exception as err:
                 logger.info(err)
@@ -161,7 +160,7 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                 in_bytes = ace.cborutil.from_hexstr(in_text)
                 dec = ace.ari_cbor.Decoder()
                 ari = dec.decode(io.BytesIO(in_bytes))
-                ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN,  ace.AdmSet(cache_dir=False).db_session(), False)(ari)
+
             except Exception as err:
                 logger.error(err)
                 
