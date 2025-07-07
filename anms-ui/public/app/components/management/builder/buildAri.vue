@@ -69,7 +69,6 @@
     <div>
       <Transcoder ref="transcoder"></Transcoder>
     </div>
-
   </div>
 </template>
 
@@ -181,7 +180,11 @@ export default {
         })
         .finally(() => (this.loading = false));
       this.finResultStr = inputString;
-      this.$refs.transcoder.reloadTranscoderLog();
+      let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+      // allow time for the ARI to be added to the DB
+      sleep(200).then(() => {
+        this.$refs.transcoder.reloadTranscoderLog();
+      });
     },
     updateResults: function (result) {
       let head = result[0].value.includes("ari") ? "" : "ari://";

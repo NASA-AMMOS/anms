@@ -24,6 +24,7 @@
                 @click="handlePageChange(1)">
                 Search
               </button>
+              <button class="btn btn-outline-secondary" @click="reloadTranscoderLog()"><font-awesome-icon icon="sync-alt" /> &#x21bb;</button>
             </div>
           </div>
           <div class="b-table">
@@ -46,7 +47,6 @@
               </template>
             </b-table>
             <div class="d-flex float-right">
-              <button @click="reloadTranscoderLog()"><font-awesome-icon icon="sync-alt" /> &#x21bb;</button>
               <div class="my-2 mx-3">
                 Items per Page:
                 <select v-model="pageSize"
