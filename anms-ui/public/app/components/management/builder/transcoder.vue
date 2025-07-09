@@ -89,7 +89,7 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
 
 export default {
   name: "Transcoder",
@@ -128,7 +128,7 @@ export default {
     }),
   selectedLogs() {
       return this.currentTranscoderLogs.filter((log) => {
-        return log.selected == true;
+        return log.selected;
       });
     },
   },
@@ -146,7 +146,6 @@ export default {
         params: { cbor: cbor },
       });
     },
-    // TODO
     getLogIndexById(logId) {
       return this.currentTranscoderLogs.findIndex(log => log.transcoder_log_id === logId);
     },
