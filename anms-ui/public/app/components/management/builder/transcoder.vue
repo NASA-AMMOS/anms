@@ -71,6 +71,7 @@
                   </option>
                 </select>
               </div>
+              
               <b-pagination v-model="page"
                 class="m-0"
                 :total-rows="count"
@@ -171,8 +172,8 @@ export default {
     },
     handlePageChange(value) {
       const vm = this;
-      vm.setPage(value);
       vm.reloadTranscoderLog();
+      vm.setPage(value);
     },
     handlePageSizeChange(event) {
       const vm = this;
