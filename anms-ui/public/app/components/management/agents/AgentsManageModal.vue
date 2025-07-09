@@ -25,7 +25,7 @@
             </div>
             <b-button block
               variant="outline-success"
-              :disabled="this.loading"
+              :disabled="!this.ready"
               @click="submitTranscodedString">
               <b-spinner v-if="this.loading"
                 small
@@ -54,6 +54,7 @@ export default {
       ariCBOR: undefined,
       sendButtonText: "Send",
       loading: false,
+      ready: false,
       transcoderLogId: undefined,
     }
   },
@@ -69,7 +70,12 @@ export default {
     cbor: {
       type: String,
       default: undefined
+    },
+    cbors: {
+      type: Array,
+      default: []
     }
+
   },
   watch: {
     showModal(newValue, _) {
@@ -80,6 +86,12 @@ export default {
   },
   methods: {
     show() {
+      this.ready = false;
+      // if cbors set set cbor to the string version for display
+      if(this.cbors.length > 0){
+        let cbor_string = this.cbors.map(item => item.uri); 
+        this.cbor = cbor_string.join(', ');
+      }
       this.$refs['manageAgentModal'].show();
     },
     closeModal() {
@@ -91,19 +103,25 @@ export default {
     updateResults(result) {
       if(result.startsWith("0x")){
         this.ariCBOR = result;
-        // submitRawCommand2Agents();
-        
       }else{
         this.ariString = result;
-        // submitTranscodedString();
       }
-      
+      this.ready = true;
     },
     submitTranscodedString() {
       this.loading = true;
       this.sendButtonText = "Submitting ARI String";
+      //if cbors set send each cbor in array
+      if(this.cbors.length > 0){
+        this.cbors.forEach(cbor => {
+          this.loading = true;
+          this.sendButtonText = "Submitting ARI String";
+          this.ariCBOR = cbor.cbor;
+          this.submitRawCommand2Agents();
+        });
+      }
       // short circuit submitting command if already cbor 
-      if(this.ariCBOR){
+      else if(this.ariCBOR){
         this.submitRawCommand2Agents();
       }
       else{
@@ -117,6 +135,7 @@ export default {
           .catch((error) => {
             console.error(error);
             toastr.error(error.response.data);
+            this.afterError();
           });
       }
     },
@@ -129,10 +148,7 @@ export default {
           } else if(response.data.parsed_as == "ERROR") {
             console.log(`Error translating transcoder log ID: ${this.transcoderLogId}! See transcoder log table for details`);
             toastr.error(`Error translating transcoder log ID: ${this.transcoderLogId}! See transcoder log table for details`);
-            this.loading = false;
-            this.closeModal();
-            this.ariCBOR = null;
-            this.ariString=null;
+            this.afterError();
            } 
           else {
             this.ariCBOR = response.data.cbor;
@@ -142,7 +158,16 @@ export default {
         .catch((error) => {
           console.log(error);
           toastr.error(error.response.data);
+          this.afterError();
         });
+    },
+    afterError(){
+      this.loading = false;
+      this.sendButtonText = "Submit";
+      this.ready = false;
+      this.ariCBOR = null;
+      this.ariString=null;
+      this.closeModal();
     },
     submitRawCommand2Agents() {
       this.sendButtonText = "Sending ARI CBOR to Agent(s)";
@@ -159,10 +184,7 @@ export default {
             toastr.error(error.response.data);
           })
       });
-      this.loading = false;
-      this.closeModal();
-      this.ariCBOR = null;
-      this.ariString=null;
+    this.afterError();
     },
   },
 }

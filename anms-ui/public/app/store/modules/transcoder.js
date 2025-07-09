@@ -62,9 +62,11 @@ export default {
       const params = { 'searchString': state.searchString, 'page': state.page, 'size': state.pageSize }
       api.methods.apiQueryForTranscoderLog(params)
         .then(res => {
-          commit('TranscoderLogs', res.data.items);
+          let transcode_logs = res.data.items;
+          Object.defineProperty(transcode_logs, 'selected',  { value: false, enumerable: true }); 
+          commit('TranscoderLogs', transcode_logs);
           commit('count' , res.data.total);
-                     
+                
             commit('loading', false);
           
         }).catch( error => {
@@ -74,6 +76,11 @@ export default {
           
             commit('loading', false);
         });
+    },
+    updateEntry({ state, commit }, {transcoderIndex, log}) {
+      var TranscoderLogs = state.TranscoderLogs.slice();
+      TranscoderLogs[transcoderIndex] = log;
+      commit('TranscoderLogs', TranscoderLogs);
     },
     setPage({state}, page){
       Vue.set(state, 'page', page);

@@ -167,7 +167,6 @@ export default {
         .apiPutTranscodedString(inputString)
         .then((response) => {
           this.finResultCbor = response.data
-          console.log(response)
           this.results = response.data.status
           toastr.success(`${response.data.status}, 'Transcoder Log Id: ${response.data.id}`);
 

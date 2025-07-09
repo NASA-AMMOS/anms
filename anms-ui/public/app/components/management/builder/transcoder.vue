@@ -24,11 +24,11 @@
                 @click="handlePageChange(1)">
                 Search
               </button>
-              <button class="btn btn-outline-secondary" @click="reloadTranscoderLog()"><font-awesome-icon icon="sync-alt" /> &#x21bb;</button>
+              <button class="btn btn-outline-secondary" @click="reloadTranscoderLog()" data-toggle="tooltip" data-placement="top" title="Refresh Transcoder Log Table!"> &#x21bb;</button>
             </div>
           </div>
           <div class="b-table">
-            <p>Select CBOR to send to Agents tab</p>
+            <p>Select CBOR(s) to send to Agents tab</p>
             <b-table scr
               id="transcoder-table"
               :items="currentTranscoderLogs"
@@ -38,6 +38,11 @@
               bordered
               :sort-by.sync="sortField"
               :sort-desc.sync="sortDesc">
+              <template #cell(selected)="{ item }">
+                <div style="text-align: center;">
+                    <b-form-checkbox :checked="item.selected"  @change="selectTranscoderLog($event, item)"></b-form-checkbox>
+                </div>
+              </template>
               <template #cell(cbor)="{ item }">
                 <h5 v-b-tooltip.hover
                   title="send to agents page"
@@ -46,7 +51,15 @@
                 </h5>
               </template>
             </b-table>
+            
             <div class="d-flex float-right">
+              <div>
+              <button class="btn btn-outline-secondary"
+                type="button"
+                @click="sendTranscoderCodeSelected()">
+                Send to Agents
+              </button>
+            </div>
               <div class="my-2 mx-3">
                 Items per Page:
                 <select v-model="pageSize"
@@ -58,7 +71,6 @@
                   </option>
                 </select>
               </div>
-              
               <b-pagination v-model="page"
                 class="m-0"
                 :total-rows="count"
@@ -83,25 +95,25 @@ export default {
   data() {
     return {
       fields: [
-        { key: "transcoder_log_id", sortable: true }, { key: "input_string", sortable: true }, { key: "parsed_as", sortable: true }, { key: "cbor", sortable: false }, { key: "ari", sortable: false }, { key: "uri", sortable: false },
+        { key: "selected", label: "", sortable: false }, {key: "transcoder_log_id", sortable: true }, { key: "input_string", sortable: true }, { key: "parsed_as", sortable: true }, { key: "cbor", sortable: false }, { key: "ari", sortable: false }, { key: "uri", sortable: false },
       ],
       nodeMan: null,
       node: null,
       info: null,
       results: "",
       resultsAdd: "",
-      data1: { data: "" },
       raw: "",
       loading: true,
       errored: false,
       pageSizes: [5, 10, 20, 50, 100],
-      selected: null,
       sortField: "",
       sortDesc: false,
+      selected_cbors:[]
     };
   },
   mounted() {
     const vm = this;
+    vm.selected_cbors = [];
     vm.reloadTranscoderLog();
   },
   computed: {
@@ -113,6 +125,11 @@ export default {
       searchString: "searchString",
       serviceLoading: "loading",
     }),
+  selectedLogs() {
+      return this.currentTranscoderLogs.filter((log) => {
+        return log.selected == true;
+      });
+    },
   },
   methods: {
     ...mapActions("transcoder", {
@@ -120,6 +137,7 @@ export default {
       setPage: "setPage",
       setPageSize: "setPageSize",
       setSearchString: "setSearchString",
+      updateEntry: "updateEntry",
     }),
     sendTranscoderCode(cbor) {
       this.$router.push({
@@ -127,10 +145,34 @@ export default {
         params: { cbor: cbor },
       });
     },
+    // TODO
+    getLogIndexById(logId) {
+      return this.currentTranscoderLogs.findIndex(log => log.transcoder_log_id === logId);
+    },
+    selectTranscoderLog(event, entry) {
+      if (entry && event != entry.selected) {
+        let entryUpdated = { ...entry };
+        let entryIndex = this.getLogIndexById(entryUpdated.transcoder_log_id);
+        entryUpdated.selected = event;
+        this.updateEntry({ entryIndex, entry: entryUpdated });
+        if(event){ // event true means add to list 
+          this.selected_cbors.push(entry)
+        }else{ // else it needs to be removed from list 
+          this.selected_cbors = this.selected_cbors.filter(obj => ![entryUpdated.transcoder_log_id].includes(obj.transcoder_log_id));
+        }
+
+      }
+    },
+    sendTranscoderCodeSelected(){
+      this.$router.push({
+        name: "Agents CBORs",
+        params: { cbors: this.selected_cbors },
+      });
+    },
     handlePageChange(value) {
       const vm = this;
-      vm.reloadTranscoderLog();
       vm.setPage(value);
+      vm.reloadTranscoderLog();
     },
     handlePageSizeChange(event) {
       const vm = this;

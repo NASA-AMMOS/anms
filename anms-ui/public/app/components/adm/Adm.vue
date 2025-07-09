@@ -4,9 +4,9 @@
       <table class="table table-striped table-hover table-bordered table-sm text-center">
         <thead class="table-dark">
           <tr>
-            <th class="text-info">Enum</th>
-            <th class="text-info">Adm Name</th>
-            <th class="text-info">Name String</th>
+            <th class="text-info">enumeration</th>
+            <th class="text-info">Name</th>
+            <th class="text-info">Namespace</th>
             <th class="text-info">Version</th>
             <th class="text-info">Use Description</th>
           </tr>
@@ -14,10 +14,10 @@
         <tbody>
           <template v-for="(adm, index) in adms">
             <tr :key="index">
-              <td>{{ adm.adm_enum }}</td>
+              <td>{{ adm.enumeration }}</td>
               <td v-b-tooltip.hover
-                  title="Download ADM JSON" @click="download(adm)" ><b>{{ adm.data_model_name }}</b></td>
-              <td>{{ adm.name_string }}</td>
+                  title="Download ADM YANG" @click="download(adm)" ><b>{{ adm.name }}</b></td>
+              <td>{{ adm.namespace }}</td>
               <td>{{ adm.version_name }}</td>
               <td>{{ adm.use_desc }}</td>
             </tr>
@@ -118,20 +118,21 @@ export default {
     }),
     download(adm){
       let json  = {};
-      api_adm.apiGetAdm(adm.adm_enum).then(res => {
+      api_adm.apiGetAdm(adm.enumeration, adm.namespace).then(res => {
         json= res.data;
         const jsonData = json;
         const blob = new Blob([jsonData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = adm.data_model_name +".json";
+        link.download = adm.name +".yang";
         link.click();
         URL.revokeObjectURL(url);
       })
       .catch(function (error) {
           console.error("No ADM to downlaod ")
           console.error(error)
+          toastr.error(("No ADM to downlaod "))
       });
     },
     async uploadAdms() {
