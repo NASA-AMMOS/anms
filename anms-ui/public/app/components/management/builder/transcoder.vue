@@ -7,7 +7,7 @@
           type="grow"></b-spinner>
       </div>
     </template>
-    <template v-if="!serviceLoading">
+    <template v-if="!serviceLoading"> 
       <b-row>
         <b-col offset="2"
           cols="8">
@@ -24,6 +24,7 @@
                 @click="handlePageChange(1)">
                 Search
               </button>
+              <button class="btn btn-outline-secondary" @click="reloadTranscoderLog()"><font-awesome-icon icon="sync-alt" /> &#x21bb;</button>
             </div>
           </div>
           <div class="b-table">
@@ -57,6 +58,7 @@
                   </option>
                 </select>
               </div>
+              
               <b-pagination v-model="page"
                 class="m-0"
                 :total-rows="count"
@@ -66,14 +68,15 @@
             </div>
           </div>
         </b-col>
+        <br/>
       </b-row>
-    </template>
+    </template>    
   </div>
 </template>
 
 <script>
 import { mapGetters, mapActions } from "vuex";
-import { status_refresh_rate } from '@app/shared/constants';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 export default {
   name: "Transcoder",
@@ -93,7 +96,6 @@ export default {
       errored: false,
       pageSizes: [5, 10, 20, 50, 100],
       selected: null,
-      transcoderWorkerId: "",
       sortField: "",
       sortDesc: false,
     };
@@ -101,14 +103,6 @@ export default {
   mounted() {
     const vm = this;
     vm.reloadTranscoderLog();
-    vm.transcoderWorkerId = setInterval(() => {
-      console.log("Calling schedule transcoder Log refresh in App");
-      vm.reloadTranscoderLog();
-    }, status_refresh_rate);
-  },
-  beforeDestroy() {
-    console.log("Clearing interval with id:", this.transcoderWorkerId);
-    clearInterval(this.transcoderWorkerId);
   },
   computed: {
     ...mapGetters("transcoder", {
@@ -135,8 +129,8 @@ export default {
     },
     handlePageChange(value) {
       const vm = this;
-      vm.setPage(value);
       vm.reloadTranscoderLog();
+      vm.setPage(value);
     },
     handlePageSizeChange(event) {
       const vm = this;
