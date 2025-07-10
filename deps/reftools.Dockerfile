@@ -106,8 +106,6 @@ COPY --chmod=755 dtnma-tools/systemd/service_is_running.sh /usr/local/bin/servic
 # Test tools
 RUN apt-get update && apt-get install -y \
     curl git tshark postgresql-client
-RUN pip3 install --break-system-packages git+https://github.com/JHUAPL-DTNMA/dtnma-ace.git@apl-fy24
-RUN git clone --branch apl-fy24 https://github.com/JHUAPL-DTNMA/dtnma-adms.git /usr/local/share/ace/adms
 
 # REFDA and REFDM to test
 RUN apt-get update && apt-get install -y \
@@ -146,6 +144,7 @@ EXPOSE 8089/tcp
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
     CMD ["service_is_running", "refdm-proxy"]
 
+
 FROM testenv AS ion-manager
 
 # Systemd services
@@ -158,6 +157,8 @@ RUN systemctl enable ion bpecho@4 ion-app-proxy dumpcap && \
 # Runtime config for this container
 COPY dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
 COPY test-ion-configs/mgr.rc etc/ion/
+
+EXPOSE 1113/udp
 EXPOSE 4556/udp
 
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
@@ -180,6 +181,7 @@ COPY test-ion-configs/agent-3.rc /etc/ion/node-3.rc
 # COPY test-ion-configs/agent-2.rc etc/ion/
 # COPY test-ion-configs/agent-3.rc etc/ion/
 
+EXPOSE 1113/udp
 EXPOSE 4556/udp
 
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
