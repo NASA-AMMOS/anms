@@ -37,6 +37,9 @@ networks:
       config:
         - subnet: 10.5.0.0/16
           gateway: 10.5.0.1
+volumes:
+  sockdir: 
+    external: true
 
 services:
   ion-manager:
@@ -54,7 +57,7 @@ services:
       - SYS_NICE
     volumes:
       - "/var/tmp/pcap:/var/log/pcap"
-      - "/run/anms:${SOCKDIR}"
+      - "sockdir:${SOCKDIR}"
     environment:
       container: docker
       DTNMA_LOGLEVEL: debug

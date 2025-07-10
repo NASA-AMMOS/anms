@@ -40,6 +40,8 @@ volumes:
   opensearch: {}
   ammos-tls:
     external: true
+  sockdir:
+    external: true
 
 services:
   builder-base:
@@ -230,7 +232,7 @@ services:
       - NET_RAW
       - SYS_NICE
     volumes:
-      - "/run/anms:${SOCKDIR}"
+      - "sockdir:${SOCKDIR}"
     environment:
       container: docker
       DTNMA_LOGLEVEL: debug
