@@ -33,8 +33,8 @@ const createAuthenticationHeader = () => {
 const apiGetAdms = () => {
     return axios.get(adm_url, {headers: {accept: 'application/json'}})
 };
-const apiGetAdm = (admEnum) => {
-    return axios.get(adm_url+"/"+admEnum )
+const apiGetAdm = (admEnum, namespace) => {
+    return axios.get(adm_url+"/"+admEnum +"/"+namespace)
 };
 
 const apiUpdateAdm = async (file) => {

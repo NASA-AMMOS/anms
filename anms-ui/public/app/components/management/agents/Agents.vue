@@ -93,7 +93,8 @@
     <agents-manage-modal @close="showManageModal = false"
       :showModal="showManageModal"
       :agents="selectedAgents"
-      :cbor="cbor"></agents-manage-modal>
+      :cbor="cbor"
+      :cbors="cbors"></agents-manage-modal>
 
     <footer class="footer">
       <p><a>Amp Version: {{ info }}</a></p>
@@ -150,6 +151,10 @@ export default {
     cbor: {
       type: String,
       default: undefined
+    },
+    cbors: {
+      type: Array,
+      default: []
     }
   },
   mounted() {

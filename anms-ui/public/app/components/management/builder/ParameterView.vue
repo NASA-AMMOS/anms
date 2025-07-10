@@ -203,8 +203,6 @@ export default {
              // if using in agentModal adding 	ari:/EXECSET/ portion 
           if(typeof this.nonce !== 'undefined'){
             // correlator_nonc
-            // TODO currently random mayube make it increment or a choice
-            // let nonce = Math.floor(Math.random() * 99999) + 1;
             this.finResultStr = 	"ari:/EXECSET/n=" + this.nonce + ";(" + this.finResultStr +")";
           }
           this.$emit("updateResult", [{ type: "ARI", value: this.finResultStr }]);

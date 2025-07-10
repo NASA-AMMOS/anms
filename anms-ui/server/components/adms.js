@@ -80,7 +80,10 @@
   exports.getOne = async function (req, res, next) {
     try {
       const adm_enm = req.params.adm_enum;
-      const url = utils.generateAnmsCoreUrl(["adms", adm_enm]);
+      const adm_namespace = req.params.namespace;
+
+      const url = utils.generateAnmsCoreUrl(["adms", adm_enm, adm_namespace]);
+
       const json = await axios.get(url);
       if (json === null) {
         return res.status(404);
