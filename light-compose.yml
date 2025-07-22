@@ -232,11 +232,11 @@ services:
       - NET_RAW
       - SYS_NICE
     volumes:
-      - "sockdir:${SOCKDIR}"
+      - "${HOST_SOCKDIR}:${CTR_SOCKDIR}"
     environment:
       container: docker
       DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}

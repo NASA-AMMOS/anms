@@ -57,11 +57,11 @@ services:
       - SYS_NICE
     volumes:
       - "/var/tmp/pcap:/var/log/pcap"
-      - "sockdir:${SOCKDIR}"
+      - "${HOST_SOCKDIR}:${CTR_SOCKDIR}"
     environment:
       container: docker
       DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${SOCKDIR}/proxy.sock"
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
       ION_NODE_NUM: 1
       MGR_NODE_NUM: 1
       DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
