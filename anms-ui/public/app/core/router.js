@@ -78,6 +78,12 @@ export default new Router({
       name: 'Agents CBOR',
       component: Agents,
       props: true
+    },
+    {
+      path: '/agents/cbors/:cbors',
+      name: 'Agents CBORs',
+      component: Agents,
+      props: true
     },    
     {
       path: '/build',

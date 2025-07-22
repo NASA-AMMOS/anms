@@ -93,7 +93,8 @@
     <agents-manage-modal @close="showManageModal = false"
       :showModal="showManageModal"
       :agents="selectedAgents"
-      :cbor="cbor"></agents-manage-modal>
+      :cbor="cbor"
+      :cbors="cbors"></agents-manage-modal>
 
     <footer class="footer">
       <p><a>Amp Version: {{ info }}</a></p>
@@ -106,6 +107,7 @@ import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 import AgentModal from "./AgentModal.vue";
 import AgentsManageModal from "./AgentsManageModal.vue";
+import toastr from "toastr";
 
 export default {
   name: "Agents",
@@ -149,6 +151,10 @@ export default {
     cbor: {
       type: String,
       default: undefined
+    },
+    cbors: {
+      type: Array,
+      default: []
     }
   },
   mounted() {
@@ -215,9 +221,15 @@ export default {
       nodeList.forEach((node) => {
         api.methods
           .apiPostAgent(node.trim())
-          .then((response) => (this.results = response.status + " " + response.statusText))
+          .then((response) => {
+            this.results = response.status + " " + response.statusText;
+            toastr.success(this.results);
+            
+          })
           .catch((error) => {
             console.error(error);
+            toastr.error(error);
+
           });
       });
     },

@@ -46,7 +46,8 @@
           </div>
           <v-select v-model="ariKey"
             label="display"
-            :options="ARIs"></v-select>
+            :options="ARIs" 
+            :clearSearchOnSelect="false"></v-select>
           <ParameterView v-if="ariKey"
             :ariKey="ariKey"
             :ACs="ARIs"
@@ -68,7 +69,6 @@
     <div>
       <Transcoder ref="transcoder"></Transcoder>
     </div>
-
   </div>
 </template>
 
@@ -79,7 +79,9 @@ import vSelect from "vue-select";
 import { mapGetters, mapActions } from "vuex";
 import api from "../../../shared/api.js";
 import Transcoder from "./transcoder.vue";
-import { ToggleButton } from 'vue-js-toggle-button'
+import { ToggleButton } from 'vue-js-toggle-button';
+import toastr from "toastr";
+
 
 Vue.component('ToggleButton', ToggleButton)
 
@@ -165,15 +167,23 @@ export default {
         .apiPutTranscodedString(inputString)
         .then((response) => {
           this.finResultCbor = response.data
+          this.results = response.data.status
+          toastr.success(`${response.data.status}, 'Transcoder Log Id: ${response.data.id}`);
+
         })
         .catch((error) => {
           console.error(error);
           this.errored = true;
           this.results = "error translating " + error;
+          toastr.error(`${this.results}`);
         })
         .finally(() => (this.loading = false));
       this.finResultStr = inputString;
-      this.$refs.transcoder.reloadTranscoderLog();
+      let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+      // allow time for the ARI to be added to the DB
+      sleep(200).then(() => {
+        this.$refs.transcoder.reloadTranscoderLog();
+      });
     },
     updateResults: function (result) {
       let head = result[0].value.includes("ari") ? "" : "ari://";

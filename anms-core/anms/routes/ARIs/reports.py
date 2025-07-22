@@ -30,6 +30,7 @@ from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
 from io import StringIO
+from urllib.parse import unquote
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session, get_session
@@ -37,9 +38,13 @@ from anms.models.relational import get_async_session, get_session
 from anms.models.relational.report import Report
 from anms.models.relational.execution_set import ExecutionSet
 from anms.shared.opensearch_logger import OpenSearchLogger
-
+import io
 
 import anms.routes.transcoder as transcoder
+
+# for handling report set and exec set  
+import ace
+import ace.models
 
 
 logger = OpenSearchLogger(__name__, log_console=True)
@@ -80,10 +85,11 @@ async def report_def_by_id(agent_id: str):
             ari_val = ""
             if(res):
                 ari_val = await transcoder.transcoder_put_cbor_await("ari:0x"+res.entries.hex())
-                ari_val =  ari_val['data']   
-            addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}    
-            if addition not in final_res:
-                final_res.append(addition)
+                logger.info(ari_val)
+                ari_val =  ari_val['data']
+                addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}    
+                if addition not in final_res:
+                    final_res.append(addition)
 
     return final_res
 
@@ -94,6 +100,8 @@ async def report_def_by_id(agent_id: str):
 async def report_ac(agent_id: str, correlator_nonce: int):
     agent_id = agent_id.strip()
     final_res = []
+    ari = None
+    # Load in adms 
     # get command that made the report as first entry 
     stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == correlator_nonce) )
     async with get_async_session() as session:
@@ -102,42 +110,78 @@ async def report_ac(agent_id: str, correlator_nonce: int):
         exec_set_entry=["time"]
         if result:
             exec_set = result.entries.hex()
-            exec_set = await transcoder.transcoder_put_cbor_await("ari:0x"+exec_set)
-            exec_set =  exec_set['data']  
-            # format 
-            # TODO HANDLE RPTT and split up multiple entries 
-            "ari:/EXECSET/n=12345;(//ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/sw-version))"
-            execset_pattern = r"ari:/EXECSET/n=.+;\((.*)\)"
-            match = re.match(execset_pattern,exec_set)
-            if match:
-                exec_set_entry.extend(match.group(1).split(';'))
-            else:
-                exec_set_entry.extend([exec_set])
-        final_res.append(exec_set_entry)
+            # use ACE to handle report set decoding  
+            in_text = '0x'+exec_set
+            try:
+                in_bytes = ace.cborutil.from_hexstr(in_text)
+                dec = ace.ari_cbor.Decoder()
+                ari = dec.decode(io.BytesIO(in_bytes))
+                
+            except Exception as err:
+                logger.info(err)
+                
+    # current ARI should be  an exection set 
+    if ari:
+        logger.info(ari)
+        if type(ari.value) == ace.ari.ExecutionSet: 
+            try:
+                enc = ace.ari_text.Encoder()
+                buf = io.StringIO()
+                # run through targets and their parameters to get all things parts translated 
+                for targ in ari.value.targets: 
+                    if targ.params:
+                        for param in targ.params:
+                            enc.encode(param, buf)
+                            out_text = buf.getvalue()
+                            ari_val = await transcoder.transcoder_put_await_str(out_text)
+                            exec_set_entry.append(ari_val['data'])
+                    else:
+                        enc.encode(targ, buf)
+                        out_text = buf.getvalue()
+                        ari_val = await transcoder.transcoder_put_await_str(out_text)
+                        exec_set_entry.append(ari_val['data'])
 
+            except Exception as err:
+                logger.info(err)
+                
+                    
+    final_res.append(exec_set_entry)
+    ari = None
     stmt = select(Report).where(and_(Report.agent_id == agent_id, Report.correlator_nonce == correlator_nonce) )
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for res in result.all():
-            # TODO translating the CBOR route might want to relook at currently cause large amount of transcoding vs just loading the string below              
-            # # translate the cbor
-            # rpt_set = res.report_list_cbor.hex()
-            # rpt_set = await transcoder.transcoder_put_cbor_await("ari:0x"+rpt_set)
-            # rpt_set =  rpt_set['data']   
-            rpt_set = res.report_list
-            # match 
-            # ari:/RPTSET/n=12345;r=/TP/20250611T114420.009992304Z;(t=/TD/PT0S;s=//1/1/CTRL/5(//1/1/EDD/1);(%220.0…
-            rptset_pattern = r"ari:/RPTSET/n=.+;r=.*;\(t=.*;s=.*;\((.*)\)\)"
-            match = re.match(rptset_pattern,rpt_set)
-            addition = [res.reference_time] 
-            if match:
-                # report entries 
-                rpt_entr = match.group(1)
-                addition.extend(rpt_entr.split(";"))
-            else:
-                addition.append(rpt_set)
+            # used to hold final report set 
+            addition = [res.reference_time]
+            rpt_set = res.report_list_cbor.hex()
+            # Using Ace to translate CBOR into ARI object to process individual parts  
+            in_text = '0x'+rpt_set
+            try:
+                in_bytes = ace.cborutil.from_hexstr(in_text)
+                dec = ace.ari_cbor.Decoder()
+                ari = dec.decode(io.BytesIO(in_bytes))
+
+            except Exception as err:
+                logger.error(err)
+                
+            # current ARI should be  an report set 
+            if ari:
+                logger.info(ari)
+                if type(ari.value) == ace.ari.ReportSet:                    
+                    for rpt in ari.value.reports:
+                        try:
+                            enc = ace.ari_text.Encoder()
+                            # running through and translating all parts of rptset
+                            for item in rpt.items:
+                                buf = io.StringIO()
+                                enc.encode(item, buf)
+                                out_text = buf.getvalue()
+                                ari_val = await transcoder.transcoder_put_await_str(out_text)
+                                addition.append(ari_val['data'])
+                        except Exception as err:
+                            logger.error(err)
             
-            if addition not in final_res:
-                final_res.append(addition)
+                if addition not in final_res:
+                    final_res.append(addition)
     return final_res
     

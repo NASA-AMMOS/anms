@@ -7,7 +7,8 @@
         <v-select v-model="ariKey"
           label="display"
           :options="listComponents"
-          @input="addToList">
+          @input="addToList"
+          :clearSearchOnSelect="false">
           <template v-slot:no-options="{ search, searching }">
             <template v-if="searching">
               <b-button @click="addARI(search)">Add ARI</b-button>

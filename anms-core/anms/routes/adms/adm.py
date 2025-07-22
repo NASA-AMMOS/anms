@@ -87,8 +87,8 @@ async def getall():
 @router.get("/{enumeration}/{namespace}", status_code=status.HTTP_200_OK)
 async def get_adm(enumeration: int,namespace: str):
     async with get_async_session() as session:
-        result_dm,_ =  await DataModel.get(enumeration, namespace, session)
-        result,_ =  await AdmData.get(result_dm.data_model_id, session)
+        result_dm =  await DataModel.get(enumeration, namespace, session)
+        result, _ =  await AdmData.get(result_dm.data_model_id, session)
         if result:
             return result.data
 

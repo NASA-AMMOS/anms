@@ -137,7 +137,7 @@ FROM adm_data
             if in_lower.startswith('ari:0x') or in_lower.startswith('0x'):
                 # Binary-to-text mode
                 res_obj['parsedAs'] = 'CBOR'
-
+    
                 if in_lower.startswith('ari:'):
                     in_text = in_text[4:]
 
@@ -152,7 +152,7 @@ FROM adm_data
                 except Exception as err:
                     raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
                 res_obj['cbor'] = in_text
-                res_obj['ari'] = {}
+                res_obj['ari'] = f"{ari}"
 
                 try:
                     enc = ace.ari_text.Encoder()
@@ -175,11 +175,25 @@ FROM adm_data
                     dec = ace.ari_text.Decoder()
                     ari = dec.decode(io.StringIO(in_text))
                     LOGGER.debug('decoded as ARI %s', ari)
-                    ari = ace.nickname.Converter(ace.nickname.Mode.TO_NN, self._adms.db_session(), False)(ari)
+                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, self._adms.db_session(), False)(ari)
                 except Exception as err:
                     raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
-                res_obj['uri'] = in_text
-                res_obj['ari'] = {}
+                
+                # rencoding ari to ensure using non nicknames
+                try:
+                    enc = ace.ari_text.Encoder()
+                    buf = io.StringIO()
+                    enc.encode(ari, buf)
+
+                    out_text = buf.getvalue()
+                    if not out_text.startswith('ari:'):
+                        out_text = 'ari:' + out_text
+                    LOGGER.debug('encoded as text %s', out_text)
+                except Exception as err:
+                    raise RuntimeError(f"Error encoding from {ari}: {err}") from err
+              
+                res_obj['uri'] = out_text
+                res_obj['ari'] = f"{ari}"
 
                 try:
                     enc = ace.ari_cbor.Encoder()
@@ -187,7 +201,7 @@ FROM adm_data
                     enc.encode(ari, buf)
 
                     hex_str = ace.cborutil.to_hexstr(buf.getvalue())
-                    LOGGER.debug('encoded as binary %s', hex_str)
+                    LOGGER.info('encoded as binary %s', hex_str)
                 except Exception as err:
                     raise RuntimeError(f"Error encoding from {ari}: {err}") from err
                 res_obj['cbor'] = hex_str
