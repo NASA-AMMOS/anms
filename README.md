@@ -103,6 +103,11 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
   - `docker compose -f testenv-compose.yml up -d`
   - `podman compose -f testenv-compose.yml up -d`
 
+### Alternative "light" Deployment
+
+In the above steps, replacing `docker-compose.yml` with `light-compose.yml` will cause a "light" deployment of the ANMS focused on browser-less API-only ANMS users.
+This compose config is explained in more detail in the ANMS Product Guide, but simply removes containers that only support web-browser user agents.
+
 ### Alternative Build.sh setup script (deprecated, docker-only)
 The ANMS repository contains a build script which will build and run multiple Docker containers.
 These containers comprise the ANMS software and services, including demonstration AMP agents running on non-ANMS containers.
