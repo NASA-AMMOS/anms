@@ -81,7 +81,7 @@ export default {
   data() {
     return {
       file: null,
-      allowUploadTypes: ["application/json"]
+      allowUploadTypes: ["yang"]
     };
   },
   computed: {
@@ -103,7 +103,7 @@ export default {
       return this.adms.length > 0;
     },
     hasValidFile() {
-      return (!_.isNull(this.file) && _.includes(this.allowUploadTypes, this.file.type));
+      return (!_.isNull(this.file) );
     },
   },
   async mounted() {

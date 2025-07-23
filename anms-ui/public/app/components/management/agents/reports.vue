@@ -33,6 +33,7 @@
 
 <script>
 import api from '../../../shared/api'
+import toastr from "toastr";
 
 export default {
   name: "reports",
@@ -66,6 +67,7 @@ export default {
           // handle error
           console.error("reports error", error);
           console.info("error obj:", error);
+          toastr.error("reports error: " + error)
         });
     
       this.loading = false;
