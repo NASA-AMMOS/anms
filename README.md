@@ -87,21 +87,26 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
 - Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
 - Setup Volume containing PKI configuration (certificate chains and private keys):
   - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
-- Build Core Images using either:
-  - `docker compose build`
-  - `podman compose build`
-  - `podman-compose --podman-build-args='--format docker' build`
+- Build Core Images using one of the following:
+  - `docker compose -f docker-compose.yml build`
+  - `podman compose -f docker-compose.yml build`
+  - `podman-compose --podman-build-args='--format docker' -f docker-compose.yml build`
     - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
-- Build Agent images
+- Build test environemnt images using one of the following:
   - `docker compose -f testenv-compose.yml build`
   - `podman compose -f testenv-compose.yml build`
-  - `podman-compose -f testenv-compose.yml --podman-build-args='--format docker' build`
-- Start System. Note: You may omit the `-d` argument to keep logs in the foreground.
-  - `docker compose up -d`
-  - `podman compose up -d`
-- Start additional ION Agent Nodes
+  - `podman-compose --podman-build-args='--format docker' -f testenv-compose.yml build`
+- Start System using one of the following:
+  - `docker compose -f docker-compose.yml up -d`
+  - `podman compose -f docker-compose.yml up -d`
+- Start ION nodes for manager and test agents using one of the following:
   - `docker compose -f testenv-compose.yml up -d`
   - `podman compose -f testenv-compose.yml up -d`
+
+### Alternative "light" Deployment
+
+In the above steps, replacing `docker-compose.yml` with `light-compose.yml` will cause a "light" deployment of the ANMS focused on browser-less API-only ANMS users.
+This compose config is explained in more detail in the ANMS Product Guide, but simply removes containers that only support web-browser user agents.
 
 ### Alternative Build.sh setup script (deprecated, docker-only)
 The ANMS repository contains a build script which will build and run multiple Docker containers.
