@@ -83,7 +83,7 @@ services:
       AGENT_NAME: ${CAM_AGENT_NAME}
       AGENT_PASSWORD: ${CAM_AGENT_PASSWORD}
       CAM_GW_URL: "https://${ANMS_GW_FQDN}:443/"
-      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089 http://anms-ui:9030"
+      PROXY_URLS: "core,http://anms-core:5555 nm,http://amp-manager:8089"
     volumes:
       - ammos-tls:/ammos/etc/pki/tls:ro
 
@@ -110,17 +110,6 @@ services:
     ports:
       - "${OPENSEARCH_PORT1:-9200}:9200"
       - "${OPENSEARCH_PORT2:-9600}:9600" # required for Performance Analyzer
-
-  opensearch-dashboards:
-    hostname: opensearch-dashboards
-    image: docker.io/opensearchproject/opensearch-dashboards:2.0.0
-    restart: unless-stopped
-    security_opt:
-      - "label=type:opensearch-dashboards.process"
-    ports:
-      - "${OPENSEARCH_DASH_PORT:-5601}:5601"
-    environment:
-      OPENSEARCH_HOSTS: '["https://opensearch:9200"]' # must be a string with no spaces when specified as an environment variable
 
   postgres:
     hostname: postgres
@@ -193,79 +182,6 @@ services:
         condition: service_healthy
       mqtt-broker:
         condition: service_healthy
-
-  anms-ui:
-    hostname: anms-ui
-    image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
-    build:
-      context: anms-ui
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    security_opt:
-      - "label=type:anms-ui.process"
-    ports:
-      - "${ANMS_UI_HTTP_PORT:-9030}:9030"
-      - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
-    depends_on:
-      builder-base:
-        # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-    environment:
-      ENV_UI_VERSION: ${ANMS_VERSION}
-      NET_BIND_INTERFACE: "0.0.0.0"
-      DB_HOST: postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      REDIS_URI_HOSTNAME: redis
-
-  grafana:
-    hostname: grafana
-    image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG}
-    build:
-      # NOTE: Custom image currently needed only for SSL-cert purposes
-      context: grafana
-    restart: unless-stopped
-    security_opt:
-      - "label=type:grafana.process"
-    ports:
-      - "${GRAFANA_PORT:-3000}:3000"
-    depends_on:
-      - grafana-image-renderer
-    environment:
-      - GF_RENDERING_SERVER_URL=http://${RENDERER_HOST_PORT}/render
-      - GF_RENDERING_CALLBACK_URL=http://${GRAFANA_HOST_PORT}/
-      - GF_SERVER_ROOT_URL=http://${ANMS_GW_FQDN}/grafana/
-    volumes:
-      - "grafana-data:/var/lib/grafana"
-
-  grafana-image-renderer:
-    hostname: grafana-image-renderer
-    image: docker.io/grafana/grafana-image-renderer
-    restart: unless-stopped
-    security_opt:
-      - "label=type:grafana-image-renderer.process"
-    ports:
-      - "${RENDERER_PORT:-8081}:8081"
-
-  redis:
-    hostname: redis
-    image: docker.io/library/redis:6.0-alpine
-    restart: unless-stopped
-    security_opt:
-      - "label=type:redis.process"
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli" ,"-h", "localhost", "ping"]
-      interval: 15s
-      timeout: 60s
-      retries: 5
-    command: redis-server --databases 1 --bind 0.0.0.0 --port ${REDIS_PORT:-6379}
 
   anms-core:
     hostname: anms-core

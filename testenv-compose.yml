@@ -28,12 +28,53 @@
 name: testenv
 
 networks:
-  # This network is created by docker-compose.yml
   default:
-    name: ${DOCKER_CTR_PREFIX}anms
+    name: ${DOCKER_CTR_PREFIX}testenv
+    driver_opts:
+      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}testenv
+      com.docker.network.driver.mtu: 65535
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
+volumes:
+  sockdir: 
     external: true
 
 services:
+  ion-manager:
+    hostname: ion-manager
+    build:
+      context: deps
+      dockerfile: reftools.Dockerfile
+      target: ion-manager
+    depends_on: {}
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - "/var/tmp/pcap:/var/log/pcap"
+      - "${HOST_SOCKDIR}:${CTR_SOCKDIR}"
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
+      ION_NODE_NUM: 1
+      MGR_NODE_NUM: 1
+      DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
+      DUMPCAP_OPTS: -i lo -i eth0
+    ports:
+      - "1113:1113/udp"
+      - "4556:4556/udp"
+    networks:
+      default:
+        ipv4_address: 10.5.0.101
+    extra_hosts:
+      - ion-agent2:10.5.0.102
+      - ion-agent3:10.5.0.103
 
   ion-agent2: &ion-agent
     hostname: ion-agent2

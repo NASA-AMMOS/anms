@@ -4,6 +4,9 @@
 *~
 #*
 .#*
+.DS_Store
+.project
+.cproject
 
 # Python intermediates
 __pycache__
@@ -21,7 +24,3 @@ node_modules
 package-lock.json
 
 ion/configs/**/logs
-
-docker_data/grafana_vol
-
-.DS_Store

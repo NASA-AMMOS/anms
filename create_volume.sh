@@ -45,3 +45,6 @@ do
 done
 
 ${DOCKER_CMD} stop ${CTRNAME} >/dev/null
+
+# creating socket volume 
+${DOCKER_CMD} volume create sockdir    
