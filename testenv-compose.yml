@@ -113,3 +113,6 @@ services:
       container: docker
       ION_NODE_NUM: 3
       MGR_NODE_NUM: 1
+      DTNMA_LOGLEVEL: debug
+      DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
+      DUMPCAP_OPTS: -i lo -i eth0
