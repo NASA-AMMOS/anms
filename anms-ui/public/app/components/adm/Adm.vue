@@ -81,7 +81,7 @@ export default {
   data() {
     return {
       file: null,
-      allowUploadTypes: ["yang"]
+      allowUploadTypes: ["application/yang"]
     };
   },
   computed: {
@@ -136,9 +136,9 @@ export default {
       });
     },
     async uploadAdms() {
-      let json_file = this.file;
+      let yang_file = this.file;
       this.file = null;
-      await this.uploadAdm(json_file);
+      await this.uploadAdm(yang_file);
       if (!_.isNil(this.requestError) && this.requestError != "") {
         toastr.error(this.requestError);
       }
