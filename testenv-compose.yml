@@ -96,7 +96,7 @@ services:
       DTNMA_LOGLEVEL: debug
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
-      DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
+      DUMPCAP_OUTFILE: /var/log/pcap/agent2.pcap
       DUMPCAP_OPTS: -i lo -i eth0
     networks:
       default:
@@ -114,5 +114,5 @@ services:
       ION_NODE_NUM: 3
       MGR_NODE_NUM: 1
       DTNMA_LOGLEVEL: debug
-      DUMPCAP_OUTFILE: /var/log/pcap/agent1.pcap
+      DUMPCAP_OUTFILE: /var/log/pcap/agent3.pcap
       DUMPCAP_OPTS: -i lo -i eth0
