@@ -25,7 +25,7 @@ export default {
   methods: {
     updateResults() {
       this.result["type"] = this.type;
-      this.result["value"] = this.value;
+      this.result["value"] = "/"+this.type.replace("/ARITYPE/","/")+"/"+this.value;
       this.$emit("updateResult", this.result);
     },
   },

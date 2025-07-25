@@ -56,7 +56,7 @@ logger = OpenSearchLogger(__name__).logger
 AdmData = adm_data.AdmData
 DataModel = data_model_view.DataModel
 
-ACCEPT_FILE_CONTENT_TYPE = "application/json"
+ACCEPT_FILE_CONTENT_TYPE = "application/octet-stream"
 
 
 class RequestError(BaseModel):

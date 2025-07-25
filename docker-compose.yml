@@ -87,6 +87,17 @@ services:
     volumes:
       - ammos-tls:/ammos/etc/pki/tls:ro
 
+
+
+  adminer:
+    hostname: adminer
+    image: docker.io/library/adminer:latest
+    restart: unless-stopped
+    security_opt:
+      - "label=type:adminer.process"
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+      
   opensearch:
     hostname: opensearch
     image: docker.io/opensearchproject/opensearch:2.0.0

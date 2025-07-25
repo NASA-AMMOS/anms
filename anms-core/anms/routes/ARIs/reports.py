@@ -81,15 +81,15 @@ async def report_def_by_id(agent_id: str):
             correlator_nonce = res.correlator_nonce
             stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == correlator_nonce) )
             result: Result = await session.scalars(stmt)
-            res = result.one_or_none()
-            ari_val = ""
-            if(res):
-                ari_val = await transcoder.transcoder_put_cbor_await("ari:0x"+res.entries.hex())
-                logger.info(ari_val)
-                ari_val =  ari_val['data']
-                addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}    
-                if addition not in final_res:
-                    final_res.append(addition)
+            exc_set = result.all()
+            for res in exc_set:
+                ari_val = ""
+                if(res):
+                    ari_val = await transcoder.transcoder_put_cbor_await("0x"+res.entries.hex())
+                    ari_val =  ari_val['data']
+                    addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}    
+                    if addition not in final_res:
+                        final_res.append(addition)
 
     return final_res
 
@@ -122,7 +122,6 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                 
     # current ARI should be  an exection set 
     if ari:
-        logger.info(ari)
         if type(ari.value) == ace.ari.ExecutionSet: 
             try:
                 enc = ace.ari_text.Encoder()
@@ -166,7 +165,6 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                 
             # current ARI should be  an report set 
             if ari:
-                logger.info(ari)
                 if type(ari.value) == ace.ari.ReportSet:                    
                     for rpt in ari.value.reports:
                         try:

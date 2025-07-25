@@ -70,7 +70,7 @@ Vue.prototype.$log = (() => {
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 
 toastr.options.preventDuplicates = true;
-toastr.options.timeOut = 3000;
+toastr.options.timeOut = 5000;
 toastr.options.closeButton = true;
 
 // eslint-disable-next-line no-new

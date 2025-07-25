@@ -139,8 +139,8 @@ export default {
                             });
                             break;
                         case "/ARITYPE/BOOL":
-                                finResult.push({ "index": index, "type": "/ARITYPE/BOOl", "value": 0 })
-                                typeLabel = "BOOl";
+                                finResult.push({ "index": index, "type": "/ARITYPE/BOOL", "value": " " })
+                                typeLabel = "BOOL";
                                 distParms.push({
                                     type: prim_parameter,// TODO update to its own 
                                     parameter: { index: index, result: "", name: name, type: typeLabel },
@@ -156,7 +156,7 @@ export default {
                             break;
                         case "/ARITYPE/TD":
                             finResult.push({ "index": index, "type": "/ARITYPE/TD", "value": 0 });
-                            typeLabel = "TS";
+                            typeLabel = "TD";
                             distParms.push({
                                 type: prim_parameter,
                                 parameter: { index: index, result: "", name: name, type: typeLabel },

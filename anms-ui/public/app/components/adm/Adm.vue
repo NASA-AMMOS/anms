@@ -31,14 +31,14 @@
       </div>
     </template>
     <div class="d-flex justify-content-center mt-3">
-      <b-button @click="getAdms" variant="info" size="sm">Get Adms</b-button>
+      <b-button @click="getAdms" variant="info" size="sm">Get ADMs</b-button>
     </div>
     <div class="input-group mt-3 mb-3 justify-content-center">
       <div class="col-3"></div>
       <b-form-group class="custom-file col-3">
-        <b-form-file v-model="file" id="adm" name="adm" accept=".json"></b-form-file>
+        <b-form-file v-model="file" id="adm" name="adm" accept=".yang"></b-form-file>
       </b-form-group>
-      <b-button @click="uploadAdms" variant="info" :disabled="!hasValidFile">Upload adm json</b-button>
+      <b-button @click="uploadAdms" variant="info" :disabled="!hasValidFile">Upload ADM yang</b-button>
       <div class="col-3"></div>
     </div>
     <template v-if="hasRequestError">
@@ -81,7 +81,7 @@ export default {
   data() {
     return {
       file: null,
-      allowUploadTypes: ["application/json"]
+      allowUploadTypes: ["application/yang"]
     };
   },
   computed: {
@@ -103,7 +103,7 @@ export default {
       return this.adms.length > 0;
     },
     hasValidFile() {
-      return (!_.isNull(this.file) && _.includes(this.allowUploadTypes, this.file.type));
+      return (!_.isNull(this.file) );
     },
   },
   async mounted() {
@@ -136,9 +136,9 @@ export default {
       });
     },
     async uploadAdms() {
-      let json_file = this.file;
+      let yang_file = this.file;
       this.file = null;
-      await this.uploadAdm(json_file);
+      await this.uploadAdm(yang_file);
       if (!_.isNil(this.requestError) && this.requestError != "") {
         toastr.error(this.requestError);
       }
