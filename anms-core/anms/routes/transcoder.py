@@ -98,7 +98,6 @@ async def transcoder_put_cbor_await(cbor: str):
     transcoder_log_id = None
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter(or_(TranscoderLog.input_string==cbor, TranscoderLog.cbor==cbor)).first()
-
         if curr_uri is None:
             c1 = TranscoderLog(input_string=cbor, parsed_as='pending')
             session.add(c1)

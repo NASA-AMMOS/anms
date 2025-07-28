@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <!-- incoming messages  -->
-    <iframe src="/grafana/d-solo/x5LAIuA7z/agents-copy?orgId=1&from=now-48h&to=now&panelId=10" width="100%" height="250" frameborder="0"></iframe>
+    <iframe src="/grafana/d-solo/x5LAIuA7z/agents-copy?orgId=1&from=now-48h&to=now&panelId=11" width="100%" height="250" frameborder="0"></iframe>
     <!-- reports -->
         <iframe src="/grafana/d-solo/oZ7xupanz/reports?orgId=1&from=now-48h&to=now&panelId=123129" width="100%" height="250" frameborder="0"></iframe>
     <!-- aris -->

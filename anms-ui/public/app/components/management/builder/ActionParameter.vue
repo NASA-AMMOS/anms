@@ -1,7 +1,6 @@
 <template>
   <div>
-    <label>{{name}}:</label>
-    {{ count }}
+    <label>{{name}}({{ type }}):</label>
     <div>
       <b-form-group>
         <v-select v-model="ariKey"
@@ -86,7 +85,6 @@ export default {
       let value = result[0].value;
       let head = value.includes("ari") ? "" : "ari://";
       let realIndex = this.keysRealIndex[index];
-
       this.currAc[realIndex] = head + value;
       this.submitAC();
     },
@@ -110,6 +108,7 @@ export default {
         }
       });
       this.currAc = currAc;
+      
       this.submitAC();
     },
   },

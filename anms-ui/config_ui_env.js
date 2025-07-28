@@ -25,7 +25,7 @@ window.anms_env_config = {
     SERVICE_INFO: {
         names: [
             "adminer","anms-core","authnz",
-            "ion-manager","aricodec","postgres",
+            "aricodec","postgres",
             "redis","mqtt-broker","transcoder",
             "grafana","grafana-image-renderer"
         ],
