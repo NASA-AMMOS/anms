@@ -96,7 +96,7 @@ async def nm_put_hex_idx(idx: str, ari: Data):
 # PUT 	/agents/eid/{eid}/hex 	Body is CBOR-encoded HEX ARI to send. $eid is the agent to query
 @router.put("/agents/eid/{eid}/hex", status_code=status.HTTP_200_OK)
 def nm_put_hex_eid(eid: str, ari: Data):
-    return dp_nm_put_hex_eid(eid, ari.data)
+    return do_nm_put_hex_eid(eid, ari.data)
 
 def do_nm_put_hex_eid(eid: str, ari: str):
     url = nm_url + "/agents/eid/{}/send?form=hex".format(_prepare_url(eid))
