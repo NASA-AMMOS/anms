@@ -227,7 +227,6 @@ async def transcoder_send_ari_str(eid: str, ari: str):
             if info.parsed_as != "pending":
                 break
             if retries <= 0:
-                # TODO: Can we return HTTP 504 status?
                 return { "idinfo" : idinfo, "info" : info, "status" : 504 }
             await asyncio.sleep(1)
             retries -= 1
@@ -241,5 +240,6 @@ async def transcoder_send_ari_str(eid: str, ari: str):
         return { "idinfo" : idinfo, "info" : info, "status" : status }
     except Exception as e:
         logger.exception(e)
-        return f"Caught exception: {e}"
+        return status.HTTP_500_INTERNAL_SERVER_ERROR
+
 
