@@ -126,6 +126,7 @@
       const transcoder = require('../components/transcoder')
       router.put('/transcoder/ui/incoming/:cbor/hex', transcoder.putTranscodedHex)
       router.put('/transcoder/ui/incoming/str', transcoder.putTranscodedString)
+      router.put('/transcoder/ui/incoming_send/str', transcoder.putTranscodeAndSendString)
       router.get('/transcoder/ui/log', transcoder.getTranscoderPaged)
       router.get('/transcoder/ui/log/search/:query', transcoder.getTranscoderPagedBySearch)
       router.get('/transcoder/ui/log/id/:id', transcoder.getTranscoderById)

@@ -21,6 +21,7 @@
 #
 import json
 import time
+import asyncio
 
 from fastapi import APIRouter, Depends
 from fastapi import status
@@ -35,6 +36,8 @@ from anms.models.relational import get_async_session
 from anms.models.relational.transcoder_log import TranscoderLog
 from anms.shared.mqtt_client import MQTT_CLIENT
 from anms.shared.opensearch_logger import OpenSearchLogger
+
+from anms.routes.network_manager import do_nm_put_hex_eid
 
 router = APIRouter(tags=["Transcoder"])
 logger = OpenSearchLogger(__name__, log_console=True)
@@ -62,6 +65,9 @@ async def paged_transcoder_log(query: str, params: Params = Depends()):
 
 @router.get("/db/id/{id}", status_code=status.HTTP_200_OK, response_model=TL)
 async def transcoder_log_by_id(id: str):
+    await do_transcoder_log_by_id(id)
+        
+async def do_transcoder_log_by_id(id: str):
     with get_session() as session:
         return TranscoderLog.query.filter_by(transcoder_log_id=id).first()
 
@@ -178,6 +184,9 @@ async def transcoder_put_await_str(input_ari: str):
 
 # PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
 @router.put("/ui/incoming/str", status_code=status.HTTP_200_OK)
+async def transcoder_incoming_str(input_ari: str):
+    return await transcoder_put_str(input_ari)
+
 async def transcoder_put_str(input_ari: str):
     input_ari = input_ari.strip()
     msg = json.dumps({"uri": input_ari})
@@ -203,4 +212,34 @@ async def transcoder_put_str(input_ari: str):
     return {"id": transcoder_log_id, "status": status}
 
 
+
+# PUT 	/ui/incoming_send/str 	Body is str ARI to send to transcoder
+@router.put("/ui/incoming_send/str", status_code=status.HTTP_200_OK)
+async def transcoder_send_ari_str(eid: str, ari: str):
+    try:
+        # Perform translation (API wrapper)
+        idinfo = await transcoder_put_str(ari)
+
+        # Retrieve details and wait for completion
+        retries = 10
+        while True:
+            info = await do_transcoder_log_by_id(idinfo["id"])
+            if info.parsed_as != "pending":
+                break
+            if retries <= 0:
+                # TODO: Can we return HTTP 504 status?
+                return { "idinfo" : idinfo, "info" : info, "status" : 504 }
+            await asyncio.sleep(1)
+            retries -= 1
+
+        if info.parsed_as == "ERROR":
+            return { "idinfo" : idinfo, "info" : info, "status" : 500 }
+        
+        # Publish
+        status = do_nm_put_hex_eid( eid, info.cbor )
+
+        return { "idinfo" : idinfo, "info" : info, "status" : status }
+    except Exception as e:
+        logger.exception(e)
+        return f"Caught exception: {e}"
 

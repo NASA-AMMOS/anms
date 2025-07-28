@@ -54,6 +54,19 @@
     }
   };
 
+  exports.putTranscodeAndSendString = async function(req,res,next){
+    try {
+      // /transcoder/ui/incoming_send/str
+      const reqBody = req.body;
+      const params = {'ari': req.body.ari, 'eid': req.body.eid};
+      const url = utils.generateAnmsCoreUrl(['transcoder','ui','incoming_send','str'],params);
+      const uri = await axios.put(url);
+      return res.status(200).json(uri.data);
+    } catch (err) {
+      return next(Boom.badGateway('Error sending msg for transcoder', err));
+    }
+  };
+     
   exports.getTranscoderPaged = async function (req, res, next) {
     try {
       if (req.query.page === undefined) {
