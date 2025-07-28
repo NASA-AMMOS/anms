@@ -64,10 +64,10 @@ async def paged_transcoder_log(query: str, params: Params = Depends()):
                               .order_by(desc(TranscoderLog.transcoder_log_id)), params)
 
 @router.get("/db/id/{id}", status_code=status.HTTP_200_OK, response_model=TL)
-async def transcoder_log_by_id(id: str):
-    await do_transcoder_log_by_id(id)
+def transcoder_log_by_id(id: str):
+    return do_transcoder_log_by_id(id)
         
-async def do_transcoder_log_by_id(id: str):
+def do_transcoder_log_by_id(id: str):
     with get_session() as session:
         return TranscoderLog.query.filter_by(transcoder_log_id=id).first()
 
@@ -184,10 +184,10 @@ async def transcoder_put_await_str(input_ari: str):
 
 # PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
 @router.put("/ui/incoming/str", status_code=status.HTTP_200_OK)
-async def transcoder_incoming_str(input_ari: str):
-    return await transcoder_put_str(input_ari)
+def transcoder_incoming_str(input_ari: str):
+    return transcoder_put_str(input_ari)
 
-async def transcoder_put_str(input_ari: str):
+def transcoder_put_str(input_ari: str):
     input_ari = input_ari.strip()
     msg = json.dumps({"uri": input_ari})
     transcoder_log_id = None
@@ -218,12 +218,12 @@ async def transcoder_put_str(input_ari: str):
 async def transcoder_send_ari_str(eid: str, ari: str):
     try:
         # Perform translation (API wrapper)
-        idinfo = await transcoder_put_str(ari)
+        idinfo = transcoder_put_str(ari)
 
         # Retrieve details and wait for completion
         retries = 10
         while True:
-            info = await do_transcoder_log_by_id(idinfo["id"])
+            info = do_transcoder_log_by_id(idinfo["id"])
             if info.parsed_as != "pending":
                 break
             if retries <= 0:
