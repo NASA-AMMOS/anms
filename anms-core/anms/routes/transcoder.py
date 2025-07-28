@@ -21,6 +21,7 @@
 #
 import json
 import time
+import asyncio
 
 from fastapi import APIRouter, Depends
 from fastapi import status
@@ -35,6 +36,8 @@ from anms.models.relational import get_async_session
 from anms.models.relational.transcoder_log import TranscoderLog
 from anms.shared.mqtt_client import MQTT_CLIENT
 from anms.shared.opensearch_logger import OpenSearchLogger
+
+from anms.routes.network_manager import do_nm_put_hex_eid
 
 router = APIRouter(tags=["Transcoder"])
 logger = OpenSearchLogger(__name__, log_console=True)
@@ -61,7 +64,10 @@ async def paged_transcoder_log(query: str, params: Params = Depends()):
                               .order_by(desc(TranscoderLog.transcoder_log_id)), params)
 
 @router.get("/db/id/{id}", status_code=status.HTTP_200_OK, response_model=TL)
-async def transcoder_log_by_id(id: str):
+def transcoder_log_by_id(id: str):
+    return do_transcoder_log_by_id(id)
+        
+def do_transcoder_log_by_id(id: str):
     with get_session() as session:
         return TranscoderLog.query.filter_by(transcoder_log_id=id).first()
 
@@ -178,7 +184,10 @@ async def transcoder_put_await_str(input_ari: str):
 
 # PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
 @router.put("/ui/incoming/str", status_code=status.HTTP_200_OK)
-async def transcoder_put_str(input_ari: str):
+def transcoder_incoming_str(input_ari: str):
+    return transcoder_put_str(input_ari)
+
+def transcoder_put_str(input_ari: str):
     input_ari = input_ari.strip()
     msg = json.dumps({"uri": input_ari})
     transcoder_log_id = None
@@ -202,5 +211,35 @@ async def transcoder_put_str(input_ari: str):
 
     return {"id": transcoder_log_id, "status": status}
 
+
+
+# PUT 	/ui/incoming_send/str 	Body is str ARI to send to transcoder
+@router.put("/ui/incoming_send/str", status_code=status.HTTP_200_OK)
+async def transcoder_send_ari_str(eid: str, ari: str):
+    try:
+        # Perform translation (API wrapper)
+        idinfo = transcoder_put_str(ari)
+
+        # Retrieve details and wait for completion
+        retries = 10
+        while True:
+            info = do_transcoder_log_by_id(idinfo["id"])
+            if info.parsed_as != "pending":
+                break
+            if retries <= 0:
+                return { "idinfo" : idinfo, "info" : info, "status" : 504 }
+            await asyncio.sleep(1)
+            retries -= 1
+
+        if info.parsed_as == "ERROR":
+            return { "idinfo" : idinfo, "info" : info, "status" : 500 }
+        
+        # Publish
+        status = do_nm_put_hex_eid( eid, info.cbor )
+
+        return { "idinfo" : idinfo, "info" : info, "status" : status }
+    except Exception as e:
+        logger.exception(e)
+        return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 

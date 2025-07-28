@@ -103,6 +103,10 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
   - `docker compose -f testenv-compose.yml up -d`
   - `podman compose -f testenv-compose.yml up -d`
 
+To shutdown the system when needed:
+- `docker|podman compose -f docker-compose.yml -f testenv-compose.yml down`
+
+
 ### Alternative "light" Deployment
 
 In the above steps, replacing `docker-compose.yml` with `light-compose.yml` will cause a "light" deployment of the ANMS focused on browser-less API-only ANMS users.
