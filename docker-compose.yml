@@ -91,6 +91,7 @@ services:
 
   adminer:
     hostname: adminer
+    profiles: ["dev"]
     image: docker.io/library/adminer:latest
     restart: unless-stopped
     security_opt:
@@ -99,6 +100,7 @@ services:
       - "${ADMINER_PORT:-8080}:8080"
       
   opensearch:
+    profiles: ["full"]
     hostname: opensearch
     image: docker.io/opensearchproject/opensearch:2.0.0
     restart: unless-stopped
@@ -123,6 +125,7 @@ services:
       - "${OPENSEARCH_PORT2:-9600}:9600" # required for Performance Analyzer
 
   opensearch-dashboards:
+    profiles: ["full"]
     hostname: opensearch-dashboards
     image: docker.io/opensearchproject/opensearch-dashboards:2.0.0
     restart: unless-stopped
@@ -207,6 +210,7 @@ services:
 
   anms-ui:
     hostname: anms-ui
+    profiles: ["full"]
     image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
     build:
       context: anms-ui
@@ -236,6 +240,7 @@ services:
 
   grafana:
     hostname: grafana
+    profiles: ["full"]
     image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG}
     build:
       # NOTE: Custom image currently needed only for SSL-cert purposes
@@ -256,6 +261,7 @@ services:
 
   grafana-image-renderer:
     hostname: grafana-image-renderer
+    profiles: ["full"]
     image: docker.io/grafana/grafana-image-renderer
     restart: unless-stopped
     security_opt:
@@ -265,6 +271,7 @@ services:
 
   redis:
     hostname: redis
+    profiles: ["full"]
     image: docker.io/library/redis:6.0-alpine
     restart: unless-stopped
     security_opt:
