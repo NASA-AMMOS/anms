@@ -19,7 +19,7 @@
     "core-js": "^3.6.5",
     "d3": "^7.8.5",
     "font-awesome": "^4.7.0",
-    "form-data": "4.0.0",
+    "form-data": "4.0.4",
     "fuse.js": "^6.5.3",
     "get-func-name": "^2.0.1",
     "jquery": "^3.5.1",
