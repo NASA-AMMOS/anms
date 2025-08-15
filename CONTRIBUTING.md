@@ -1,133 +1,329 @@
-<!-- omit in toc -->
-# Contributing to Asynchronous Network Management System (ANMS)
+# Contributing to Anms
 
-First off, thanks for taking the time to contribute!
+Thanks for taking the time to consider contributing! We very much appreciate your time and effort. This document outlines the many ways you can contribute to our project, and provides detailed guidance on best practices. We look forward to your help!
 
-All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make it a lot easier for us maintainers and smooth out the experience for all involved. The community looks forward to your contributions.
+## Prerequisites
 
-> And if you like the project, but just don't have time to contribute, that's fine. There are other easy ways to support the project and show your appreciation, which we would also be very happy about:
-> - Star the project
-> - Tweet about it
-> - Refer this project in your project's readme
-> - Mention the project at local meetups and tell your friends/colleagues
+Before you begin contributing to our project, it'll be a good idea to ensure you've satisfied the below pre-requisites. 
 
-<!-- omit in toc -->
-## Table of Contents
+### License
 
-- [Code of Conduct](#code-of-conduct)
-- [I Have a Question](#i-have-a-question)
-- [I Want To Contribute](#i-want-to-contribute)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Enhancements](#suggesting-enhancements)
-  - [Your First Code Contribution](#your-first-code-contribution)
-  - [Improving The Documentation](#improving-the-documentation)
-- [Styleguides](#styleguides)
-  - [Commit Messages](#commit-messages)
-- [Join The Project Team](#join-the-project-team)
+Our project has our licensing terms, including rules governing redistribution, documented in our [LICENSE](LICENSE) file. Please take a look at that file and ensure you understand the terms. This will impact how we, or others, use your contributions.
 
+### Code of Conduct
 
-## Code of Conduct
+Our Code of Conduct helps facilitate a positive interaction environment for everyone involved with the team, and provides guidance on what to do if you experience problematic behavior. Read more in our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and make sure you agree to its terms. 
 
-This project and everyone participating in it is governed by the [Asynchronous Network Management System (ANMS) Code of Conduct](CODE_OF_CONDUCT.md).
-By participating, you are expected to uphold this code.
-Please report unacceptable behavior to <dtnma-support@jhuapl.edu>.
+### Developer Environment
 
+For patch contributions, see our [Developer Documentation](https://github.com/NASA-AMMOS/anms/wiki) for more details on how to set up your local environment, to best contribute to our project. 
 
-## I Have a Question
+At a minimum however to submit patches (if using Git), you'll want to ensure you have:
+1. An account on the Version Control System our project uses (i.e. GitHub).
+2. The Version Control System client (i.e. Git) installed on your local machine.
+3. The ability to edit, build, and test our project on your local machine. Again, see our [README.md](README.md) or detailed developer guide for more details 
 
-> If you want to ask a question, we assume that you have read the available [Documentation](https://nasa-ammos.github.io/anms-docs/).
+### Communication Channels
 
-Before you ask a question, it is best to search for existing [Issues](https://github.com/nasa-ammos/anms/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
+Before contributing changes to our project, it's a great idea to be familiar with our communication channels and to socialize your potential contributions to get feedback early. This will help give you context for your contributions, no matter their form.
 
-If you then still feel the need to ask a question and need clarification, we recommend the following:
+Our communication channels are:
+- [Issue tracking system](https://github.com/NASA-AMMOS/anms/issues) - a regularly monitored area to report issues with our software or propose changes
+- [Discussion board](https://github.com/NASA-AMMOS/anms/discussions) - a permanently archived place to hold conversations related to our project, and to propose as well as show+tell topics to the contributor team. This resource can be searched for old discussions.
 
-- Open an [Issue](https://github.com/nasa-ammos/anms/issues/new).
-- Provide as much context as you can about what you're running into.
-- Provide project and platform versions (nodejs, npm, etc), depending on what seems relevant.
+## Our Development Process
 
-We will then take care of the issue as soon as possible.
+Our project integrates contributions from many people, and so we'd like to outline a process you can use to visualize how your contributions may be integrated if you provide something. 
 
-## I Want To Contribute
+```mermaid
+flowchart TD
+    repo_proj[(Our Repository)]-->|Fork|repo_fork[(Your Forked Repository)]
+    repo_fork-->|Make|patch(Your Changes)
+    patch-->|Submit|pr(Pull Request)
+    pr==>|Approved|repo_proj
+    pr-->|Changes Requested|repo_fork
+```
 
-> ### Legal Notice <!-- omit in toc -->
-> When contributing to this project, you must agree that you have authored 100% of the content, that you have the necessary rights to the content and that the content you contribute may be provided under the project license.
+### Fork our Repository
 
-### Reporting Bugs
+Forking our repository, as opposed to directly committing to a branch is the preferred way to propose changes. 
 
-<!-- omit in toc -->
-#### Before Submitting a Bug Report
+See [this GitHub guide](https://docs.github.com/en/get-started/quickstart/fork-a-repo) on forking for information specific to GitHub.com
 
-A good bug report shouldn't leave others needing to chase you up for more information. Therefore, we ask you to investigate carefully, collect information and describe the issue in detail in your report. Please complete the following steps in advance to help us fix any potential bug as fast as possible.
+#### Find or File an Issue
 
-- Make sure that you are using the latest version.
-- Determine if your bug is really a bug and not an error on your side e.g. using incompatible environment components/versions (Make sure that you have read the [documentation](https://nasa-ammos.github.io/anms-docs/). If you are looking for support, you might want to check [this section](#i-have-a-question)).
-- To see if other users have experienced (and potentially already solved) the same issue you are having, check if there is not already a bug report existing for your bug or error in the [bug tracker](https://github.com/nasa-ammos/anms/issues?q=label%3Abug).
-- Also make sure to search the internet (including Stack Overflow) to see if users outside of the GitHub community have discussed the issue.
-- Collect information about the bug:
-  - Stack trace (Traceback)
-  - OS, Platform and Version (Windows, Linux, macOS, x86, ARM)
-  - Version of the interpreter, compiler, SDK, runtime environment, package manager, depending on what seems relevant.
-  - Possibly your input and the output
-  - Can you reliably reproduce the issue? And can you also reproduce it with older versions?
+Make sure people are aware you're working on a patch! Check out our [issue tracking system](https://github.com/NASA-AMMOS/anms/issues) and find an open issue you'd like to work against, or alternatively file a new issue and mention you're working on a patch.
 
-<!-- omit in toc -->
-#### How Do I Submit a Good Bug Report?
+#### Choose the Right Branch to Fork
 
-> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead sensitive bugs must be sent by email to <dtnma-support@jhuapl.edu>.
+Our project typically has the following branches available, make sure to fork either the default branch or a branch someone else already tagged with a particular issue ticket you're working with.
+- `main` &mdash; release branch 
+- `develop` &mdash; optional default branch, used primarily for new code development
 
-We use GitHub issues to track bugs and errors. If you run into an issue with the project:
+### Make your Modifications
 
-- Open an [Issue](https://github.com/nasa-ammos/anms/issues/new). (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
-- Explain the behavior you would expect and the actual behavior.
-- Please provide as much context as possible and describe the *reproduction steps* that someone else can follow to recreate the issue on their own. This usually includes your code. For good bug reports you should isolate the problem and create a reduced test case.
-- Provide the information you collected in the previous section.
+Within your local development environment, this is the stage at which you'll propose your changes, and commit those changes back to version control. See the [README.md](README.md) or development guide for more specifics on what you'll need as prerequisites to setup your local development environment.
 
-Once it's filed:
+#### Commit Messages
 
-- The project team will label the issue accordingly.
-- A team member will try to reproduce the issue with your provided steps. If there are no reproduction steps or no obvious way to reproduce the issue, the team will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
-- If the team is able to reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`), and the issue will be left to be [implemented by someone](#your-first-code-contribution).
+Commit messages to version control should reference a ticket in their title / summary line:
 
+```
+Issue #248 - Show an example commit message title
+```
 
-### Suggesting Enhancements
+This makes sure that tickets are updated on GitHub with references to commits that are related to them.
 
-This section guides you through submitting an enhancement suggestion for Asynchronous Network Management System (ANMS), **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
+Commit should always be atomic. Keep solutions isolated whenever possible. Filler commits such as "clean up white space" or "fix typo" should be merged together before making a pull request, and significant sub-feature branches should be [rebased](https://www.youtube.com/results?search_query=git+rebase) to preserve commit history. Please ensure your commit history is clean and meaningful!
 
-<!-- omit in toc -->
-#### Before Submitting an Enhancement
+### Submit a Pull Request
 
-- Make sure that you are using the latest version.
-- Read the [documentation](https://nasa-ammos.github.io/anms-docs/) carefully and find out if the functionality is already covered, maybe by an individual configuration.
-- Perform a [search](https://github.com/nasa-ammos/anms/issues) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
-- Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset. If you're just targeting a minority of users, consider writing an add-on/plugin library.
+Pull requests are the core way our project will receive your patch contributions. Navigate to your branch on your own fork within the version control system, and submit a pull request or submit the patch text to our project. 
 
-<!-- omit in toc -->
-#### How Do I Submit a Good Enhancement Suggestion?
+Please make sure to provide a meaningful text description to your pull requests, whenever submitted. Our pull-request template will be auto-generated for you when you create your pull-request. See the template [here](.github/PULL_REQUEST_TEMPLATE.md). 
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/nasa-ammos/anms/issues).
+**Working on your first Pull Request?** See guide: [How to Contribute to an Open Source Project on GitHub](https://kcd.im/pull-request)
 
-- Use a **clear and descriptive title** for the issue to identify the suggestion.
-- Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
-- **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
-- **Explain why this enhancement would be useful** to most Asynchronous Network Management System (ANMS) users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
+### Reviewing your Pull Request
 
-### Your First Code Contribution
+Reviewing pull-requests, or any kinds of proposed patch changes, is an art. That being said, we follow the following best practices:
+- **Intent** - is the purpose of your pull-request clearly stated?
+- **Solution** - is your pull-request doing what you want it to?
+- **Correctness** - is your pull-request doing what you want it to *correctly*?
+- **Small Patches** - is your patch of a level of complexity and brevity that it can actually be reviewed by a human being? Or is does it involve too much content for one pull request?
+- **Coding best practices** - are you following best practices in the coding / contribution language being used?
+- **Readability** - is your patch readable, and ultimately maintainable, by others?
+- **Reproducibility** - is your patch reproducible by others?
+- **Tests** - do you have or have conducted meaningful tests?
 
-The associated [README](README.md) includes brief instructions on building, testing, and running the ACE CLI tool.
+## Ways to Contribute
 
-### Improving The Documentation
+### ⚠️ Issue Tickets
 
-Updates to documentation, both in-source Sphinx docstrings and out-of-source explanations or procedures, is welcome.
-If a documentation issue is observed but a proposed update is not available, an issue ticket can be written.
+> *Do you like to talk about new features, changes, requests?*
 
-Additionally, comments on and updates to the ANMS Product Guide and User Guide (hosted in a different [ANMS Docs](https://github.com/nasa-ammos/anms-docs) repository) are welcome.
+Issue tickets are a very simple way to get involved in our project. It also helps new contributors get an understanding of the project more comprehensively. This is a great place to get started with the project if you're not sure where to start. 
 
-## Styleguides
+See our list of issues at: https://github.com/NASA-AMMOS/anms/issues
 
-The ACE library follows [PEP 8](https://peps.python.org/pep-0008/) style and formatting for all Python source, and inline documentation follows the [Sphinx docstring](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html) formatting.
+#### Cleaning up Duplicate Issues
 
-Commit messages should be short but descriptive, and reference specific issue tickets when resolving them.
+Often we receive duplicate issues that can confuse project members on *which* issue ticket to hold conversations upon.
 
-<!-- omit in toc -->
-## Attribution
-This guide is based on the **contributing-gen**. [Make your own](https://github.com/bttger/contributing-gen)!
+Here's how you can help:
+1. Scan the list of *open* issue tickets for duplicate titles, or internal wording 
+2. If you find duplicates, copy / paste the below message on the conversation thread of the issue ticket *that has less participants* involved
+
+```
+This is a duplicate issue. Please migrate conversations over to [issue-XYZ](hyperlink to issue)
+```
+
+#### Good First Issues
+
+Issue tickets can vary in complexity, and issues labeled with `good first issue` labels are often a great way to get started with the project as a newcomer. 
+
+Take a look at our [issue tracking system](https://github.com/NASA-AMMOS/anms/issues), and filter by `good first issue` for issues that are low-complexity, and that will help you get familiar with our issue tracking and patch submission process.
+
+#### Suggesting New Issue Labels
+
+Labels within our [issue tracking system](https://github.com/NASA-AMMOS/anms/issues) are a great way to quickly sort through tickets. The project may not yet have labels to cover the full variety of issue tickets. Take a look through our list of issues, and if you notice a set of issue tickets that seem similar but are not categorized with an existing label, go ahead submit a request within one of the issues you've looked at with the following text:
+
+```
+I've noticed several other issues that are of the same category as this issue. Shall we make a new label for these types of issues?
+```
+
+#### Submitting Bug Issues
+
+Resolving bugs is a priority for our project. We welcome bug reports. However, please make sure to do the following prior to submitting a bug report:
+- **Check for duplicates** - there may be a bug report already describing your issue, so check the [issue tracking system](https://github.com/NASA-AMMOS/anms/issues) first.
+
+Here's some guidance on submitting a bug issue:
+1. Navigate to our [issue tracking system](https://github.com/NASA-AMMOS/anms/issues) and file a new issue
+2. Select a bug template (if available) for your issue
+   1. Fill out the template fields to the best of your ability, including output snippets or screenshots where applicable
+3. Follow the general guidelines below for extra information about your bug
+   1. Include a code snippet if you have it showcasing the bug
+   2. Provide reproducible steps of how to recreate the bug
+   3. If the bug triggers an exception or error message, include the *full message* or *stacktrace*
+   4. Provide information about your operating system and the version of our project you're using
+
+#### Submitting New Feature Issues
+
+We welcome new feature requests to help grow our project. However, please make sure to do the following prior to submitting a new feature request:
+- **Check for duplicates** - there may be a new feature issue already describing your issue, so check the [issue tracking system](https://github.com/NASA-AMMOS/anms/issues) first
+- **Consider alternatives** - is your feature really needed? Or is there a feature within our project or with a third-party that may help you achieve what you want?
+
+Here's some guidance on submitting a new feature issue:
+1. Navigate to our [issue tracking system](https://github.com/NASA-AMMOS/anms/issues) and file a new issue
+2. Select a new feature template (if available) for your issue
+   1. Fill out the template fields to the best of your ability
+
+#### Submitting Security Vulnerability Issues
+
+Security vulnerabilities should **not** be filed to the regular issue tracking system.
+
+Report your security vulnerabilities to (see contact links): [@jl-0](https://github.com/jl-0) or [@sharimayer](https://github.com/sharimayer)
+
+Please be sure to:
+* Indicate the severity of the vulnerability
+* Provide any workarounds, if you know them
+* Provide return-contact information to follow-up with you if needed
+
+#### Reviewing Pull Requests
+
+Reviewing others' contributions is a great way to learn about best practices in both contributions as well as software. 
+
+Take a look at our [pull requests tracking system](https://github.com/NASA-AMMOS/anms/pulls), and try the following options for providing a review:
+1. Read the code / patch associated with the pull-request, and take note of any coding, bug, or documentation issues if found
+2. Try to recreate the pull-request patch on your local machine, and report if it has issues with your system in particular
+3. Scan over suggested feedback from other contributors, and provide feedback if necessary
+
+### 💻  Code
+
+⚠️ It's **highly** advised that you take a look at our [issue tracking system](https://github.com/NASA-AMMOS/anms/issues) before considering any code contributions. Here's some guidelines:
+1. Check if any duplicate issues exist that cover your code contribution idea / task, and add comments to those tickets with your thoughts.
+2. If no duplicates exist, create a new issue ticket and get a conversation started before making code changes using our [communication channels](#communication-channels).
+
+Once you have a solid issue ticket in hand and are ready to work on code, you'll want to:
+1. Ensure you have development [prerequisites](#prerequisites) cleared.
+2. Have your [development environment](#developer-environment) set up properly.
+3. Go through our [development process](#our-development-process), including proposing changes to our project.
+
+Some guidelines for code-specific contributions:
+- **Do your homework** - read-up on necessary documentation, like `README.md`s, developer documentation, and pre-existing code to see the intention and context necessary to make your contribution a success. It's important to _communicate_ what you're working on through our project [communication channels](#communication-channels) and get buy-in from frequent contributors - this will help the project be more receptive to your contributions! 
+- **Ask questions** - its important to ask questions while you work on your contributions, to check-in with frequent contributors on the style and the set of expectations to make your code contribution work well with pre-existing project code. Use our [communication channels](#communication-channels)
+- **Keep positive** - code contributions, by their nature, have direct impacts on the output and functionality of the project. Keep a positive spirit as your code is reviewed, and take it in stride if core contributors take time to review, give you suggestions for your code or respectfully decline your contribution. This is all part of the process for quality open source development. 
+- **Comments** - include *useful* comments throughout your code that explain the intention of a code block, not a step-by-step analysis. See our [inline code documentation](#inline-code-documentation) section for specifics. 
+<!-- EXAMPLE: APIs, PyTest, etc.
+[INSERT ADDITIONAL SECTIONS HERE FOR MORE SPECIFIC CLASSES OF CODE CONTRIBUTIONS DEPENDING ON YOUR MODULES, LANGUAGES, PLATFORMS IN USE BY YOUR PROJECT. THE MORE DETAILS YOU OFFER, THE MORE LIKELY SOMEONE IS TO UNDERSTAND HOW TO CONTRIBUTE]
+ -->
+
+### 📖 Documentation 
+
+Documentation is the core way our users and contributors learn about the project. We place a high value on the quality, thoroughness, and readability of our documentation. Writing or editing documentation is an excellent way to contribute to our project without performing active coding. 
+
+⚠️ It's **highly** advised that you take a look at our [issue-tracking system](https://github.com/NASA-AMMOS/anms/issues) before considering any documentation contributions. Here's some guidelines:
+1. Check if any duplicate issues exist that cover your documentation contribution idea / task, and add comments to those tickets with your thoughts.
+2. If no duplicates exist, create a new issue ticket and get a conversation started before making documentation changes.
+
+Some guidelines for documentation best practices (summarized from Google's [excellent documentation guide](https://google.github.io/styleguide/docguide/best_practices.html)):
+- **Minimum viable docs** - don't do less documentation than your users / developers need, but also don't do more
+- **Changed code = changed docs** - if your code has changed, remember to update your documentation
+- **Delete old docs** - continually clean your documentation tree, and remove outdated docs regularly
+
+#### Documentation Organization
+
+The overall structure of our project documentation is as follows:
+- Source-controlled documentation
+  - [README.md](README.md) - top-level information about how to run, build, and contribute to the project
+  - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - best practices and guidance on how to work well with other people in the project, and suggestions on dealing with interpersonal issues
+  - [CONTRIBUTING.md](CONTRIBUTING.md) - guidance on contributing to the project
+  - `*.java`, `*.py`, `*.sh`, etc. - inline documentation available inside code files
+- Hosted documentation
+  - [Wiki Main-page](https://github.com/NASA-AMMOS/anms/wiki)
+- Discussion Boards
+  - [Discussions](https://github.com/NASA-AMMOS/anms/discussions)
+
+<!-- EXAMPLE:
+- Source-controlled documentation
+  - [README.md](README.md) - top-level information about how to run, build, and contribute to the project
+  - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - best practices and guidance on how to work well with other people in the project, and suggestions on dealing with interpersonal issues
+  - [CONTRIBUTING.md](CONTRIBUTING.md) - guidance on contributing to the project
+  - `*.py` - inline documentation available inside code files' function headers and code blocks
+  - [docs/](docs/) - top-level directory containing source-controlled documentation built into statically hosted files on our documentation website
+- Hosted documentation
+  - [Wiki Main-page]()
+    - [Wiki Sub-page 1]()
+    - [Wiki Sub-page 2]() 
+- Discussion Boards
+  - [Discussion Board Topic 1]()
+  - [Discussion Board Topic 2]()
+- YouTube.com video tutorials
+  - [Channel page 1]()
+  - [Channel page 2]()
+- Application Programming Interface (API) documentation
+  - [Sub-module 1]()
+  - [Sub-module 2]()
+- etc.
+-->
+
+For directions on contributing to our source-controlled documentation:
+1. Ensure you have development [prerequisites](#prerequisites) cleared.
+2. Have your [development environment](#developer-environment) set up properly.
+3. Go through our [development process](#our-development-process), including proposing changes to our project.
+
+<!-- OPTIONAL FOR HOSTED DOCUMENTATION >
+For directions on contributing to our hosted documentation:
+1. 
+2. 
+3. 
+
+[INSERT HOSTED DOCUMENTATION PLATFORM SPECIFIC INSTRUCTIONS HERE FOR HOW TO CONTRIBUTE]
+-->
+
+#### Writing Style
+
+To ensure documentation is readable and consistent by newcomers and experts alike, here are some suggestions on writing style for English:
+- Use gender neutral pronouns (they/their/them) instead of he/she/his/her 
+- Avoid qualifiers that minimize the difficulty of a task at hand, e.g. avoid words like “easily”, “simply”, “just”, “merely”, “straightforward”, etc. Readers' expertise may not match your own, and qualifying complexity may deter some readers if the task does not match their level of experience. That being said, if a particular task is difficult or complex, do mention that. 
+
+#### Common Wording 
+
+Below are some commonly used words you'll want to leverage in your documentation contributions:
+- **AMMOS** - Advanced Multi-Mission Operations System tool set. AMMOS is also the eponymous organization that sponsors this repository.
+- **Docker** - Containerization service used to perform automated build, release and deployment.
+- **GitHub** - one word, and capitalization of the 'G' and the 'H'
+- **GitHub Actions** - Continuous Integration (CI) services that facilitate build automation
+
+#### Inline Code Documentation
+
+For language-specific guidance on code documentation, including style guides, see [Google's list of language style guides](https://google.github.io/styleguide/) for a variety of languages. 
+
+Additionally, take a look at Google's recommendations on [inline code documentation](https://google.github.io/styleguide/docguide/best_practices.html#documentation-is-the-story-of-your-code) for best practices. 
+
+#### Media
+
+Media, such as images, videos, sound files, etc., are an excellent way to explain documentation to a wider audience more easily. Include media in your contributions as often as possible.
+
+When including media into our version-control system, it is recommended to use formats such as:
+- Diagrams: [Mermaid](https://mermaid-js.github.io/mermaid/#/) format
+- Images: JPEG format
+- Videos: H264 MPEG format
+- Sounds: MP3 format
+<!-- ADD TO OR MODIFY ABOVE DEFAULT SUGGESTIONS -->
+
+### ❓ Questions
+
+Answering questions is an excellent way to learn more about our project, as well as get better known in our project community. 
+
+Here are just a few ways you can help answer questions for our project:
+- Answer open questions in our [discussion forum](https://github.com/NASA-AMMOS/anms/discussions)
+- Answer open questions mentioned in our [issue tracking system](https://github.com/NASA-AMMOS/anms/issues)
+<!-- ADD TO OR MODIFY DEPENDING ON YOUR COMMUNICATION CHANNELS LISTED AT THE BEGINNING OF THIS DOCUMENT-->
+
+When answering questions, keep the following in mind:
+- Be polite and friendly. See our [Code of Conduct](CODE_OF_CONDUCT.md) recommendations as you interact with others in the team.
+- Repeat the specific question you are answering, followed by your suggestion.
+- If suggesting code, repeat the line of code that needs to be altered, followed by your alteration
+- Include any post-steps or checks to verify your answer can be reproduced 
+
+### 🎨 Design
+
+Design files can help to guide new features and new areas of expansion for our project. We welcome these kinds of contributions.
+
+Here are just a few ways you can help provide design recommendations for our project:
+- Create visual mockups or diagrams to increase usability of our project applications. This can apply to user interfaces, documentation structuring, or even code architecture diagrams.
+- Conduct user research to understand user needs better. Save your findings within spreadsheets that the project team / contributors can review.
+- Create art, such as logos or icons, to support the user experience for the project
+
+Each of the above can be contributed directly to repository code, and you should use our [development process](#our-development-process) to contribute your additions.
+
+### 🎟️ Meetups
+
+A great way to contribute towards our project goals is to socialize and encourage people to meet and learn more about each other. Consider ideas like:
+- Propose workshops or meetups regarding some topic within our project
+- Help point project contributors and community members to conferences and publications where they may socialize their unique innovations
+- Schedule in-person or virtual happy-hours to help create a more social atmosphere within the project community
+
+For the above ideas, use our [communication channels](#communication-channels) to propose get-togethers. 
+
