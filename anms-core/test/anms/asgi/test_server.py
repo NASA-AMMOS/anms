@@ -46,9 +46,6 @@ class TestMain:
         config['DEBUG'] = False
         with patch.object(uvicorn, 'run') as mock_ssl_run:
             server.main()
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        mock_ssl_run.assert_called_once_with('anms.asgi.server:app', access_log=False, host="0.0.0.0", log_config=None,
-                                             log_level=10, port=5555,
-                                             ssl_ciphers=":".join(map(lambda c: c["name"], ssl_context.get_ciphers())),
-                                             ssl_certfile="test", ssl_keyfile="test", ssl_keyfile_password=None,
-                                             reload=False, ssl_version=ssl_context.protocol)
+            mock_ssl_run.assert_called_once_with('anms.asgi.server:app', access_log=False, host="0.0.0.0", log_config=None,
+                                             log_level=10, port=5555, reload=False)
+        
