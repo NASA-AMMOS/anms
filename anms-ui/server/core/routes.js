@@ -135,7 +135,6 @@
       const networkManager = require('../components/networkManager')
       router.get('/nm/version', networkManager.getVersion)
       router.post('/nm/agents', networkManager.nm_register_agent);
-      router.put('/nm/agents/idx/:idx/hex', networkManager.nm_put_hex_idx);
       router.put('/nm/agents/eid/:eid/hex', networkManager.nm_put_hex_eid);
       router.put('/nm/agents/eid/:addr/clear_reports', networkManager.nm_clear_reports);
       router.put('/nm/agents/eid/:addr/clear_tables ', networkManager.nm_clear_tables);

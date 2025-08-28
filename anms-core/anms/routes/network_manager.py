@@ -81,18 +81,6 @@ async def nm_register_agent(addr: Data):
     return request.status_code
 
 
-# PUT 	/agents/idx/{idx}/hex 	Body is CBOR-encoded HEX ARI to send. $idx is index of node from agents listing
-@router.put("/agents/idx/{idx}/hex", status_code=status.HTTP_200_OK)
-async def nm_put_hex_idx(idx: str, ari: Data):
-    url = nm_url + "/agents/idx/{}/send?form=hex".format(idx)
-    logger.info('post to nm manager %s  with idx %s and data %s' % (url, idx, ari.data))
-    try:
-        request = requests.post(url=url, data=ari.data, headers={'Content-Type': 'text/plain'})
-    except Exception:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
-    return request.status_code
-
-
 # PUT 	/agents/eid/{eid}/hex 	Body is CBOR-encoded HEX ARI to send. $eid is the agent to query
 @router.put("/agents/eid/{eid}/hex", status_code=status.HTTP_200_OK)
 def nm_put_hex_eid(eid: str, ari: Data):
