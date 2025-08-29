@@ -63,20 +63,6 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         self.cfg.set("proc_name", "anms")
         self.cfg.set("preload_app", False)
 
-        # SSL Settings
-        should_start_with_ssl = (
-            config['SERVER_SSL'] is True
-            and config['SERVER_BEHIND_PROXY'] is False
-            and isinstance(config['SERVER_SSL_CRT'], str)
-            and isinstance(config['SERVER_SSL_KEY'], str)
-        )
-        if should_start_with_ssl:
-            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            ssl_context.options |= ssl.OP_NO_TLSv1
-            ssl_context.options |= ssl.OP_NO_TLSv1_1
-            self.cfg.set("ssl_version", ssl_context.protocol)
-            self.cfg.set("certfile", config['SERVER_SSL_CRT'])
-            self.cfg.set("keyfile", config['SERVER_SSL_KEY'])
 
         # App Secret Manager Help?
         if not config['APP_SECRET_KEY']:
