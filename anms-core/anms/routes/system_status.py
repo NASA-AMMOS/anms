@@ -137,19 +137,3 @@ async def sys_status_get_services_status():
   statuses = get_containers_status()
   logger.debug(f"Checking all services' status: {str(statuses)}")
   return json.dumps(statuses)
-
-# POST 	/agents 	Register a new Agent at specified eid (in body of request)
-@router.post("/agents",status_code=status.HTTP_200_OK)
-async def nm_register_agent(addr: Address):
-  url = nm_url + "/agents"
-  logger.info('POST to nm manager %s with addr %s', url, addr)
-  request = requests.post(url=url, data=addr.data)
-  return request.status_code
-
-# PUT 	/agents/eid/{addr}/clear_tables 	Clear all tables for given node
-@router.put("/agents/eid/{addr}/clear_tables",status_code=status.HTTP_200_OK)
-async def nm_clear_tables(addr: str):
-  url = nm_url + "/agents/eid/{}/clear_tables".format(addr)
-  logger.info('PUT to nm manager %s with addr %s', url, addr)
-  request = requests.put(url=url)
-  return request.status_code
