@@ -101,20 +101,25 @@ async def report_ac(agent_id: str, correlator_nonce: int):
     agent_id = agent_id.strip()
     final_res = []
     ari = None
+    dec = ace.ari_cbor.Decoder()
     # Load in adms 
     # get command that made the report as first entry 
     stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == correlator_nonce) )
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
-        result = result.one_or_none()
+        
+        # there should only be one execution per agent per correlator_nonce
+        # in the event that two occur pull the latest one  
+        result = result.all()
         exec_set_entry=["time"]
         if result:
+            result = result[-1]
+
             exec_set = result.entries.hex()
             # use ACE to handle report set decoding  
             in_text = '0x'+exec_set
             try:
                 in_bytes = ace.cborutil.from_hexstr(in_text)
-                dec = ace.ari_cbor.Decoder()
                 ari = dec.decode(io.BytesIO(in_bytes))
                 
             except Exception as err:
@@ -128,17 +133,15 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                 buf = io.StringIO()
                 # run through targets and their parameters to get all things parts translated 
                 for targ in ari.value.targets: 
-                    if targ.params:
-                        for param in targ.params:
-                            enc.encode(param, buf)
+                    if targ is ace.LiteralARI and targ.type_id is  ace.StructType.AC:
+                        for part in targ.value:
+                            enc.encode(part, buf)
                             out_text = buf.getvalue()
-                            ari_val = await transcoder.transcoder_put_await_str(out_text)
-                            exec_set_entry.append(ari_val['data'])
+                            exec_set_entry.append(out_text)
                     else:
                         enc.encode(targ, buf)
-                        out_text = buf.getvalue()
-                        ari_val = await transcoder.transcoder_put_await_str(out_text)
-                        exec_set_entry.append(ari_val['data'])
+                        out_text = buf.getvalue()    
+                        exec_set_entry.append(out_text)
 
             except Exception as err:
                 logger.info(err)
@@ -157,7 +160,6 @@ async def report_ac(agent_id: str, correlator_nonce: int):
             in_text = '0x'+rpt_set
             try:
                 in_bytes = ace.cborutil.from_hexstr(in_text)
-                dec = ace.ari_cbor.Decoder()
                 ari = dec.decode(io.BytesIO(in_bytes))
 
             except Exception as err:
@@ -173,9 +175,8 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                             for item in rpt.items:
                                 buf = io.StringIO()
                                 enc.encode(item, buf)
-                                out_text = buf.getvalue()
-                                ari_val = await transcoder.transcoder_put_await_str(out_text)
-                                addition.append(ari_val['data'])
+                                out_text = buf.getvalue()    
+                                addition.append(out_text)
                         except Exception as err:
                             logger.error(err)
             

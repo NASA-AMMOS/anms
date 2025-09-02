@@ -19,4 +19,3 @@
     "integration_tests": "newman run integration_tests.json -r cli,json"
   }
 }
-z
