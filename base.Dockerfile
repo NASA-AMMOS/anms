@@ -69,12 +69,12 @@ FROM anms-base AS dtnma-acelib
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install gcc-c++ python3.11-devel python3.11 python3.11-pip python3.11-wheel python3.11-setuptools iputils && \
-    pip3.11 install pip-tools
+    dnf -y install gcc-c++ python-devel python3-pip python3-wheel python3-setuptools iputils && \
+    pip3 install pip-tools
 
 # Use specific OS python version
-ENV PIP=pip3.11
-ENV PYTHON=python3.11
+ENV PIP=pip3
+ENV PYTHON=python3
 # Submodules with dependencies
 ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
