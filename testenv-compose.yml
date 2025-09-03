@@ -44,6 +44,7 @@ volumes:
 services:
   ion-manager:
     hostname: ion-manager
+    image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
     build:
       context: deps
       dockerfile: reftools.Dockerfile
@@ -56,7 +57,6 @@ services:
       - NET_RAW
       - SYS_NICE
     volumes:
-      - "/var/tmp/pcap:/var/log/pcap"
       - "${HOST_SOCKDIR}:${CTR_SOCKDIR}"
     environment:
       container: docker
@@ -64,8 +64,6 @@ services:
       AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
       ION_NODE_NUM: 1
       MGR_NODE_NUM: 1
-      DUMPCAP_OUTFILE: /var/log/pcap/manager.pcap
-      DUMPCAP_OPTS: -i lo -i eth0
     ports:
       - "1113:1113/udp"
       - "4556:4556/udp"
@@ -89,15 +87,11 @@ services:
       - NET_ADMIN
       - NET_RAW
       - SYS_NICE
-    volumes:
-      - "/var/tmp/pcap:/var/log/pcap"
     environment:
       container: docker
       DTNMA_LOGLEVEL: debug
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
-      DUMPCAP_OUTFILE: /var/log/pcap/agent2.pcap
-      DUMPCAP_OPTS: -i lo -i eth0
     networks:
       default:
         ipv4_address: 10.5.0.102
@@ -114,5 +108,3 @@ services:
       ION_NODE_NUM: 3
       MGR_NODE_NUM: 1
       DTNMA_LOGLEVEL: debug
-      DUMPCAP_OUTFILE: /var/log/pcap/agent3.pcap
-      DUMPCAP_OPTS: -i lo -i eth0

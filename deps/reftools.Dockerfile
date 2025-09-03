@@ -15,63 +15,25 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-FROM ubuntu:24.04 AS systemd-base
-ENV DEBIAN_FRONTEND="noninteractive"
 
-# APL network configuration from
-# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
-RUN apt-get update && apt-get install -y ca-certificates curl && \
-    (curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /usr/local/share/ca-certificates/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt || true) && \
-    update-ca-certificates
-ENV PIP_CERT=/etc/ssl/certs/ca-certificates.crt
-ENV PIP_DEFAULT_TIMEOUT=300
+# Build on more permissive CentOS image
+# Run on RHEL UBI image
+FROM quay.io/centos/centos:stream9 AS buildenv-base
 
-# Distro upgrade for security patches
-RUN apt-get update && apt-get upgrade -y
-
-# Use systemd as top-level process
-RUN apt-get update && apt-get install -y systemd systemd-sysv
-RUN systemctl mask systemd-logind && \
-    systemctl mask console-getty && \
-    systemctl disable getty@tty1 && \
-    systemctl disable apt-daily.timer apt-daily-upgrade.timer && \
-    systemctl disable systemd-timesyncd && \
-    systemctl disable systemd-networkd && \
-    echo "MulticastDNS=no" >>/etc/systemd/resolved.conf
-CMD [ "/sbin/init" ]
-
-# Testing utilities
-RUN apt-get update && apt-get install -y \
-    net-tools iproute2 iputils-ping \
-    lsof iftop gdb valgrind xxd socat jq ruby && \
-    gem install cbor-diag
-
-
-FROM ubuntu:24.04 AS deps-local
-
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake autoconf libtool && \
-    echo "/usr/local/lib" >/etc/ld.so.conf.d/local.conf
-
-COPY dtnma-tools/deps/ion /usr/local/src/nm/deps/ion
-COPY dtnma-tools/deps/ion*.patch /usr/local/src/nm/deps/
-RUN cd /usr/local/src/nm/deps/ion && \
-    patch -p1 <../ion-4.1.2-remove-nm.patch && \
-    patch -p1 <../ion-4.1.2-local-deliver.patch && \
-    patch -p1 <../ion-4.1.2-private-headers.patch && \
-    autoreconf -vif && \
-    export CFLAGS="-std=gnu99" && \
-    ./configure && \
-    make -j$(nproc) && \
-    make install && \
-    make -j$(nproc) clean
+RUN dnf install -y epel-release && \
+    crb enable
+RUN dnf install -y \
+        gcc g++ \
+        cmake ninja-build ruby pkg-config \
+        flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel && \
+    echo "/usr/local/lib64" >/etc/ld.so.conf.d/local.conf && \
+    ldconfig
 
 COPY dtnma-tools/deps/QCBOR /usr/local/src/nm/deps/QCBOR
 RUN cd /usr/local/src/nm/deps/QCBOR && \
     cmake -S . -B build \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DBUILD_SHARED_LIBS=YES && \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DBUILD_SHARED_LIBS=YES && \
     cmake --build build && \
     cmake --install build && \
     ldconfig && \
@@ -88,37 +50,65 @@ COPY dtnma-tools/deps/timespec /usr/local/src/nm/deps/timespec
 COPY dtnma-tools/deps/timespec-CMakeLists.txt /usr/local/src/nm/deps/timespec/CMakeLists.txt
 RUN cd /usr/local/src/nm/deps/timespec && \
     cmake -S . -B build \
-      -DCMAKE_BUILD_TYPE=Debug && \
+        -DCMAKE_BUILD_TYPE=Debug && \
     cmake --build build && \
     cmake --install build && \
     ldconfig && \
     rm -rf build
 
 
-FROM systemd-base AS testenv
-COPY --from=deps-local /usr/local /usr/local
+# REFDM only
+FROM buildenv-base AS buildenv-refdm
 
-# Helper utilities
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip
-COPY --chmod=755 dtnma-tools/systemd/service_is_running.sh /usr/local/bin/service_is_running
-
-# Test tools
-RUN apt-get update && apt-get install -y \
-    curl git tshark postgresql-client
-
-# REFDA and REFDM to test
-RUN apt-get update && apt-get install -y \
-    cmake ninja-build ruby pkg-config \
-    flex libfl-dev bison libpcre2-dev libpq-dev civetweb libcivetweb-dev libssl-dev libcjson-dev libsystemd-dev
+# Install under /usr/local and keep build artifacts for debuginfo
 COPY dtnma-tools/deps /usr/local/src/nm/deps
 COPY dtnma-tools/cmake /usr/local/src/nm/cmake
 COPY dtnma-tools/src /usr/local/src/nm/src
 COPY dtnma-tools/CMakeLists.txt /usr/local/src/nm/
-RUN ls -lt /usr/local/src/nm/
 RUN cd /usr/local/src/nm && \
     cmake -S . -B build/default \
       -DCMAKE_BUILD_TYPE=Debug \
+      -DBUILD_AGENT=OFF \
+      -DBUILD_ION_PROXY=OFF \
+      -DTRANSPORT_UNIX_SOCKET=OFF \
+      -DTRANSPORT_PROXY_SOCKET=ON \
+      -DTRANSPORT_ION_BP=OFF \
+      -DBUILD_TESTING=OFF \
+      -DBUILD_DOCS_API=OFF -DBUILD_DOCS_MAN=OFF \
+      -G Ninja && \
+    cmake --build build/default && \
+    cmake --install build/default && \
+    ldconfig
+
+
+# ION and REFDA images
+FROM buildenv-base AS buildenv-ion
+
+RUN dnf install -y \
+        patch autoconf libtool
+
+COPY dtnma-tools/deps/ion /usr/local/src/nm/deps/ion
+COPY dtnma-tools/deps/ion*.patch /usr/local/src/nm/deps/
+RUN cd /usr/local/src/nm/deps/ion && \
+    patch -p1 <../ion-4.1.2-remove-nm.patch && \
+    patch -p1 <../ion-4.1.2-local-deliver.patch && \
+    patch -p1 <../ion-4.1.2-private-headers.patch && \
+    autoreconf -vif && \
+    export CFLAGS="-std=gnu99" && \
+    ./configure && \
+    make -j$(nproc) && \
+    make install && \
+    make -j$(nproc) clean
+
+# Install under /usr/local and keep build artifacts for debuginfo
+COPY dtnma-tools/deps /usr/local/src/nm/deps
+COPY dtnma-tools/cmake /usr/local/src/nm/cmake
+COPY dtnma-tools/src /usr/local/src/nm/src
+COPY dtnma-tools/CMakeLists.txt /usr/local/src/nm/
+RUN cd /usr/local/src/nm && \
+    cmake -S . -B build/default \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DBUILD_MANAGER=OFF \
       -DBUILD_ION_PROXY=ON \
       -DTRANSPORT_UNIX_SOCKET=OFF \
       -DTRANSPORT_PROXY_SOCKET=ON \
@@ -129,29 +119,62 @@ RUN cd /usr/local/src/nm && \
     cmake --build build/default && \
     cmake --install build/default && \
     ldconfig
-# keep build artifacts for debuginfo
 
 
-FROM testenv AS amp-manager
+# This image uses systemd init process to manage local services.
+# Derived image targets choose which servies are enabled.
+#
+FROM registry.access.redhat.com/ubi9/ubi-init:9.2 AS anms-init
 
-# Systemd services
-COPY --chmod=644 dtnma-tools/systemd/refdm-proxy.service \
-    /usr/local/lib/systemd/system/
-RUN systemctl enable refdm-proxy
+# Optional APL network configuration from
+# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
+RUN ( \
+      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
+      update-ca-trust && \
+      echo "Root CA added" \
+    ) || true
+ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+ENV PIP_DEFAULT_TIMEOUT=300
+RUN dnf -y install container-tools
+# Container service config
+RUN systemctl disable dnf-makecache.timer
+
+
+# Runtime image for REFDM
+FROM localhost/anms-base AS amp-manager
+
+RUN dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    crb enable && \
+    dnf install -y \
+        pcre2 civetweb openssl-libs cjson libpq
+
+COPY --from=buildenv-refdm /usr/local /usr/local
+RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
+    ldconfig
+
+CMD ["sh", "-c", "refdm-proxy -l ${DTNMA_LOGLEVEL} -a ${AMP_PROXY_SOCKET}"]
 
 EXPOSE 8089/tcp
 
-HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
-    CMD ["service_is_running", "refdm-proxy"]
+HEALTHCHECK --interval=60s --timeout=60s --retries=20 \
+    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:8089/nm/api/"]
 
 
-FROM testenv AS ion-manager
+# Image for the test environment manager transport with ION node and the
+# ion-app-proxy daemon
+#
+FROM anms-init AS ion-manager
+
+COPY --from=buildenv-ion /usr/local /usr/local
+RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
+    echo "/usr/local/lib" >>/etc/ld.so.conf.d/local.conf && \
+    ldconfig
 
 # Systemd services
 COPY dtnma-tools/integration-test-ion/tmpfiles.conf /etc/tmpfiles.d/ion.conf
-COPY --chmod=644 dtnma-tools/systemd/ion.service dtnma-tools/systemd/ion-app-proxy.service dtnma-tools/systemd/bpecho@.service dtnma-tools/systemd/dumpcap.service \
+COPY --chmod=644 dtnma-tools/systemd/ion.service dtnma-tools/systemd/ion-app-proxy.service dtnma-tools/systemd/bpecho@.service \
     /usr/local/lib/systemd/system/
-RUN systemctl enable ion bpecho@4 ion-app-proxy dumpcap && \
+RUN systemctl enable ion bpecho@4 ion-app-proxy && \
     mkdir -p /var/run/ion
 
 # Runtime config for this container
@@ -165,13 +188,20 @@ HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
     CMD ["service_is_running", "ion", "ion-app-proxy"]
 
 
-FROM testenv AS ion-agent
+# Image for the test environment Agents with ION node and REFDA
+#
+FROM anms-init AS ion-agent
+
+COPY --from=buildenv-ion /usr/local /usr/local
+RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
+    echo "/usr/local/lib" >>/etc/ld.so.conf.d/local.conf && \
+    ldconfig
 
 # Systemd services
 COPY dtnma-tools/integration-test-ion/tmpfiles.conf /etc/tmpfiles.d/ion.conf
-COPY --chmod=644 dtnma-tools/systemd/ion.service dtnma-tools/systemd/refda-ion.service dtnma-tools/systemd/bpecho@.service dtnma-tools/systemd/dumpcap.service \
+COPY --chmod=644 dtnma-tools/systemd/ion.service dtnma-tools/systemd/refda-ion.service dtnma-tools/systemd/bpecho@.service \
     /usr/local/lib/systemd/system/
-RUN systemctl enable ion bpecho@4 refda-ion dumpcap && \
+RUN systemctl enable ion bpecho@4 refda-ion && \
     mkdir -p /var/run/ion
     
 # Runtime config for this container

@@ -49,19 +49,14 @@ services:
     build:
       dockerfile: base.Dockerfile
       target: anms-base
-    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
-  builder-init:
-    image: localhost/anms-init
-    build:
-      dockerfile: base.Dockerfile
-      target: anms-init
-    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
+    command: bash -c 'true'
   builder-acelib:
     image: localhost/dtnma-acelib
     build:
       dockerfile: base.Dockerfile
       target: dtnma-acelib
-    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
+    command: bash -c 'true'
+
   authnz:
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
     build:
@@ -74,8 +69,6 @@ services:
     ports:
       - "${AUTHNZ_PORT:-80}:80"
       - "${AUTHNZ_HTTPS_PORT:-443}:443"
-    depends_on:
-      - builder-base
     environment:
       CAM_SERVER_URL: ${CAM_SERVER_URL}
       CAM_ADMIN_USER: ${CAM_ADMIN_USER}
@@ -178,9 +171,6 @@ services:
     security_opt:
       - "label=type:transcoder.process"
     depends_on:
-      builder-acelib:
-          # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
       mqtt-broker:
         condition: service_healthy
 
@@ -197,9 +187,6 @@ services:
       DB_URI: postgresql://${DB_USER}:${DB_PASSWORD}@postgres/${DB_NAME}
       MQTT_HOST: mqtt-broker
     depends_on:
-      builder-acelib:
-          # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
       postgres:
         condition: service_healthy
       mqtt-broker:
@@ -218,9 +205,6 @@ services:
       - "${ANMS_UI_HTTP_PORT:-9030}:9030"
       - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
     depends_on:
-      builder-base:
-        # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
       redis:
         condition: service_healthy
       postgres:
@@ -298,9 +282,6 @@ services:
     ports:
       - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
     depends_on:
-      builder-acelib:
-        # Not expected to run, but needed here to ensure build dependency
-        condition: service_started
       amp-manager:
         condition: service_started
       postgres:
@@ -310,6 +291,7 @@ services:
 
   amp-manager:
     hostname: amp-manager
+    image: ${DOCKER_CTR_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     build:
       context: deps
       dockerfile: reftools.Dockerfile
