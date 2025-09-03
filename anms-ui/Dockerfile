@@ -40,7 +40,7 @@ ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
 # Install NodeJS Global Dependencies
 RUN --mount=type=cache,target=/root/.cache/yarn \
-    yarn global add pm2 @vue/cli
+    yarn global --ignore-engines add pm2 @vue/cli
 
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
