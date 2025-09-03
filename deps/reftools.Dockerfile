@@ -156,7 +156,7 @@ CMD ["sh", "-c", "refdm-proxy -l ${DTNMA_LOGLEVEL} -a ${AMP_PROXY_SOCKET}"]
 
 EXPOSE 8089/tcp
 
-HEALTHCHECK --interval=60s --timeout=60s --retries=20 \
+HEALTHCHECK --start-period=10s --interval=60s --timeout=60s --retries=20 \
     CMD ["curl", "-sq", "-o/dev/null", "http://localhost:8089/nm/api/"]
 
 
