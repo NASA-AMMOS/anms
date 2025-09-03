@@ -205,7 +205,8 @@ services:
     image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG}
     build:
       # NOTE: Custom image currently needed only for SSL-cert purposes
-      context: grafana
+      dockerfile: Containerfile
+      target: grafana
     restart: unless-stopped
     security_opt:
       - "label=type:grafana.process"
