@@ -44,19 +44,6 @@ volumes:
     external: true
 
 services:
-  builder-base:
-    image: localhost/anms-base
-    build:
-      dockerfile: base.Dockerfile
-      target: anms-base
-    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
-  builder-acelib:
-    image: localhost/dtnma-acelib
-    build:
-      dockerfile: base.Dockerfile
-      target: dtnma-acelib
-    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
-
   authnz:
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
     build:
@@ -128,10 +115,10 @@ services:
 
   postgres:
     hostname: postgres
-    image: ${DOCKER_CTR_PREFIX}refdb-sql:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_CTR_PREFIX}anms-sql:${DOCKER_IMAGE_TAG}
     build:
-      context: deps
-      dockerfile: ansmsql.Dockerfile
+      dockerfile: Containerfile
+      target: anms-sql
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -141,12 +128,6 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
-    healthcheck:
-      test: pg_isready -U healthcheck
-      interval: 10s
-      start_period: 10s
-      timeout: 5s
-      retries: 5
     ports:
       - "${DB_PORT-5432}:5432"
 
@@ -154,7 +135,8 @@ services:
     hostname: mqtt-broker
     image: ${DOCKER_IMAGE_PREFIX}mqtt-broker
     build:
-      context: mqtt-broker
+      dockerfile: Containerfile
+      target: mqtt-broker
     restart: unless-stopped
     security_opt:
       - "label=type:mqtt-broker.process"
@@ -165,8 +147,8 @@ services:
     hostname: transcoder
     image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
     build:
-      context: transcoder
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
+      target: transcoder
     restart: unless-stopped
     security_opt:
       - "label=type:transcoder.process"
@@ -178,8 +160,8 @@ services:
     hostname: aricodec
     image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG}
     build:
-      context: aricodec
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
+      target: aricodec
     restart: unless-stopped
     security_opt:
       - "label=type:aricodec.process"
@@ -196,8 +178,8 @@ services:
     hostname: anms-ui
     image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
     build:
-      context: anms-ui
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
+      target: anms-ui
     restart: unless-stopped
     security_opt:
       - "label=type:anms-ui.process"
@@ -266,8 +248,8 @@ services:
     hostname: anms-core
     image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
     build:
-      context: anms-core
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
+      target: anms-core
     restart: unless-stopped
     security_opt:
       - "label=type:anms-core.process"
@@ -291,10 +273,9 @@ services:
 
   amp-manager:
     hostname: amp-manager
-    image: ${DOCKER_CTR_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     build:
-      context: deps
-      dockerfile: reftools.Dockerfile
+      dockerfile: Containerfile
       target: amp-manager
     ports:
       - "8089:8089/tcp"

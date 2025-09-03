@@ -23,7 +23,17 @@
 # Configure an Apache HTTPd to perform cookie-based authentication and
 # path-based authorization to emulate the JPL CAM client.
 #
-FROM localhost/anms-base
+FROM registry.access.redhat.com/ubi9/ubi:9.2 AS anms-base
+
+# Optional APL network configuration from
+# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
+RUN ( \
+      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
+      update-ca-trust && \
+      echo "Root CA added" \
+    ) || true
+ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+ENV PIP_DEFAULT_TIMEOUT=300
 
 # Install Apache
 RUN dnf -y install httpd-tools mod_ssl mod_session
