@@ -46,9 +46,8 @@ jobs:
           sudo mkdir /run/anms
       - name: Start
         run: |
-          podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
-          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          sleep 5
+          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
+          podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
         run: |
           for BADSTATUS in stopped restarting; do
@@ -110,9 +109,8 @@ jobs:
           sudo mkdir /run/anms
       - name: Start
         run: |
-          docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
-          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          sleep 5
+          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
+          docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
         run: |
           for BADSTATUS in stopped restarting; do
