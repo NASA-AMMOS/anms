@@ -99,7 +99,9 @@ jobs:
           echo "GITHUB_WORKSPACE=${{ github.workspace }}"
           ls -al ${{ github.workspace }}
       - name: Build Main
-        run: docker compose ${ANMS_COMPOSE_OPTS} build
+        run: |
+          docker compose ${ANMS_COMPOSE_OPTS} build builder-base builder-init builder-acelib
+          docker compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
         run: docker compose ${TESTENV_COMPOSE_OPTS} build
       - name: Build Volume
