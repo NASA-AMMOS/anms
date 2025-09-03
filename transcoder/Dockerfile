@@ -1,3 +1,4 @@
+
 ##
 ## Copyright (c) 2023 The Johns Hopkins University Applied Physics
 ## Laboratory LLC.
@@ -23,7 +24,6 @@ FROM localhost/dtnma-acelib
 
 ENV APP_WORK_DIR=/opt/app
 
-
 # Copy over all required content (source, data, etc.)
 COPY --chown=${APP_USER}:${APP_USER} . ${APP_WORK_DIR}
 # Install all python dependencies
@@ -37,5 +37,3 @@ COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
-
-

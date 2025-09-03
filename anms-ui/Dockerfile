@@ -40,7 +40,7 @@ ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
 # Install NodeJS Global Dependencies
 RUN --mount=type=cache,target=/root/.cache/yarn \
-    yarn global add pm2 @vue/cli
+    yarn global --ignore-engines add pm2 @vue/cli
 
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
@@ -79,7 +79,7 @@ COPY --chown=${APP_USER}:${APP_USER} config.yaml process.yml config_ui_env.js da
 
 CMD ["pm2-docker", "process.yml", "--env", "production"]
 
-HEALTHCHECK --start-period=10s --interval=60s --timeout=60s --retries=20 \
+HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
     CMD ["pm2", "pid", "anms"]
 
 EXPOSE 9030

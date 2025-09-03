@@ -46,9 +46,8 @@ jobs:
           sudo mkdir /run/anms
       - name: Start
         run: |
-          podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
-          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          sleep 5
+          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
+          podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
         run: |
           for BADSTATUS in stopped restarting; do
@@ -99,7 +98,9 @@ jobs:
           echo "GITHUB_WORKSPACE=${{ github.workspace }}"
           ls -al ${{ github.workspace }}
       - name: Build Main
-        run: docker compose ${ANMS_COMPOSE_OPTS} build
+        run: |
+          docker compose ${ANMS_COMPOSE_OPTS} build builder-base builder-init builder-acelib
+          docker compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
         run: docker compose ${TESTENV_COMPOSE_OPTS} build
       - name: Build Volume
@@ -108,9 +109,8 @@ jobs:
           sudo mkdir /run/anms
       - name: Start
         run: |
-          docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
-          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          sleep 5
+          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
+          docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
         run: |
           for BADSTATUS in stopped restarting; do
