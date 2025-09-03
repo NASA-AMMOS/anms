@@ -48,5 +48,5 @@ COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
 USER ${APP_USER}
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
 
-HEALTHCHECK --interval=60s --timeout=60s --retries=20 \
+HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
     CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/hello"]

@@ -36,12 +36,14 @@ mkdir -p "/home/${USER}/.cache/yarn"
 
 for SUBNAME in server public
 do
+    echo -e "\n\nUpdating in ${SUBNAME}...\n"
     docker run \
 	   -v "/etc/group:/etc/group:ro" \
 	   -v "/etc/passwd:/etc/passwd:ro" \
 	   -v "/etc/shadow:/etc/shadow:ro" \
 	   -u ${UID}:${GID} \
-	   -v "/home/${USER}/.cache/yarn:/home/${USER}/.cache/yarn" \
-	   -v "${SELFDIR}/${SUBNAME}:/usr/src/app" \
-	   yarn-base bash -c "cd /usr/src/app && yarn install"
+	   -v "/home/${USER}/.cache/yarn:/home/${USER}/.cache/yarn:U" \
+	   -v "${SELFDIR}/${SUBNAME}:/usr/src/app:U" \
+	   yarn-base \
+	   bash -c "cd /usr/src/app && yarn install"
 done
