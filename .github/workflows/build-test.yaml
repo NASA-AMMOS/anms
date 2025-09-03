@@ -102,7 +102,6 @@ jobs:
           ls -al ${{ github.workspace }}
       - name: Build Main
         run: |
-          docker compose ${ANMS_COMPOSE_OPTS} build builder-base builder-acelib
           docker compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
         run: docker compose ${TESTENV_COMPOSE_OPTS} build
