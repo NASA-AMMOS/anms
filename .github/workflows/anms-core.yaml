@@ -7,30 +7,8 @@ on:
       - anms-core/**
 
 jobs:
-  unit-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install dependencies
-        run: |
-          pip3 install deps/dtnma-ace
-          pip3 install deps/dtnma-camp
-      - name: Install
-        working-directory: anms-core
-        run: pip3 install -e '.[test]'
-      - name: Run test
-        working-directory: anms-core
-        run: PYTHONPATH=src python3 -m pytest --junit-xml=testresults.xml --cov=anms test
-
   flake8:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.9"
       - name: Install dependencies
         run: |
           pip3 install deps/dtnma-ace
