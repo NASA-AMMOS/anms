@@ -79,7 +79,7 @@ COPY --chown=${APP_USER}:${APP_USER} config.yaml process.yml config_ui_env.js da
 
 CMD ["pm2-docker", "process.yml", "--env", "production"]
 
-HEALTHCHECK --start-period=10s --interval=60s --timeout=60s --retries=20 \
+HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
     CMD ["pm2", "pid", "anms"]
 
 EXPOSE 9030
