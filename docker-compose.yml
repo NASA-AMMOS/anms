@@ -49,13 +49,13 @@ services:
     build:
       dockerfile: base.Dockerfile
       target: anms-base
-    command: bash -c 'true'
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
   builder-acelib:
     image: localhost/dtnma-acelib
     build:
       dockerfile: base.Dockerfile
       target: dtnma-acelib
-    command: bash -c 'true'
+    command: bash -c 'while true; do sleep 1; done' # Dummy loop to simplify dependency management
 
   authnz:
     image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG}
