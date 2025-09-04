@@ -9,25 +9,30 @@ on:
 
 jobs:
   podman-checkout-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ctrmgr: ['docker', 'podman']
+    name: Checkout Test (${{matrix.ctrmgr}})
     env:
       AUTHNZ_EMU: "demo"
       ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
       TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
-      DOCKER_CMD: "podman"
+      DOCKER_CMD: ${{matrix.ctrmgr}}
       AUTHNZ_PORT: 8084
       AUTHNZ_HTTPS_PORT: 8443
     steps:
-      - name: Start Podman API Service
+      - name: Start Container Service
+        if: ${{matrix.ctrmgr}} == 'podman'
         run: |
           systemctl --user start podman.socket
           systemctl --user enable podman.socket
-          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock      
+          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
       - name: Versions
         run: |
-          podman -v
-          podman ps
-          podman compose ls
+          ${DOCKER_CMD} -v
+          ${DOCKER_CMD} compose -v
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -36,100 +41,43 @@ jobs:
         run: |
           DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
-      - name: Build Main
-        run: podman compose ${ANMS_COMPOSE_OPTS} build
+      - name: Build ANMS
+        run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
-        run: podman compose ${TESTENV_COMPOSE_OPTS} build
+        run: ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} build
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
           sudo mkdir /run/anms
+      - name: Pull Images
+        run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} pull --ignore-buildable
       - name: Start
         run: |
-          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
-          podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
+          ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
         run: |
           for BADSTATUS in stopped restarting; do
-            podman compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
+            ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
           done
           # Show hints at what may be wrong
           for SERVNAME in $(cat /tmp/notgood); do
-            podman compose ${ANMS_COMPOSE_OPTS} logs --tail 50 ${SERVNAME}
+            ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} logs --tail 50 ${SERVNAME}
           done
           # Fail if any names are in the file
           ! grep '[^[:space:]]' /tmp/notgood
       - name: Test
         run: |
           # Checkout the running gateway+backend
-          podman build -t checkout-test checkout-test
-          podman run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
+          ${DOCKER_CMD} build -t checkout-test checkout-test
+          ${DOCKER_CMD} run --network anms -v $PWD:/mnt \
+              -e XUNIT_OUTFILE=/mnt/testresults.xml \
+              -e CHECKOUT_BASE_URL=http://authnz/ \
+              -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt \
+              checkout-test
       - name: Stop
         if: always()
         run: |
           for OPTS_NAME in TESTENV_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
-            podman compose ${!OPTS_NAME} down --remove-orphans
-          done
-
-  docker-checkout-test:
-    runs-on: ubuntu-latest
-    env:
-      DOCKER_BUILDKIT: "1"
-      AUTHNZ_EMU: "demo"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
-      TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
-      DOCKER_CMD: "docker"
-    steps:
-      - name: Versions
-        run: |
-          docker -v
-          docker ps
-          docker compose ls
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Tag name env
-        run: |
-          DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
-          echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
-      - name: Debug GitHub workspace
-        run: |
-          echo "GITHUB_WORKSPACE=${{ github.workspace }}"
-          ls -al ${{ github.workspace }}
-      - name: Build Main
-        run: |
-          docker compose ${ANMS_COMPOSE_OPTS} build builder-base builder-init builder-acelib
-          docker compose ${ANMS_COMPOSE_OPTS} build
-      - name: Build Agents
-        run: docker compose ${TESTENV_COMPOSE_OPTS} build
-      - name: Build Volume
-        run: |
-          ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
-          sudo mkdir /run/anms
-      - name: Start
-        run: |
-          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
-          docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
-      - name: Status
-        run: |
-          for BADSTATUS in stopped restarting; do
-            docker compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
-          done
-          # Show hints at what may be wrong
-          for SERVNAME in $(cat /tmp/notgood); do
-            docker compose ${ANMS_COMPOSE_OPTS} logs --tail 50 ${SERVNAME}
-          done
-          # Fail if any names are in the file
-          ! grep '[^[:space:]]' /tmp/notgood
-      - name: Test
-        run: |
-          # Checkout the running gateway+backend
-          docker build -t checkout-test checkout-test
-          docker run --network anms -v $PWD:/mnt -e XUNIT_OUTFILE=/mnt/testresults.xml -e CHECKOUT_BASE_URL=http://authnz/ -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt checkout-test
-      - name: Stop
-        if: always()
-        run: |
-          for OPTS_NAME in TESTENV_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
-            docker compose ${!OPTS_NAME} down --remove-orphans
+            ${DOCKER_CMD} compose ${!OPTS_NAME} down --remove-orphans
           done
