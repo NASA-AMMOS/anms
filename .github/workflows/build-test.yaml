@@ -55,6 +55,7 @@ jobs:
         run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} pull --ignore-buildable
       - name: Start
         run: |
+          # testenv started before
           ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
       - name: Status
@@ -80,6 +81,7 @@ jobs:
       - name: Stop
         if: always()
         run: |
-          for OPTS_NAME in TESTENV_COMPOSE_OPTS ANMS_COMPOSE_OPTS; do
+          # testenv stopped after
+          for OPTS_NAME in ANMS_COMPOSE_OPTS TESTENV_COMPOSE_OPTS; do
             ${DOCKER_CMD} compose ${!OPTS_NAME} down --remove-orphans
           done
