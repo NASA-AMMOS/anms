@@ -19,23 +19,13 @@
         :value="index">{{ rpt }}</b-form-select-option>
     </b-form-select>
     <div v-for="(_, index) in tableHeaders" :key="index">
-          <b-table sticky-header
+      <b-table sticky-header
       hover
       bordered
       responsive
       v-if="!loading && selected != -1"
       id="report-table" :items="tableItems[index]" :fields="tableHeaders[index]"></b-table>
-        </div>
-    <!-- <b-table sticky-header
-      hover
-      bordered
-      responsive
-      v-if="!loading && selected != -1"
-      id="report-table"
-      :fields="tableHeaders"
-      :items="tableItems"
-      >
-    </b-table> -->
+    </div>
   </div>
 </template>
 
