@@ -1,4 +1,4 @@
-name: Run integration checkout test
+name: Build and run tests
 on:
   push:
     branches:
@@ -56,7 +56,7 @@ jobs:
       - name: Start
         run: |
           ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
       - name: Status
         run: |
           for BADSTATUS in stopped restarting; do
