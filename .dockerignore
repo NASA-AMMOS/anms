@@ -7,21 +7,23 @@
 *.iml
 
 # Ignore Node Modules used locally
-public/node_modules
-server/node_modules
+node_modules
+node_modules
 
 # Ignore Compiled Vue App
-release
+/anms-ui/release
 
 # Ignore Data Directory
-logs
-
+/anms-ui/logs
 
 # Ignore Other Specific Stuff
 docker-compose.yaml
+Containerfile
 Dockerfile
 Makefile
 .dockerignore
 gl-sast-report.json
 .metrics-dashboard.yml
-CONTRIBUTING.md
+*.md
+*.pdf
+*.docx

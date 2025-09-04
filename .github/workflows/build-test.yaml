@@ -44,11 +44,14 @@ jobs:
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
           sudo mkdir /run/anms
+      - name: Pull
+        run: podman compose ${ANMS_COMPOSE_OPTS} pull --ignore-buildable
       - name: Start
         run: |
-          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
+          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
+        if: always()
         run: |
           for BADSTATUS in stopped restarting; do
             podman compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
@@ -99,7 +102,6 @@ jobs:
           ls -al ${{ github.workspace }}
       - name: Build Main
         run: |
-          docker compose ${ANMS_COMPOSE_OPTS} build builder-base builder-init builder-acelib
           docker compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
         run: docker compose ${TESTENV_COMPOSE_OPTS} build
@@ -107,11 +109,14 @@ jobs:
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
           sudo mkdir /run/anms
+      - name: Pull
+        run: docker compose ${ANMS_COMPOSE_OPTS} pull --ignore-buildable
       - name: Start
         run: |
-          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
+          docker compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           docker compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
+        if: always()
         run: |
           for BADSTATUS in stopped restarting; do
             docker compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
