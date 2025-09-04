@@ -21,7 +21,6 @@
 ##
 
 # This configuration uses the environment variables:
-# DOCKER_CTR_PREFIX to contain a (default empty) container name prefix
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
@@ -29,9 +28,9 @@ name: testenv
 
 networks:
   default:
-    name: ${DOCKER_CTR_PREFIX}testenv
+    name: testenv
     driver_opts:
-      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}testenv
+      com.docker.network.bridge.name: br-testenv
       com.docker.network.driver.mtu: 65535
     ipam:
       config:

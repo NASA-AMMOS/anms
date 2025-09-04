@@ -6,12 +6,11 @@
 .idea
 *.iml
 
-# Ignore Node Modules used locally
+# Ignore build files
 node_modules
-
+/puppet/.modules
 # Ignore Compiled Vue App
 /anms-ui/release
-
 # Ignore Data Directory
 /anms-ui/logs
 

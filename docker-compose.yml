@@ -21,7 +21,6 @@
 ##
 
 # This configuration uses the environment variables:
-# DOCKER_CTR_PREFIX to contain a (default empty) container name prefix
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
@@ -29,9 +28,9 @@ name: anms
 
 networks:
   default:
-    name: ${DOCKER_CTR_PREFIX}anms
+    name: anms
     driver_opts:
-      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
+      com.docker.network.bridge.name: br-anms
       com.docker.network.driver.mtu: 65535
 
 volumes:
@@ -128,7 +127,7 @@ services:
 
   postgres:
     hostname: postgres
-    image: ${DOCKER_CTR_PREFIX}refdb-sql:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_PREFIX}refdb-sql:${DOCKER_IMAGE_TAG}
     build:
       context: deps
       dockerfile: ansmsql.Dockerfile
@@ -291,7 +290,7 @@ services:
 
   amp-manager:
     hostname: amp-manager
-    image: ${DOCKER_CTR_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     build:
       context: deps
       dockerfile: reftools.Dockerfile
