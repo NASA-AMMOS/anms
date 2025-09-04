@@ -102,6 +102,7 @@ async def report_ac(agent_id: str, correlator_nonce: int):
     final_res = []
     ari = None
     dec = ace.ari_cbor.Decoder()
+    buf = io.StringIO()
     # Load in adms 
     # get command that made the report as first entry 
     stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == correlator_nonce) )
@@ -111,10 +112,10 @@ async def report_ac(agent_id: str, correlator_nonce: int):
         # there should only be one execution per agent per correlator_nonce
         # in the event that two occur pull the latest one  
         result = result.all()
-        exec_set_entry=["time"]
+        exec_set_dir = {}
+        
         if result:
             result = result[-1]
-
             exec_set = result.entries.hex()
             # use ACE to handle report set decoding  
             in_text = '0x'+exec_set
@@ -130,24 +131,28 @@ async def report_ac(agent_id: str, correlator_nonce: int):
         if type(ari.value) == ace.ari.ExecutionSet: 
             try:
                 enc = ace.ari_text.Encoder()
-                buf = io.StringIO()
                 # run through targets and their parameters to get all things parts translated 
                 for targ in ari.value.targets: 
+                    buf = io.StringIO()
+                    exec_set_entry=["time"]
+                    enc.encode(targ, buf)
+                    out_text_targ = buf.getvalue()    
                     if targ is ace.LiteralARI and targ.type_id is  ace.StructType.AC:
                         for part in targ.value:
+                            buf = io.StringIO()
                             enc.encode(part, buf)
                             out_text = buf.getvalue()
                             exec_set_entry.append(out_text)
                     else:
-                        enc.encode(targ, buf)
-                        out_text = buf.getvalue()    
-                        exec_set_entry.append(out_text)
-
+                        exec_set_entry.append(out_text_targ)
+                    
+                    exec_set_dir[out_text_targ] = [exec_set_entry]
+                    
             except Exception as err:
                 logger.info(err)
                 
                     
-    final_res.append(exec_set_entry)
+    # final_res.append(exec_set_entry)
     ari = None
     stmt = select(Report).where(and_(Report.agent_id == agent_id, Report.correlator_nonce == correlator_nonce) )
     async with get_async_session() as session:
@@ -177,10 +182,15 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                                 enc.encode(item, buf)
                                 out_text = buf.getvalue()    
                                 addition.append(out_text)
+                            buf = io.StringIO()
+                            enc.encode(rpt.source, buf)
+                            out_text = buf.getvalue()    
+                            
+                            exec_set_dir[out_text].append(addition)  
                         except Exception as err:
                             logger.error(err)
-            
-                if addition not in final_res:
-                    final_res.append(addition)
-    return final_res
+                
+                
+    
+    return list(exec_set_dir.values())
     

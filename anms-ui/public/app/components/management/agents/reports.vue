@@ -18,7 +18,15 @@
         :key="index"
         :value="index">{{ rpt }}</b-form-select-option>
     </b-form-select>
-    <b-table sticky-header
+    <div v-for="(_, index) in tableHeaders" :key="index">
+          <b-table sticky-header
+      hover
+      bordered
+      responsive
+      v-if="!loading && selected != -1"
+      id="report-table" :items="tableItems[index]" :fields="tableHeaders[index]"></b-table>
+        </div>
+    <!-- <b-table sticky-header
       hover
       bordered
       responsive
@@ -27,7 +35,7 @@
       :fields="tableHeaders"
       :items="tableItems"
       >
-    </b-table>
+    </b-table> -->
   </div>
 </template>
 
@@ -73,17 +81,25 @@ export default {
       this.loading = false;
     },
     processReport(report) {
-      let holdHeader = report.shift();
-      this.tableHeaders = [];
-      for (let i = 0; i < holdHeader.length; i++) {
-        this.tableHeaders.push({"key":holdHeader[i]});
-        }
-      for (let item of report) {
-        let row = {};
+      
+      for(const rpt of report){
+      
+        let currTableItems = [];
+        let currTableHeaders = []
+        let holdHeader = rpt.shift();
         for (let i = 0; i < holdHeader.length; i++) {
-          row[holdHeader[i]] = item[i];
+          currTableHeaders.push({"key":holdHeader[i]});
+          }
+        this.tableHeaders.push(currTableHeaders);
+        
+        for (let item of rpt) {
+          let row = {};
+          for (let i = 0; i < holdHeader.length; i++) {
+            row[holdHeader[i]] = item[i];
+          }
+          currTableItems.push(row);
         }
-        this.tableItems.push(row);
+        this.tableItems.push(currTableItems)
       }
     }
   },
