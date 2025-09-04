@@ -41,6 +41,6 @@ docker image build --tag anms-ui --target anms-ui ${SELFDIR}
 
 
 docker run anms-ui bash -c "cd /opt/node_app/public && yarn audit --json || exit 0" > ${SELFDIR}/logs/${PUBLIC_LOG} 
-docker run anms-ui bash -c "cd /opt/node_app/server && npm audit --json || exit 0"  > ${SELFDIR}/logs/${SERVER_LOG} 
+docker run anms-ui bash -c "cd /opt/node_app/server && yarn audit --json || exit 0"  > ${SELFDIR}/logs/${SERVER_LOG} 
 
 
