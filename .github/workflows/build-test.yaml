@@ -76,7 +76,7 @@ jobs:
     env:
       DOCKER_BUILDKIT: "1"
       AUTHNZ_EMU: "demo"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml --profile=full"
       TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: "docker"
     steps:
