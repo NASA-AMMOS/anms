@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AUTHNZ_EMU: "demo"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml --profile=full"
       TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: "podman"
       AUTHNZ_PORT: 8084
@@ -22,7 +22,7 @@ jobs:
         run: |
           systemctl --user start podman.socket
           systemctl --user enable podman.socket
-          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock      
+          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
       - name: Versions
         run: |
           podman -v
@@ -46,7 +46,7 @@ jobs:
           sudo mkdir /run/anms
       - name: Start
         run: |
-          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate --wait
+          podman compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           podman compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait
       - name: Status
         run: |
