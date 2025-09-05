@@ -45,7 +45,7 @@ class anms::podman() {
 
   # systemd service to load compose configs as pods
   systemd::unit_file { 'podman-compose@.service':
-    source  => 'puppet:///modules/anms/podman-compose@.service',
+    source => 'puppet:///modules/anms/podman-compose@.service',
   }
   file { '/etc/containers/compose':
     ensure  => 'directory',

@@ -28,7 +28,7 @@
 name: testenv
 
 networks:
-  default:
+  testenv:
     name: ${DOCKER_CTR_PREFIX}testenv
     driver_opts:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}testenv
@@ -70,7 +70,7 @@ services:
       - "1113:1113/udp"
       - "4556:4556/udp"
     networks:
-      default:
+      testenv:
         ipv4_address: 10.5.0.101
     extra_hosts:
       - ion-agent2:10.5.0.102
@@ -99,7 +99,7 @@ services:
       DUMPCAP_OUTFILE: /var/log/pcap/agent2.pcap
       DUMPCAP_OPTS: -i lo -i eth0
     networks:
-      default:
+      testenv:
         ipv4_address: 10.5.0.102
 
         
@@ -107,7 +107,7 @@ services:
     <<: *ion-agent
     hostname: ion-agent3
     networks:
-      default:
+      testenv:
         ipv4_address: 10.5.0.103
     environment:
       container: docker

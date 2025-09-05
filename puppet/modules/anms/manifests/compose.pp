@@ -7,12 +7,14 @@
 #
 # @param ensure The desired state of the project, if 'present' the containers are started each time puppet is run.
 # @param compose_files The configuration files for this project.
+# @param profiles The comma-separated list of profile names to use.
 # @param pull_first If "compose ... pull" should be run before the service is activated
 #
 define anms::compose(
   Enum['present','absent'] $ensure,
   String $directory,
   String $compose_file,
+  String $profiles,
   Boolean $pull_first = true,
 ) {
   require anms::podman
@@ -35,7 +37,8 @@ define anms::compose(
         content => epp('anms/podman-compose-project.env.epp', {
           'title'        => $title,
           'directory'    => $directory,
-          'compose_file' => $compose_file
+          'compose_file' => $compose_file,
+          'profiles'     => $profiles,
         }),
         owner   => 'root',
         group   => 'root',
