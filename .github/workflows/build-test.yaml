@@ -43,7 +43,7 @@ jobs:
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
       - name: Build ANMS
         run: |
-          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build builder-base builder-init builder-acelib
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build builder-base builder-acelib
           ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
         run: ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} build
@@ -59,6 +59,7 @@ jobs:
           ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
       - name: Status
+        if: always()
         run: |
           for BADSTATUS in stopped restarting; do
             ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
