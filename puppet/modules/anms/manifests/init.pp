@@ -15,6 +15,7 @@ class anms(
   Optional[String] $tls_server_key = undef,
   Optional[String] $tls_server_cert = undef,
   Optional[String] $tls_server_ca = undef,
+  Enum['full', 'light'] $compose_profiles = 'full',
   Boolean $use_testenv = false,
 ) {
   require Class['anms::hostenv']
@@ -147,6 +148,7 @@ class anms(
     ensure       => 'present',
     directory    => '/ammos/anms',
     compose_file => 'anms-compose.yml',
+    profiles     => $compose_profiles,
     subscribe    => [
       File['/ammos/anms/anms-compose.yml'],
       File['/ammos/anms/.env'],
