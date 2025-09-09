@@ -97,7 +97,7 @@
   exports.upload = async function (req, res, next) {
       const usersReqHeader = utils.createAuthenticationHeader(req);
       const file = req.file;
-      console.info(file.mimetype)
+      
       if (!_.isNull(file) && file.mimetype != ACCEPTED_ADM_TYPE) {
         return res.status(415).json({"message": `Not support this ${file.mimetype}`});
       }
