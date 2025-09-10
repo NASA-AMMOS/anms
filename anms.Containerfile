@@ -302,7 +302,7 @@ RUN cd /usr/local/src/nm/deps/timespec && \
     rm -rf build
 
 
-# REFDM only
+# REFDM only without ION
 FROM reftools-buildenv-base AS reftools-buildenv-refdm
 
 # Install under /usr/local and keep build artifacts for debuginfo
@@ -326,65 +326,6 @@ RUN cd /usr/local/src/nm && \
     ldconfig
 
 
-# ION and REFDA images
-FROM reftools-buildenv-base AS reftools-buildenv-ion
-
-RUN dnf install -y \
-        patch autoconf libtool
-
-COPY deps/dtnma-tools/deps/ion /usr/local/src/nm/deps/ion
-COPY deps/dtnma-tools/deps/ion*.patch /usr/local/src/nm/deps/
-RUN cd /usr/local/src/nm/deps/ion && \
-    patch -p1 <../ion-4.1.2-remove-nm.patch && \
-    patch -p1 <../ion-4.1.2-local-deliver.patch && \
-    patch -p1 <../ion-4.1.2-private-headers.patch && \
-    autoreconf -vif && \
-    export CFLAGS="-std=gnu99" && \
-    ./configure && \
-    make -j$(nproc) && \
-    make install && \
-    make -j$(nproc) clean
-
-# Install under /usr/local and keep build artifacts for debuginfo
-COPY deps/dtnma-tools/deps /usr/local/src/nm/deps
-COPY deps/dtnma-tools/cmake /usr/local/src/nm/cmake
-COPY deps/dtnma-tools/src /usr/local/src/nm/src
-COPY deps/dtnma-tools/CMakeLists.txt /usr/local/src/nm/
-RUN cd /usr/local/src/nm && \
-    cmake -S . -B build/default \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DBUILD_MANAGER=OFF \
-      -DBUILD_ION_PROXY=ON \
-      -DTRANSPORT_UNIX_SOCKET=OFF \
-      -DTRANSPORT_PROXY_SOCKET=ON \
-      -DTRANSPORT_ION_BP=ON \
-      -DBUILD_TESTING=OFF \
-      -DBUILD_DOCS_API=OFF -DBUILD_DOCS_MAN=OFF \
-      -G Ninja && \
-    cmake --build build/default && \
-    cmake --install build/default && \
-    ldconfig
-
-
-# This image uses systemd init process to manage local services.
-# Derived image targets choose which servies are enabled.
-#
-FROM registry.access.redhat.com/ubi9/ubi-init:9.2 AS anms-init
-
-# Optional APL network configuration from
-# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
-RUN ( \
-      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
-      update-ca-trust && \
-      echo "Root CA added" \
-    ) || true
-ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-ENV PIP_DEFAULT_TIMEOUT=300
-RUN dnf -y install container-tools
-# Container service config
-RUN systemctl disable dnf-makecache.timer
-
-
 # Runtime image for REFDM
 FROM anms-base AS amp-manager
 
@@ -402,61 +343,3 @@ EXPOSE 8089/tcp
 
 HEALTHCHECK --start-period=10s --interval=60s --timeout=60s --retries=20 \
     CMD ["curl", "-sq", "-o/dev/null", "http://localhost:8089/nm/api/"]
-
-
-# Image for the test environment manager transport with ION node and the
-# ion-app-proxy daemon
-#
-FROM anms-init AS ion-manager
-
-COPY --from=reftools-buildenv-ion /usr/local /usr/local
-RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
-    echo "/usr/local/lib" >>/etc/ld.so.conf.d/local.conf && \
-    ldconfig
-
-# Systemd services
-COPY deps/dtnma-tools/integration-test-ion/tmpfiles.conf /etc/tmpfiles.d/ion.conf
-COPY --chmod=644 deps/dtnma-tools/systemd/ion.service deps/dtnma-tools/systemd/ion-app-proxy.service deps/dtnma-tools/systemd/bpecho@.service \
-    /usr/local/lib/systemd/system/
-RUN systemctl enable ion bpecho@4 ion-app-proxy && \
-    mkdir -p /var/run/ion
-
-# Runtime config for this container
-COPY deps/dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
-COPY deps/test-ion-configs/mgr.rc etc/ion/
-
-# CMD is systemd init
-EXPOSE 1113/udp
-EXPOSE 4556/udp
-
-HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
-    CMD ["service_is_running", "ion", "ion-app-proxy"]
-
-
-# Image for the test environment Agents with ION node and REFDA
-#
-FROM anms-init AS ion-agent
-
-COPY --from=reftools-buildenv-ion /usr/local /usr/local
-RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
-    echo "/usr/local/lib" >>/etc/ld.so.conf.d/local.conf && \
-    ldconfig
-
-# Systemd services
-COPY deps/dtnma-tools/integration-test-ion/tmpfiles.conf /etc/tmpfiles.d/ion.conf
-COPY --chmod=644 deps/dtnma-tools/systemd/ion.service deps/dtnma-tools/systemd/refda-ion.service deps/dtnma-tools/systemd/bpecho@.service \
-    /usr/local/lib/systemd/system/
-RUN systemctl enable ion bpecho@4 refda-ion && \
-    mkdir -p /var/run/ion
-    
-# Runtime config for this container
-# COPY deps/dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
-COPY deps/test-ion-configs/agent-2.rc /etc/ion/node-2.rc
-COPY deps/test-ion-configs/agent-3.rc /etc/ion/node-3.rc
-
-# CMD is systemd init
-EXPOSE 1113/udp
-EXPOSE 4556/udp
-
-HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
-    CMD ["service_is_running", "ion", "refda-ion"]

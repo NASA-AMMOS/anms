@@ -119,7 +119,7 @@ services:
     hostname: postgres
     image: ${DOCKER_IMAGE_PREFIX}anms-sql:${DOCKER_IMAGE_TAG}
     build:
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: anms-sql
     restart: unless-stopped
     security_opt:
@@ -137,7 +137,7 @@ services:
     hostname: mqtt-broker
     image: ${DOCKER_IMAGE_PREFIX}mqtt-broker
     build:
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: mqtt-broker
     restart: unless-stopped
     security_opt:
@@ -149,7 +149,7 @@ services:
     hostname: transcoder
     image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
     build:
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: transcoder
     restart: unless-stopped
     security_opt:
@@ -162,7 +162,7 @@ services:
     hostname: aricodec
     image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG}
     build:
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: aricodec
     restart: unless-stopped
     security_opt:
@@ -181,7 +181,7 @@ services:
     profiles: ["full"]
     image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
     build:
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: anms-ui
     restart: unless-stopped
     security_opt:
@@ -209,7 +209,7 @@ services:
     image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG}
     build:
       # NOTE: Custom image currently needed only for SSL-cert purposes
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: grafana
     restart: unless-stopped
     security_opt:
@@ -255,7 +255,7 @@ services:
     hostname: anms-core
     image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
     build:
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: anms-core
     restart: unless-stopped
     security_opt:
@@ -282,7 +282,7 @@ services:
     hostname: amp-manager
     image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     build:
-      dockerfile: Containerfile
+      dockerfile: anms.Containerfile
       target: amp-manager
     ports:
       - "8089:8089/tcp"
