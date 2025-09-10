@@ -21,7 +21,6 @@
 ##
 
 # This configuration uses the environment variables:
-# DOCKER_CTR_PREFIX to contain a (default empty) container name prefix
 # DOCKER_IMAGE_PREFIX to contain a (default empty) image registry and path to all custom images
 # DOCKER_IMAGE_TAG to contain the image tag for custom images
 #
@@ -29,9 +28,9 @@ name: anms
 
 networks:
   default:
-    name: ${DOCKER_CTR_PREFIX}anms
+    name: anms
     driver_opts:
-      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
+      com.docker.network.bridge.name: br-anms
       com.docker.network.driver.mtu: 65535
 
 volumes:
@@ -71,6 +70,7 @@ services:
 
   adminer:
     hostname: adminer
+    profiles: ["dev"]
     image: docker.io/library/adminer:latest
     restart: unless-stopped
     security_opt:
@@ -79,6 +79,7 @@ services:
       - "${ADMINER_PORT:-8080}:8080"
       
   opensearch:
+    profiles: ["full"]
     hostname: opensearch
     image: docker.io/opensearchproject/opensearch:2.0.0
     restart: unless-stopped
@@ -103,6 +104,7 @@ services:
       - "${OPENSEARCH_PORT2:-9600}:9600" # required for Performance Analyzer
 
   opensearch-dashboards:
+    profiles: ["full"]
     hostname: opensearch-dashboards
     image: docker.io/opensearchproject/opensearch-dashboards:2.0.0
     restart: unless-stopped
@@ -115,7 +117,7 @@ services:
 
   postgres:
     hostname: postgres
-    image: ${DOCKER_CTR_PREFIX}anms-sql:${DOCKER_IMAGE_TAG}
+    image: ${DOCKER_IMAGE_PREFIX}anms-sql:${DOCKER_IMAGE_TAG}
     build:
       dockerfile: Containerfile
       target: anms-sql
@@ -176,6 +178,7 @@ services:
 
   anms-ui:
     hostname: anms-ui
+    profiles: ["full"]
     image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG}
     build:
       dockerfile: Containerfile
@@ -202,6 +205,7 @@ services:
 
   grafana:
     hostname: grafana
+    profiles: ["full"]
     image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG}
     build:
       # NOTE: Custom image currently needed only for SSL-cert purposes
@@ -223,6 +227,7 @@ services:
 
   grafana-image-renderer:
     hostname: grafana-image-renderer
+    profiles: ["full"]
     image: docker.io/grafana/grafana-image-renderer
     restart: unless-stopped
     security_opt:
@@ -232,6 +237,7 @@ services:
 
   redis:
     hostname: redis
+    profiles: ["full"]
     image: docker.io/library/redis:6.0-alpine
     restart: unless-stopped
     security_opt:

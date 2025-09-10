@@ -36,10 +36,10 @@ ENV PIP_DEFAULT_TIMEOUT=300
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y iputils python3 python3-pip python3-wheel
 
-COPY requirements.txt /usr/src/checkout-test/
+COPY requirements.txt /usr/local/src/checkout-test/
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install -r /usr/src/checkout-test/requirements.txt
-COPY . /usr/src/checkout-test
+    pip3 install -r /usr/local/src/checkout-test/requirements.txt
+COPY *.sh *.py /usr/local/src/checkout-test
 
 # First argument is the base URL to test
-ENTRYPOINT ["/usr/src/checkout-test/run.sh"]
+ENTRYPOINT ["/usr/local/src/checkout-test/entrypoint.sh"]

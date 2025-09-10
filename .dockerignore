@@ -1,23 +1,21 @@
 # SCM files
-.git
+.git/
 .gitignore
 
 # Ignore IDE/IntelliJ Files
 .idea
 *.iml
 
-# Ignore Node Modules used locally
+# Ignore build files
 node_modules
-node_modules
-
+/puppet/.modules/
 # Ignore Compiled Vue App
 /anms-ui/release
-
 # Ignore Data Directory
 /anms-ui/logs
 
 # Ignore Other Specific Stuff
-docker-compose.yaml
+*-compose.yaml
 Containerfile
 Dockerfile
 Makefile

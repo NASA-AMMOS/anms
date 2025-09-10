@@ -21,14 +21,43 @@
 ## subcontract 1658085.
 ##
 
-# Checkout the running gateway+backend by attaching to the 'anms' network
+# Run similar to:
+#  COMPOSE_PROFILES=full CHECKOUT_BASE_URL=https://authnz/ ./entrypoint.sh
+set -e
 
-DOCKER_CMD=${DOCKER_CMD:-docker}
+export COMPOSE_PROFILES
+export CHECKOUT_BASE_URL
 
-${DOCKER_CMD} build -t checkout-test checkout-test
-${DOCKER_CMD} run --network anms -v $PWD:/mnt \
-    -e XUNIT_OUTFILE=/mnt/testresults.xml \
-    -e COMPOSE_PROFILES=${COMPOSE_PROFILES} \
-    -e CHECKOUT_BASE_URL=https://authnz/ \
-    -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt \
-    checkout-test "$@"
+SELFDIR=$(realpath $(dirname "${BASH_SOURCE[0]}"))
+TIMELIMIT=30
+
+CURLOPTS=""
+if [ -n "${SSL_CERT_FILE}" ]
+then
+    echo "Using custom CA from ${SSL_CERT_FILE}"
+    CURLOPTS="${CURLOPTS} --cacert ${SSL_CERT_FILE}"
+fi
+
+if [ -z "${CHECKOUT_BASE_URL}" ]; then
+    echo "Must define CHECKOUT_BASE_URL environment"
+    exit 1
+fi
+echo "Waiting for ${CHECKOUT_BASE_URL} to be available..."
+for IX in $(seq ${TIMELIMIT}); do
+    if curl -sSl $CURLOPTS "${CHECKOUT_BASE_URL}" >/dev/null; then
+        break
+    fi
+    if [ ${IX} -eq ${TIMELIMIT} ]; then
+        echo "No HTTP access after ${IX} seconds!"
+        exit 1
+    fi
+    sleep 1
+done
+echo
+
+echo "Running tests..."
+TESTARGS="--verbose"
+if [ -n "${XUNIT_OUTFILE}" ]; then
+    TESTARGS="${TESTARGS} --junitxml=${XUNIT_OUTFILE}"
+fi
+python3 -m pytest ${TESTARGS} "${SELFDIR}" "$@"

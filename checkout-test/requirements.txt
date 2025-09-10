@@ -3,3 +3,5 @@ requests
 websockets
 werkzeug
 sslscan
+cryptography
+pyopenssl
