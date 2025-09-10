@@ -21,17 +21,42 @@
 #
 ''' A "unittest" which uses requests library to verify routes from a base URL.
 '''
-
+import datetime
+import json
 import logging
 import os
 import requests
+import time
 import unittest
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 import websockets
 import werkzeug
-import json
 
 LOGGER = logging.getLogger(__name__)
+
+
+class Timer:
+    ''' Manager a wall-clock overall timeout timer.
+    '''
+
+    def __init__(self, timeout):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        self._wait = timeout
+        self._timeout = now + datetime.timedelta(seconds=timeout)
+
+    def sleep(self, delay):
+        time.sleep(delay)
+
+    def finish(self):
+        self._timeout = None
+
+    def __bool__(self):
+        if self._timeout is None:
+            return False
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if now > self._timeout:
+            raise TimeoutError(f'Timer did not finish before {self._wait}s timeout')
+        return True
 
 
 class BaseTest(unittest.TestCase):
@@ -298,7 +323,7 @@ class TestPrimaryRoutes(BaseTest):
             resp_ctype=['text/html'],
         )
 
-    def test_refdm(self):
+    def test_refdm_access(self):
         # any API access
         resp = self._require_response(
             url='/nm/nm/api/version',
@@ -306,10 +331,14 @@ class TestPrimaryRoutes(BaseTest):
             resp_ctype=['application/json'],
         )
 
-        eid_seg = quote('ipn:2.5', safe="")
+    def test_refdm_roundtrip(self):
+        # choice of agent is arbitrary
+        agent_eid = 'ipn:2.6'
+        eid_seg = quote(agent_eid, safe="")
         agent_base = self._resolve(f'/nm/nm/api/agents/eid/{eid_seg}/')
 
-        resp = self.httpsess.get(agent_base + 'reports')
+        # immediate need to register Agent endpoint
+        resp = self.httpsess.get(agent_base + 'reports?form=text')
         if resp.status_code == 404:
             resp = self._require_response(
                 url='/nm/nm/api/agents',
@@ -317,8 +346,14 @@ class TestPrimaryRoutes(BaseTest):
                 req_headers={
                     'content-type': 'text/plain',
                 },
-                req_data='ipn:2.5',
+                req_data=f'{agent_eid}\r\n',
                 resp_status=[200],
+            )
+        else:
+            resp = self._require_response(
+                url=(agent_base + 'clear_reports'),
+                method='POST',
+                resp_status=[200, 204],
             )
 
         resp = self._require_response(
@@ -330,6 +365,19 @@ class TestPrimaryRoutes(BaseTest):
             req_data='ari:/EXECSET/n=1;(//ietf/dtnma-agent/CTRL/inspect)\r\n',
             resp_status=[200],
         )
+
+        # TODO this assumes any report is valid without filtering on nonce
+        timer = Timer(5)
+        while timer:
+            timer.sleep(0.1)
+            resp = self.httpsess.get(agent_base + 'reports?form=text')
+            # response 204 just means continue waiting
+            self.assertIn(resp.status_code, {200, 204})
+            if resp.status_code == 200:
+                break
+        self.assertEqual('text/uri-list', resp.headers.get('content-type'))
+        text = resp.content.decode('utf8')
+        self.assertRegex(text, r'^ari:/RPTSET/n=1;.*')
 
 
 class TestWebsockets(BaseTest, unittest.IsolatedAsyncioTestCase):

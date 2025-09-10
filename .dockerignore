@@ -15,7 +15,7 @@ node_modules
 /anms-ui/logs
 
 # Ignore Other Specific Stuff
-docker-compose.yaml
+*-compose.yaml
 Containerfile
 Dockerfile
 Makefile
