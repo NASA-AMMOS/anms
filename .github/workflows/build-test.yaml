@@ -17,7 +17,7 @@ jobs:
     name: Checkout Test (${{matrix.ctrmgr}})
     env:
       AUTHNZ_EMU: "demo"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml --profile=full"
       TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: ${{matrix.ctrmgr}}
       AUTHNZ_PORT: 8084

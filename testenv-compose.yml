@@ -27,7 +27,7 @@
 name: testenv
 
 networks:
-  default:
+  testenv:
     name: testenv
     driver_opts:
       com.docker.network.bridge.name: br-testenv
@@ -67,7 +67,7 @@ services:
       - "1113:1113/udp"
       - "4556:4556/udp"
     networks:
-      default:
+      testenv:
         ipv4_address: 10.5.0.101
     extra_hosts:
       - ion-agent2:10.5.0.102
@@ -92,7 +92,7 @@ services:
       ION_NODE_NUM: 2
       MGR_NODE_NUM: 1
     networks:
-      default:
+      testenv:
         ipv4_address: 10.5.0.102
 
         
@@ -100,7 +100,7 @@ services:
     <<: *ion-agent
     hostname: ion-agent3
     networks:
-      default:
+      testenv:
         ipv4_address: 10.5.0.103
     environment:
       container: docker
