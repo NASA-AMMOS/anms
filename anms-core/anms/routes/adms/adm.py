@@ -219,13 +219,13 @@ async def update_adm(file: UploadFile, request: Request):
                 data_rec = None
                 # get data_model_id
                 async with get_async_session() as session:
-                    data_model_rec = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name,session )
+                    data_model_rec = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name, session )
                     if data_model_rec == None:
-                        raise Exception("no data" )
-    
-                    data_rec,_ = await AdmData.get(data_model_rec.data_model_id,session )
-                    if data_rec == None:
-                        raise Exception("no data" )
+                        logger.info("new ADM dont compare" )
+                    else:
+                        data_rec,_ = await AdmData.get(data_model_rec.data_model_id,session )
+                        if data_rec == None:
+                            logger.warning("ADM not in DB can't compare")
                     
                 # Compare with existing adm
                 if data_rec:
@@ -241,7 +241,7 @@ async def update_adm(file: UploadFile, request: Request):
                         admset = ace.AdmSet(cache_dir=False)
                         adm_file = admset.load_from_data(io.StringIO(adm_file_contents.decode('utf-8')), del_dupe=False)
                     else: # if its the same nothing else to be done
-                        logger.info("Duplicate ADM add attempted")
+                        logger.warning("Duplicate ADM add attempted")
                         message = "Duplicate ADM add attempted"
                         response = JSONResponse(status_code=status_code,
                                                 content={"message": message, "error_details": error_details})
@@ -282,7 +282,7 @@ async def update_adm(file: UploadFile, request: Request):
             try:
                 async with get_async_session() as session:
                     # get data_model_id 
-                    
+                    data_model_rec = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name, session )
                     # Save the adm file of the new adm
                     data = {"enumeration": data_model_rec.data_model_id, "data": adm_file_contents}
                     response, error_message = await AdmData.add_data(data, session)
