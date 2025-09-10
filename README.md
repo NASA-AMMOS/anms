@@ -126,11 +126,11 @@ To restart the system, use the 'up' and 'down' commands as described in the prev
 
 The top-level `docker-compose.yml` uses the environment defined by the sibling file `.env`.  Note: If using the legacy/deprecated build.sh script, that script may additionally override some environment variables.
 
-Two principal options of the compose configuration, which are both defaulted to empty text, are:
+The principal options of the compose configuration are:
 
 * `DOCKER_IMAGE_PREFIX` which controls any image name prefix added to all ANMS images.
   For a local build, this can be left empty, but for builds intended to be pushed to a Docker image registry this can be set to the full path on the registry before the image names (e.g. `DOCKER_IMAGE_PREFIX=some.host.example.com:5000/path/to/images`).
-
+* `HOST_SOCKDIR` which controls the source of the bind mount on `amp-manager` container for its transport socket. This can either be a volume name, for inter-container or non-root user use, or an absolute path on the host filesystem, used in the production deployment.
 
 
 ### AMP Database Querying

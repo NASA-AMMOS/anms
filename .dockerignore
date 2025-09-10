@@ -1,0 +1,27 @@
+# SCM files
+.git/
+.gitignore
+
+# Ignore IDE/IntelliJ Files
+.idea
+*.iml
+
+# Ignore build files
+node_modules
+/puppet/.modules
+# Ignore Compiled Vue App
+/anms-ui/release
+# Ignore Data Directory
+/anms-ui/logs
+
+# Ignore Other Specific Stuff
+*-compose.yaml
+Containerfile
+Dockerfile
+Makefile
+.dockerignore
+gl-sast-report.json
+.metrics-dashboard.yml
+*.md
+*.pdf
+*.docx

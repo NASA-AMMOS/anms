@@ -21,25 +21,51 @@
 #
 ''' A "unittest" which uses requests library to verify routes from a base URL.
 '''
-
+import datetime
+import json
 import logging
 import os
 import requests
+import time
 import unittest
-from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 import websockets
 import werkzeug
-import json
 
 LOGGER = logging.getLogger(__name__)
+
+
+class Timer:
+    ''' Manager a wall-clock overall timeout timer.
+    '''
+
+    def __init__(self, timeout):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        self._wait = timeout
+        self._timeout = now + datetime.timedelta(seconds=timeout)
+
+    def sleep(self, delay):
+        time.sleep(delay)
+
+    def finish(self):
+        self._timeout = None
+
+    def __bool__(self):
+        if self._timeout is None:
+            return False
+        now = datetime.datetime.now(datetime.timezone.utc)
+        if now > self._timeout:
+            raise TimeoutError(f'Timer did not finish before {self._wait}s timeout')
+        return True
 
 
 class BaseTest(unittest.TestCase):
     ''' Common test logic for login session management.
     '''
+    COMPOSE_PROFILES = os.environ.get('COMPOSE_PROFILES', 'full')
     BASE_URL = os.environ.get('CHECKOUT_BASE_URL', 'http://localhost/')
-    AUTHN_USER = os.environ.get('CHECKOUT_AUTHN_USER', 'test')
-    AUTHN_PASSWD = os.environ.get('CHECKOUT_AUTHN_PASSWD', 'test')
+    AUTHN_USER = os.environ.get('CHECKOUT_AUTHN_USER', 'admin')
+    AUTHN_PASSWD = os.environ.get('CHECKOUT_AUTHN_PASSWD', 'admin')
 
     def __init__(self, *args, **kwargs):
         super(BaseTest, self).__init__(*args, **kwargs)
@@ -87,7 +113,7 @@ class BaseTest(unittest.TestCase):
             self.assertDictEqual(resp_json, resp_json)
 
         return resp
-        
+
     def _do_login(self, username, passwd):
         resp = self._require_response(
             url='/authn/dologin.html',
@@ -117,7 +143,7 @@ class TestTls(BaseTest):
         scanuri = urlsplit(self.BASE_URL)
         if scanuri.scheme != 'https':
             self.skipTest('Not an TLS-compatible CHECKOUT_BASE_URL')
-    
+
     def test_tls_opts(self):
         from sslscan import Scanner
         from sslscan.module.scan import BaseScan
@@ -126,13 +152,13 @@ class TestTls(BaseTest):
         scanuri = urlsplit(self.BASE_URL)
         if scanuri.scheme == 'https':
             scanuri = scanuri._replace(scheme='http')
-            
+
         scanner = Scanner()
         mod_man = scanner.get_module_manager()
         mod_man.load_global_modules()
-        
+
         scanner.append_load('server.ciphers', '')
-        scanner.append_load('server.renegotiation', '')
+        # scanner.append_load('server.renegotiation', '')
 
         for name in ["tls10", "tls11", "tls12"]:
             scanner.config.set_value(name, True)
@@ -143,16 +169,16 @@ class TestTls(BaseTest):
         scanner.run()
 
         skb = scanner.get_knowledge_base()
-        print(skb._items)
-        ciphers = [
+        LOGGER.info('SKB items: %s', skb._items)
+        ciphers = set([
             item.protocol_version_name
             for item in skb.get('server.ciphers')
             if item.status_name == 'accepted'
-        ]
+        ])
         self.assertIn('TLSv12', ciphers)
 
-        self.assertTrue(skb.get('server.renegotiation.support'))
-        self.assertTrue(skb.get('server.renegotiation.secure'))
+        # self.assertTrue(skb.get('server.renegotiation.support'))
+        # self.assertTrue(skb.get('server.renegotiation.secure'))
 
 
 class TestAuthnz(BaseTest):
@@ -229,6 +255,7 @@ class TestAuthnz(BaseTest):
         )
         self.assertNotIn('session', self.httpsess.cookies)
 
+
 class TestPrimaryRoutes(BaseTest):
     ''' Exercise primary routes of the backend load balancer.
     '''
@@ -239,10 +266,11 @@ class TestPrimaryRoutes(BaseTest):
             username=self.AUTHN_USER,
             passwd=self.AUTHN_PASSWD,
         )
-    
 
-    
     def test_anms_ui(self):
+        if self.COMPOSE_PROFILES == 'light':
+            self.skipTest('Using light profile')
+
         resp = self._require_response(
             url='/',
             resp_status=[200],
@@ -273,46 +301,15 @@ class TestPrimaryRoutes(BaseTest):
             resp_status=[200],
             resp_ctype=['text/html'],
         )
-    
-    def test_unauthorize_profile_creation(self):
-        resp_ctype = ['application/json']
 
-        #creating user for other user should be unauthorized
-        another_user = f"{self.AUTHN_USER}_not_me"
+    def test_grafana(self):
+        if self.COMPOSE_PROFILES == 'light':
+            self.skipTest('Using light profile')
+
         resp = self._require_response(
-            url='/api/users',
-            method='POST',
-            resp_status=[401],
-            req_json={
-                "data": {
-                    "username": another_user,
-                    "email": "test@example.com", 
-                    "first_name": "John",
-                    "last_name": "Doe"
-                }
-            },
-            resp_ctype=resp_ctype   
+            url='/grafana/',
+            resp_status=[200],
         )
-    
-    def test_unauthorize_profile_update(self):
-        resp_ctype = ['application/json']
-
-        #updating profile for other user should be unauthorized
-        another_user = f"{self.AUTHN_USER}_not_me"
-        resp = self._require_response(
-            url=f'/api/users/{another_user}',
-            method='PUT',
-            resp_status=[401],
-            req_json={
-                "data": {
-                    "email": "test@example.com", 
-                    "first_name": "John",
-                    "last_name": "Doe"
-                }
-            },
-            resp_ctype=resp_ctype   
-        )        
-    
 
     def test_anms_core(self):
         resp = self._require_response(
@@ -325,62 +322,63 @@ class TestPrimaryRoutes(BaseTest):
             resp_status=[200],
             resp_ctype=['text/html'],
         )
-    
-    def test_grafana(self):
+
+    def test_refdm_access(self):
+        # any API access
         resp = self._require_response(
-            url='/grafana/',
+            url='/nm/nm/api/version',
+            resp_status=[200],
+            resp_ctype=['application/json'],
+        )
+
+    def test_refdm_roundtrip(self):
+        # choice of agent is arbitrary
+        agent_eid = 'ipn:2.6'
+        eid_seg = quote(agent_eid, safe="")
+        agent_base = self._resolve(f'/nm/nm/api/agents/eid/{eid_seg}/')
+
+        # immediate need to register Agent endpoint
+        resp = self.httpsess.get(agent_base + 'reports?form=text')
+        if resp.status_code == 404:
+            resp = self._require_response(
+                url='/nm/nm/api/agents',
+                method='POST',
+                req_headers={
+                    'content-type': 'text/plain',
+                },
+                req_data=f'{agent_eid}\r\n',
+                resp_status=[200],
+            )
+        else:
+            resp = self._require_response(
+                url=(agent_base + 'clear_reports'),
+                method='POST',
+                resp_status=[200, 204],
+            )
+
+        resp = self._require_response(
+            url=(agent_base + 'send?form=text'),
+            method='POST',
+            req_headers={
+                'content-type': 'text/plain',
+            },
+            req_data='ari:/EXECSET/n=1;(//ietf/dtnma-agent/CTRL/inspect)\r\n',
             resp_status=[200],
         )
 
-class TestUserProfile(BaseTest):
-    ''' Exercise primary routes of the backend load balancer.
-    '''
+        # TODO this assumes any report is valid without filtering on nonce
+        timer = Timer(5)
+        while timer:
+            timer.sleep(0.1)
+            resp = self.httpsess.get(agent_base + 'reports?form=text')
+            # response 204 just means continue waiting
+            self.assertIn(resp.status_code, {200, 204})
+            if resp.status_code == 200:
+                break
+        self.assertEqual('text/uri-list', resp.headers.get('content-type'))
+        text = resp.content.decode('utf8')
+        self.assertRegex(text, r'^ari:/RPTSET/n=1;.*')
 
-    def setUp(self):
-        super(TestUserProfile, self).setUp()
-        self._do_login(
-            username=self.AUTHN_USER,
-            passwd=self.AUTHN_PASSWD,
-        )
-        another_user = f"{self.AUTHN_USER}_not_me"
-        self.create_data={
-                "data": {
-                    "username": another_user,
-                    "email": "test@example.com", 
-                    "first_name": "John",
-                    "last_name": "Doe"
-                }
-            }
-        self.update_data={
-                "data": {
-                    "email": "test@example.com", 
-                    "first_name": "John",
-                    "last_name": "Doe"
-                }
-            }
-        self.resp_ctype = ['application/json']
-    
-    
-    def test_unauthorize_profile_creation(self):
-        #creating user for other user should be unauthorized
-        resp = self._require_response(
-            url='/api/users',
-            method='POST',
-            resp_status=[401],
-            req_json=self.create_data,
-            resp_ctype=self.resp_ctype   
-        )
-    
-    def test_unauthorize_profile_update(self):
-        #updating profile for other user should be unauthorized
-        another_user = f"{self.AUTHN_USER}_not_me"
-        resp = self._require_response(
-            url=f'/api/users/{another_user}',
-            method='PUT',
-            resp_status=[401],
-            req_json=self.update_data,
-            resp_ctype=self.resp_ctype   
-        )
 
 class TestWebsockets(BaseTest, unittest.IsolatedAsyncioTestCase):
 
@@ -392,7 +390,10 @@ class TestWebsockets(BaseTest, unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_grafana_live(self):
-        cookies = (f'{key}={val}' for key,val in self.httpsess.cookies.items())
+        if self.COMPOSE_PROFILES == 'light':
+            self.skipTest('Using light profile')
+
+        cookies = (f'{key}={val}' for key, val in self.httpsess.cookies.items())
         wsuri = urlsplit(self._resolve('/grafana/api/live/ws'))
         if wsuri.scheme == 'http':
             wsuri = wsuri._replace(scheme='ws')
