@@ -25,6 +25,14 @@
 # Run on RHEL UBI image
 FROM quay.io/centos/centos:stream9 AS reftools-buildenv-base
 
+# Optional APL network configuration from
+# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
+RUN ( \
+      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
+      update-ca-trust && \
+      echo "Root CA added" \
+    ) || true
+
 RUN dnf install -y epel-release && \
     crb enable
 RUN dnf install -y \
