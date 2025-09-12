@@ -19,24 +19,10 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-FROM registry.access.redhat.com/ubi9/ubi:9.2
-
-# Optional APL network configuration from
-# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
-RUN ( \
-      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
-      update-ca-trust && \
-      echo "Root CA added" \
-    ) || true
-ENV PIP_CERT /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
-ENV NODE_OPTIONS=--use-openssl-ca
+FROM yarn-base
 
 # Install node+yarn from upstream
-RUN dnf -y module install nodejs:16 && \
-    curl -sL https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo && \
-    dnf -y install npm git && \
-    dnf clean all && rm -rf /var/cache/yum && \
-    npm install -g newman
+RUN npm install -g newman
 
 COPY . /root/
 WORKDIR /root
