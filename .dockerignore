@@ -8,7 +8,7 @@
 
 # Ignore build files
 node_modules
-/puppet/.modules
+/puppet/.modules/
 # Ignore Compiled Vue App
 /anms-ui/release
 # Ignore Data Directory

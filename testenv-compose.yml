@@ -45,8 +45,7 @@ services:
     hostname: ion-manager
     image: ${DOCKER_IMAGE_PREFIX}ion-manager:${DOCKER_IMAGE_TAG}
     build:
-      context: deps
-      dockerfile: reftools.Dockerfile
+      dockerfile: testenv.Containerfile
       target: ion-manager
     depends_on: {}
     privileged: true
@@ -77,8 +76,7 @@ services:
     hostname: ion-agent2
     image: ${DOCKER_IMAGE_PREFIX}ion-agent:${DOCKER_IMAGE_TAG}
     build:
-      context: deps
-      dockerfile: reftools.Dockerfile
+      dockerfile: testenv.Containerfile
       target: ion-agent
     privileged: true
     tty: true
