@@ -28,7 +28,9 @@ networks:
     driver_opts:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
       com.docker.network.driver.mtu: 65535
-
+volumes:
+  sockdir:
+    external: true
 services:
   # External dependencies first
   postgres:
@@ -47,8 +49,7 @@ services:
     depends_on:
       mqtt-broker:
         condition: service_healthy
-
-  # anms-core built from *this* working copy (not prebuilt image)
+        
   anms-core:
     hostname: anms-core
     image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
@@ -75,6 +76,34 @@ services:
         condition: service_healthy
       mqtt-broker:
         condition: service_healthy
+  amp-manager:
+    hostname: amp-manager
+    image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
+    build:
+      dockerfile: anms.Containerfile
+      target: amp-manager
+    ports:
+      - "8089:8089/tcp"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # no strict dependence on testenv, but operational dependence
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - "${HOST_SOCKDIR}:${CTR_SOCKDIR}"
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
 
   test-fixture:
     hostname: test-fixture
