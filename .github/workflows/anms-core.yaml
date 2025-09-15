@@ -43,6 +43,7 @@ jobs:
           submodules: recursive
       - name: build
         run:
+          ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
           docker compose ${ANMS_COMPOSE_OPTS} build
       - name: run
         run:
