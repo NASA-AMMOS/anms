@@ -38,7 +38,7 @@ jobs:
       - name: build
         run:
           docker-compose ${ANMS_COMPOSE_OPTS} build
-        name: run
+      - name: run
         run:
           docker-compose ${ANMS_COMPOSE_OPTS} run test-fixture
       - name: after_script
