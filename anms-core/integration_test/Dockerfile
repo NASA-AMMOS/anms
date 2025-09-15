@@ -22,7 +22,7 @@
 FROM yarn-base
 
 # Install node+yarn from upstream
-RUN npm install -g newman
+RUN npm install --ignore-scripts -g newman
 
 COPY . /root/
 WORKDIR /root
