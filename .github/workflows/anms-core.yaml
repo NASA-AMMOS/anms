@@ -30,3 +30,20 @@ jobs:
         run: |
           FAIL_SRC=0
           flake8 src || FAIL_SRC=$?
+  anms-core_integration-test:
+    runs-on: ubuntu-24.04
+    env:
+      ANMS_COMPOSE_OPTS: -f anms-core/integration_test/docker-compose.yml -p test
+    steps:
+      - name: build
+        run:
+          docker-compose ${ANMS_COMPOSE_OPTS} build
+        name: run
+        run:
+          docker-compose ${ANMS_COMPOSE_OPTS} run test-fixture
+      - name: after_script
+        run: |
+          if [ "${CI_JOB_STATUS}" = 'failed' ]; then
+            docker logs anms-core
+          fi
+
