@@ -21,7 +21,6 @@
 ##
 
 # Combine containers for anms-core and its test fixture
-version: '3.9'
 
 networks:
   default:
@@ -52,20 +51,30 @@ services:
   # anms-core built from *this* working copy (not prebuilt image)
   anms-core:
     hostname: anms-core
+    image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
     build:
-      context: ..
-    volumes: 
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mqtt-broker:
-        condition: service_healthy
+      dockerfile: anms.Containerfile
+      target: anms-core
+    restart: unless-stopped
+    security_opt:
+      - "label=type:anms-core.process"
+    cap_add:
+      - NET_RAW
     environment:
+      ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+    ports:
+      - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
+    depends_on:
+      amp-manager:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
 
   test-fixture:
     hostname: test-fixture
