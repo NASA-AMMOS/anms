@@ -37,10 +37,10 @@ jobs:
     steps:
       - name: build
         run:
-          docker-compose ${ANMS_COMPOSE_OPTS} build
+          docker compose ${ANMS_COMPOSE_OPTS} build
       - name: run
         run:
-          docker-compose ${ANMS_COMPOSE_OPTS} run test-fixture
+          docker compose ${ANMS_COMPOSE_OPTS} run test-fixture
       - name: after_script
         run: |
           if [ "${CI_JOB_STATUS}" = 'failed' ]; then
