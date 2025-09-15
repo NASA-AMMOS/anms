@@ -112,14 +112,14 @@ COPY --chown=${APP_USER}:${APP_USER} \
     anms-ui/server/package.json anms-ui/server/yarn.lock ${APP_WORK_DIR}/server/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
     cd ${APP_WORK_DIR}/server && \
-    yarn install --immutable --immutable-cache
+    yarn install --ignore-scripts --immutable --immutable-cache
 
 # Install NodeJS UI Dependencies
 COPY --chown=${APP_USER}:${APP_USER} \
     anms-ui/public/package.json anms-ui/public/yarn.lock ${APP_WORK_DIR}/public/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
     cd ${APP_WORK_DIR}/public && \
-    yarn install --immutable --immutable-cache
+    yarn install --ignore-scripts --immutable --immutable-cache
 
 # Build Backend/Frontend
 # These copies do not overwrite node_modules
@@ -129,7 +129,7 @@ RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
     cd ${APP_WORK_DIR}/public && \
     yarn run build && \
     rm -rf ${APP_WORK_DIR}/public/node_modules && \
-    yarn install --immutable --immutable-cache --production
+    yarn install --ignore-scripts --immutable --immutable-cache --production
 
 COPY --chmod=755 anms-ui/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 ENTRYPOINT ["docker-entrypoint"]
