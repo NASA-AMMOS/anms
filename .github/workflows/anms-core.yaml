@@ -34,6 +34,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       ANMS_COMPOSE_OPTS: -f anms-core/integration_test/docker-compose.yml -p test
+      HOST_SOCKDIR: sockdir
+      CTR_SOCKDIR: /var/tmp/nm
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

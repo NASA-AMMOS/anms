@@ -29,31 +29,60 @@ networks:
       com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
       com.docker.network.driver.mtu: 65535
 volumes:
+  postgres-data: {}
   sockdir:
     external: true
+
 services:
   # External dependencies first
   postgres:
     hostname: postgres
-    image: ${DOCKER_IMAGE_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
+    build:
+      context: ../../
+      dockerfile: anms.Containerfile
+      target: anms-sql
+    restart: unless-stopped
+    security_opt:
+      - "label=type:postgres.process"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+    ports:
+      - "${DB_PORT-5432}:5432"
+
   mqtt-broker:
     hostname: mqtt-broker
-    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
+    build:
+      context: ../../
+      dockerfile: anms.Containerfile
+      target: mqtt-broker
+    restart: unless-stopped
+    security_opt:
+      - "label=type:mqtt-broker.process"
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+
   transcoder:
     hostname: transcoder
-    image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
+    build:
+      context: ../../
+      dockerfile: anms.Containerfile
+      target: transcoder
+    restart: unless-stopped
+    security_opt:
+      - "label=type:transcoder.process"
     depends_on:
       mqtt-broker:
         condition: service_healthy
-        
+
+  # anms-core built from *this* working copy (not prebuilt image)
   anms-core:
     hostname: anms-core
-    image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG}
     build:
+      context: ../../
       dockerfile: anms.Containerfile
       target: anms-core
     restart: unless-stopped
@@ -76,10 +105,11 @@ services:
         condition: service_healthy
       mqtt-broker:
         condition: service_healthy
+
   amp-manager:
     hostname: amp-manager
-    image: ${DOCKER_IMAGE_PREFIX}amp-manager:${DOCKER_IMAGE_TAG}
     build:
+      context: ../../
       dockerfile: anms.Containerfile
       target: amp-manager
     ports:
@@ -108,7 +138,9 @@ services:
   test-fixture:
     hostname: test-fixture
     build:
-      context: .
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: anms-core-integration
     depends_on:
       anms-core:
         condition: service_healthy
