@@ -60,6 +60,7 @@ jobs:
       - name: Status
         if: always()
         run: |
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps --services
           for BADSTATUS in stopped restarting; do
             ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
           done
