@@ -260,6 +260,16 @@ EXPOSE 5555/tcp
 HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
     CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/hello"]
 
+# for anms-core integration test
+FROM yarn-base AS anms-core-integration
+
+# Install node+yarn from upstream
+RUN npm install --ignore-scripts -g newman
+
+COPY anms-core/integration_test /root/
+WORKDIR /root
+CMD ["./run_test.sh"]
+
 
 # Build on more permissive CentOS image
 # Run on RHEL UBI image

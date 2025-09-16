@@ -1,0 +1,40 @@
+services:
+  authnz:
+    security_opt:
+      - label:disable
+  adminer:
+    security_opt:
+      - label:disable
+  opensearch:
+    security_opt:
+      - label:disable
+  opensearch-dashboards:
+    security_opt:
+      - label:disable
+  postgres:
+    security_opt:
+      - label:disable
+  mqtt-broker:
+    security_opt:
+      - label:disable
+  transcoder:
+    security_opt:
+      - label:disable
+  aricodec:
+    security_opt:
+      - label:disable
+  anms-ui:
+    security_opt:
+      - label:disable
+  anms-core:
+    security_opt:
+      - label:disable
+  grafana:
+    security_opt:
+      - label:disable
+  grafana-image-renderer:
+    security_opt:
+      - label:disable
+  redis:
+    security_opt:
+      - label:disable
