@@ -53,7 +53,7 @@ jobs:
           sudo mkdir /run/anms
       - name: run
         run: |
-          docker compose  ${ANMS_COMPOSE_OPTS} up -d --wait
+          docker compose  ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
           docker compose ${TEST_COMPOSE_OPTS} run test-fixture
       - name: after_script
         run: |
