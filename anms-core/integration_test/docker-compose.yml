@@ -21,120 +21,17 @@
 ##
 
 # Combine containers for anms-core and its test fixture
+name: anms-integration-test
 
 networks:
   default:
-    name: ${DOCKER_CTR_PREFIX}anms
+    name: test
     driver_opts:
-      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
+      com.docker.network.bridge.name: br-test
       com.docker.network.driver.mtu: 65535
-volumes:
-  postgres-data: {}
-  sockdir:
-    external: true
 
 services:
   # External dependencies first
-  postgres:
-    hostname: postgres
-    build:
-      context: ../../
-      dockerfile: anms.Containerfile
-      target: anms-sql
-    restart: unless-stopped
-    security_opt:
-      - "label=type:postgres.process"
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    volumes:
-      - "postgres-data:/var/lib/postgresql/data"
-    ports:
-      - "${DB_PORT-5432}:5432"
-
-  mqtt-broker:
-    hostname: mqtt-broker
-    build:
-      context: ../../
-      dockerfile: anms.Containerfile
-      target: mqtt-broker
-    restart: unless-stopped
-    security_opt:
-      - "label=type:mqtt-broker.process"
-    ports:
-      - "${MQTT_PORT:-1883}:1883"
-
-  transcoder:
-    hostname: transcoder
-    build:
-      context: ../../
-      dockerfile: anms.Containerfile
-      target: transcoder
-    restart: unless-stopped
-    security_opt:
-      - "label=type:transcoder.process"
-    depends_on:
-      mqtt-broker:
-        condition: service_healthy
-
-  # anms-core built from *this* working copy (not prebuilt image)
-  anms-core:
-    hostname: anms-core
-    build:
-      context: ../../
-      dockerfile: anms.Containerfile
-      target: anms-core
-    restart: unless-stopped
-    security_opt:
-      - "label=type:anms-core.process"
-    cap_add:
-      - NET_RAW
-    environment:
-      ANMS_VERSION: ${ANMS_VERSION}
-      DB_HOST: postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    ports:
-      - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
-    depends_on:
-      amp-manager:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-      mqtt-broker:
-        condition: service_healthy
-
-  amp-manager:
-    hostname: amp-manager
-    build:
-      context: ../../
-      dockerfile: anms.Containerfile
-      target: amp-manager
-    ports:
-      - "8089:8089/tcp"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      # no strict dependence on testenv, but operational dependence
-    privileged: true
-    tty: true
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
-    volumes:
-      - "${HOST_SOCKDIR}:${CTR_SOCKDIR}"
-    environment:
-      container: docker
-      DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
-      DB_HOST: postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-
   test-fixture:
     hostname: test-fixture
     build:
