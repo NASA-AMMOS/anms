@@ -24,9 +24,9 @@
 name: anms-integration-test
 
 networks:
-  anms-test:
-    external:
-      name: anms
+  anms:
+    external: true
+      
 
 services:
   # External dependencies first
@@ -37,6 +37,6 @@ services:
       dockerfile: anms.Containerfile
       target: anms-core-integration
     networks:
-      - anms-test
+      - anms
     depends_on:  {}
     
