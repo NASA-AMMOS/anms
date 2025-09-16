@@ -24,11 +24,9 @@
 name: anms-integration-test
 
 networks:
-  default:
-    name: test
-    driver_opts:
-      com.docker.network.bridge.name: br-test
-      com.docker.network.driver.mtu: 65535
+  anms-test:
+    external:
+      name: anms
 
 services:
   # External dependencies first
@@ -38,6 +36,7 @@ services:
       context: ../..
       dockerfile: anms.Containerfile
       target: anms-core-integration
-    depends_on:
-      anms-core:
-        condition: service_healthy
+    networks:
+      - anms-test
+    depends_on:  {}
+    
