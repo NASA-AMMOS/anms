@@ -37,6 +37,7 @@ jobs:
       TEST_COMPOSE_OPTS: -f anms-core/integration_test/docker-compose.yml
       HOST_SOCKDIR: sockdir
       CTR_SOCKDIR: /var/tmp/nm
+      DOCKER_CMD: docker
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
