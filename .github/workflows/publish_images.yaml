@@ -9,33 +9,20 @@ on:
     - feature/177-ghcr_container_publishing
   release:
     types: [published]
-env: 
-  # Use docker.io for DockerHub if empty
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
-  # TODO: Update .env to set this as default
+env:
+  REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/anms/
-  # Tag will be overridden per job depending on event
-  DOCKER_IMAGE_TAG: latest
+
 jobs:
-  build_anms:
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-    name: Build and Publish to ghcr.io
-    env:
-      COMPOSE_PROFILES: "full"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
-      TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
-      DOCKER_CMD: 'docker'
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.collect.outputs.images }}
+      tag: ${{ steps.vars.outputs.tag }}
     steps:
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+
       - name: Set image tag
         id: vars
         run: |
@@ -45,38 +32,38 @@ jobs:
             echo "tag=latest" >> $GITHUB_OUTPUT
           fi
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      # Get list of images to be built & published
-      - name: Extract images to publish
-        id: images
+      - name: Collect built images
+        id: collect
         run: |
           export DOCKER_IMAGE_PREFIX=${{ env.DOCKER_IMAGE_PREFIX }}
           export DOCKER_IMAGE_TAG=${{ steps.vars.outputs.tag }}
-          # Only include services with a build context
-          docker compose ${ANMS_COMPOSE_OPTS} ${TESTENV_COMPOSE_OPTS} config | yq -r '.services[] | select(.build) | .image' | sort -u > images.txt
-          echo "images=$(cat images.txt | xargs)" >> $GITHUB_OUTPUT
+          docker compose config | yq -r '.services[] | select(.build) | .image' | sort -u > images.txt
+          echo "images=$(jq -Rc '[splits("\n") | select(length>0)]' images.txt)" >> $GITHUB_OUTPUT
 
-      # Note: Only amd64 target is officially supported & tested. Arm64 is provided for developer convenience only.
-      - name: Build and push each image
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.prepare.outputs.images) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.images.outputs.images }}
-
-          
-      # Simple approach: This may fail at images that we aren't publishing
-      # - name: Build and push images
-      #   run: |
-      #     export DOCKER_IMAGE_PREFIX=${{ env.DOCKER_IMAGE_PREFIX }}
-      #     export DOCKER_IMAGE_TAG=${{ steps.vars.outputs.tag }}
-      #     ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
-      #     ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} build
-      #     ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ${TESTENV_COMPOSE_OPTS} push
-
-          
+          tags: ${{ matrix.image }}
