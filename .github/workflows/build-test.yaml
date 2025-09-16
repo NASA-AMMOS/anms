@@ -17,7 +17,8 @@ jobs:
     name: Checkout Test (${{matrix.ctrmgr}})
     env:
       AUTHNZ_EMU: "demo"
-      ANMS_COMPOSE_OPTS: "-f docker-compose.yml --profile=full"
+      COMPOSE_PROFILES: "full"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
       TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
       DOCKER_CMD: ${{matrix.ctrmgr}}
       AUTHNZ_PORT: 8084
@@ -42,9 +43,7 @@ jobs:
           DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
       - name: Build ANMS
-        run: |
-          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build builder-base builder-init builder-acelib
-          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
+        run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
         run: ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} build
       - name: Build Volume
@@ -59,6 +58,7 @@ jobs:
           ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
           ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
       - name: Status
+        if: always()
         run: |
           for BADSTATUS in stopped restarting; do
             ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
@@ -70,14 +70,7 @@ jobs:
           # Fail if any names are in the file
           ! grep '[^[:space:]]' /tmp/notgood
       - name: Test
-        run: |
-          # Checkout the running gateway+backend
-          ${DOCKER_CMD} build -t checkout-test checkout-test
-          ${DOCKER_CMD} run --network anms -v $PWD:/mnt \
-              -e XUNIT_OUTFILE=/mnt/testresults.xml \
-              -e CHECKOUT_BASE_URL=http://authnz/ \
-              -e SSL_CERT_FILE=/mnt/puppet/modules/apl_test/files/anms/tls/certs/ammos-ca-bundle.crt \
-              checkout-test
+        run: ./checkout-test/run.sh
       - name: Stop
         if: always()
         run: |
