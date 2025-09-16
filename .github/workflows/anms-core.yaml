@@ -45,16 +45,15 @@ jobs:
           submodules: recursive
       - name: Build ANMS
         run: docker compose ${ANMS_COMPOSE_OPTS} build
-      - name: build
-        run:
-          docker compose ${TEST_COMPOSE_OPTS} build
+      - name: Build TEST
+        run: docker compose ${TEST_COMPOSE_OPTS} build
       - name: Build Volume
         run: |
           ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
           sudo mkdir /run/anms
       - name: run
         run: |
-          docker compose  ${ANMS_COMPOSE_OPTS} up -d 
+          docker compose  ${ANMS_COMPOSE_OPTS} up -d --wait
           docker compose ${TEST_COMPOSE_OPTS} run test-fixture
       - name: after_script
         run: |
