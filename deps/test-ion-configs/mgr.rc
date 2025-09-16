@@ -1,4 +1,4 @@
-# ION Configuration File for Node N1, ipn:1
+# ION Configuration File for Node N1, ipn:1, hostname manager
 ## begin ionadmin
 1 1 ''
 s
@@ -12,12 +12,13 @@ m horizon +0
 ## begin bpadmin
 1
 e 1
+w 1
 a scheme ipn 'ipnfw' 'ipnadminep'
 a endpoint ipn:1.0 x
 a endpoint ipn:1.1 x
 a endpoint ipn:1.4 x
-a endpoint ipn:1.6 x
-a endpoint ipn:1.7 x
+a endpoint ipn:1.6 q
+a endpoint ipn:1.7 q
 
 
 # Protocols
@@ -28,19 +29,17 @@ a protocol tcp 1400 100
 a induct udp 0.0.0.0:4556 udpcli
 
 # Outducts
-a outduct udp 127.0.0.1 udpclo
-a outduct udp ION-AGENT2:4556 udpclo
-a outduct udp ION-AGENT3:4556 udpclo
-
+a outduct udp 10.5.0.101:4556 udpclo
+a outduct udp 10.5.0.102:4556 udpclo
+a outduct udp 10.5.0.103:4556 udpclo
 
 s
 ## end bpadmin
 
 ## begin ipnadmin
-a plan 1 udp/127.0.0.1
-a plan 2 udp/ION-AGENT2:4556
-a plan 3 udp/ION-AGENT3:4556
-
+a plan 1 udp/10.5.0.101:4556
+a plan 2 udp/10.5.0.102:4556
+a plan 3 udp/10.5.0.103:4556
 
 ## end ipnadmin
 
