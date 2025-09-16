@@ -1,0 +1,82 @@
+# On merge to main publish with the 'latest' label
+# Publish with release label when a releaes is published.
+name: Build and publish containers
+on:
+  push:
+    branches:
+    - main
+    # For testing: delete this prior to merging PR
+    - feature/177-ghcr_container_publishing
+  release:
+    types: [published]
+env: 
+  # Use docker.io for DockerHub if empty
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+  # TODO: Update .env to set this as default
+  DOCKER_IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/anms/
+  # Tag will be overridden per job depending on event
+  DOCKER_IMAGE_TAG: latest
+jobs:
+  build_anms:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+    name: Build and Publish to ghcr.io
+    env:
+      COMPOSE_PROFILES: "full"
+      ANMS_COMPOSE_OPTS: "-f docker-compose.yml"
+      TESTENV_COMPOSE_OPTS: "-f testenv-compose.yml"
+      DOCKER_CMD: 'docker'
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set image tag
+        id: vars
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Get list of images to be built & published
+      - name: Extract images to publish
+        id: images
+        run: |
+          export DOCKER_IMAGE_PREFIX=${{ env.DOCKER_IMAGE_PREFIX }}
+          export DOCKER_IMAGE_TAG=${{ steps.vars.outputs.tag }}
+          # Only include services with a build context
+          docker compose ${ANMS_COMPOSE_OPTS} ${TESTENV_COMPOSE_OPTS} config | yq -r '.services[] | select(.build) | .image' | sort -u > images.txt
+          echo "images=$(cat images.txt | xargs)" >> $GITHUB_OUTPUT
+
+      # Note: Only amd64 target is officially supported & tested. Arm64 is provided for developer convenience only.
+      - name: Build and push each image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.images.outputs.images }}
+
+          
+      # Simple approach: This may fail at images that we aren't publishing
+      # - name: Build and push images
+      #   run: |
+      #     export DOCKER_IMAGE_PREFIX=${{ env.DOCKER_IMAGE_PREFIX }}
+      #     export DOCKER_IMAGE_TAG=${{ steps.vars.outputs.tag }}
+      #     ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
+      #     ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} build
+      #     ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ${TESTENV_COMPOSE_OPTS} push
+
+          
