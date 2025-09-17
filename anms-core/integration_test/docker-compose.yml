@@ -29,7 +29,7 @@ networks:
       
 
 services:
-  test-runnere:
+  test-runner:
     hostname: test-runner
     build:
       context: ../..
@@ -45,8 +45,7 @@ services:
       context: ../..
       dockerfile: testenv.Containerfile
       target: socat-transport
-    networks:
-      - anms
+    networks: {}
     depends_on:  {}
     volumes:
       - "${HOST_SOCKDIR}:/var/tmp/anms"
