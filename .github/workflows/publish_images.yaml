@@ -12,7 +12,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  DOCKER_IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/anms/
+  # ,, translates to lower-case, required by ghcr
+  DOCKER_IMAGE_PREFIX: ghcr.io/${{ github.repository_owner,, }}/anms/
 
 jobs:
   build-and-push:
