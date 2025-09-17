@@ -31,6 +31,8 @@ jobs:
       - name: Set prefix
         run: |
           echo "DOCKER_IMAGE_PREFIX=${REGISTRY}/${OWNER,,}/${REPO,,}/" >>${GITHUB_ENV}
+          echo "DBG: owner = ${REGISTRY}"
+          echo "DBG: repo  = ${REPO}"
         env:
           OWNER: '${{ github.repository_owner }}'
           REPO: '${{ github.repository }}'
@@ -43,7 +45,9 @@ jobs:
             echo "DOCKER_IMAGE_TAG=latest" >> $GITHUB_ENV
           fi
 
-      - name: Build and push images via compose
+      - name: Build and push base images via compose
         run: |
           docker compose build --push
-          
+      - name: Build and push testenv images via compose
+        run: |
+          docker compose -f testenv-compose.yml build --push
