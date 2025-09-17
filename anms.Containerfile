@@ -286,9 +286,11 @@ ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
 
 
-RUN dnf install -y epel-release && \
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y epel-release && \
     crb enable
-RUN dnf install -y \
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y \
         gcc g++ \
         cmake ninja-build ruby pkg-config \
         flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel && \
@@ -350,7 +352,8 @@ RUN cd /usr/local/src/nm && \
 # Runtime image for REFDM
 FROM anms-base AS amp-manager
 
-RUN dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
     crb enable && \
     dnf install -y \
         pcre2 civetweb openssl-libs cjson libpq

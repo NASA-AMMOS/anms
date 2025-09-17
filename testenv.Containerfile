@@ -185,3 +185,16 @@ EXPOSE 4556/udp
 
 HEALTHCHECK --start-period=10s --interval=30s --timeout=5s --retries=5 \
     CMD ["service_is_running", "ion", "refda-ion"]
+
+
+# This image provides a very simple socat-baseed transport proxy.
+#
+FROM registry.access.redhat.com/ubi9/ubi:9.2 AS socat-transport
+
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    crb enable && \
+    dnf install -y \
+        socat
+
+CMD ["socat", "-x", "stdio", "UNIX-LISTEN:/var/tmp/anms/proxy.sock,socktype=5,forever"]

@@ -29,9 +29,8 @@ networks:
       
 
 services:
-  # External dependencies first
-  test-fixture:
-    hostname: test-fixture
+  test-runnere:
+    hostname: test-runner
     build:
       context: ../..
       dockerfile: anms.Containerfile
@@ -40,3 +39,15 @@ services:
       - anms
     depends_on:  {}
     
+  test-transport:
+    hostname: test-transport
+    build:
+      context: ../..
+      dockerfile: testenv.Containerfile
+      target: socat-transport
+    networks:
+      - anms
+    depends_on:  {}
+    volumes:
+      - "${HOST_SOCKDIR}:/var/tmp/anms"
+    environment: {}
