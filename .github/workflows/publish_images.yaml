@@ -44,5 +44,5 @@ jobs:
 
       - name: Build and push images via compose
         run: |
-          DOCKER_IMAGE_PREFIX=${{ DOCKER_IMAGE_PREFIX,, }}  docker compose build --push
+          docker compose build --push
           
