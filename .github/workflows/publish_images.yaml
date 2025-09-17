@@ -37,13 +37,6 @@ jobs:
             echo "DOCKER_IMAGE_TAG=latest" >> $GITHUB_ENV
           fi
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Build and push images via compose
-        run: |
-          export DOCKER_IMAGE_PREFIX=${{ env.DOCKER_IMAGE_PREFIX }}
-          export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}
-          # bake integrates buildx with compose
-          docker compose bake --push \
-            --set "*.platform=linux/amd64,linux/arm64"
+        run: docker compose build --push
+          
