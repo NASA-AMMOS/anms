@@ -21,56 +21,22 @@
 ##
 
 # Combine containers for anms-core and its test fixture
-version: '3.9'
+name: anms-integration-test
 
 networks:
-  default:
-    name: ${DOCKER_CTR_PREFIX}anms
-    driver_opts:
-      com.docker.network.bridge.name: br-${DOCKER_CTR_PREFIX}anms
-      com.docker.network.driver.mtu: 65535
+  anms:
+    external: true
+      
 
 services:
   # External dependencies first
-  postgres:
-    hostname: postgres
-    image: ${DOCKER_IMAGE_PREFIX}amp-sql:${DOCKER_IMAGE_TAG}
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-  mqtt-broker:
-    hostname: mqtt-broker
-    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
-  transcoder:
-    hostname: transcoder
-    image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
-    depends_on:
-      mqtt-broker:
-        condition: service_healthy
-
-  # anms-core built from *this* working copy (not prebuilt image)
-  anms-core:
-    hostname: anms-core
-    build:
-      context: ..
-    volumes: 
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mqtt-broker:
-        condition: service_healthy
-    environment:
-      DB_HOST: postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-
   test-fixture:
     hostname: test-fixture
     build:
-      context: .
-    depends_on:
-      anms-core:
-        condition: service_healthy
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: anms-core-integration
+    networks:
+      - anms
+    depends_on:  {}
+    

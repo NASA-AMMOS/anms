@@ -38,7 +38,7 @@
   const requestTimeOut = 3000; //milliseconds
   const axios = require('axios');
   const FormData = require('form-data');
-  const ACCEPTED_ADM_TYPE = 'application/json';
+  const ACCEPTED_ADM_TYPE = 'application/octet-stream';
 
   exports.getAll = async function (req, res, next) {
     try {
@@ -97,7 +97,7 @@
   exports.upload = async function (req, res, next) {
       const usersReqHeader = utils.createAuthenticationHeader(req);
       const file = req.file;
-
+      
       if (!_.isNull(file) && file.mimetype != ACCEPTED_ADM_TYPE) {
         return res.status(415).json({"message": `Not support this ${file.mimetype}`});
       }
@@ -126,6 +126,7 @@
       });
       if (_.isNil(response) || _.isNil(response.data) || _.isNil(response.data.message)) {
         response.status = 500;
+        console.error(response);
         response.data = {"message": "Internal Server Error"};
       }
       return res.status(response.status).json(response.data);
