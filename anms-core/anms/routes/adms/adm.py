@@ -156,7 +156,7 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
     # Use CAmPython to generate sql
     out_path = ""  # This is empty string since we don't need to write the generated sql to a file
     sql_dialect = 'pgsql'
-    writer = create_sql.Writer(admset, adm_file, out_path, False, dialect=sql_dialect)
+    writer = create_sql.Writer(admset, adm_file, out_path, sql_dialect)
     string_buffer = io.StringIO()
     writer.write(string_buffer)
 
@@ -252,7 +252,7 @@ async def update_adm(file: UploadFile, request: Request):
             logger.info(f"{info_message} adm: {adm_file.norm_name}")
             out_path = ""  # This is empty string since we don't need to write the generated sql to a file
             sql_dialect = 'pgsql'
-            writer = create_sql.Writer(admset, adm_file, out_path, dialect=sql_dialect)
+            writer = create_sql.Writer(admset, adm_file, out_path, sql_dialect)
             string_buffer = io.StringIO()
             try: # catching error in sql creation
                 writer.write(string_buffer)

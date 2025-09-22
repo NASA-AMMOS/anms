@@ -73,7 +73,7 @@ COPY deps/dtnma-adms /usr/src/dtnma-adms
 FROM postgres:14 AS anms-sql
 
 COPY deps/anms_db_tables/*.sql /docker-entrypoint-initdb.d/
-COPY deps/dtnma-tools/refdb-sql/postgres/Database_Scripts/*/*.sql /docker-entrypoint-initdb.d/
+COPY deps/dtnma-tools/refdb-sql/postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/
 
 # This is used for testing, it is easier to delete the amp_agent after inserting it using adm_amp_agent.sql instead of removing the script since other scripts are also relying on amp_agent
 # COPY postgres/Database_Scripts/Routines/amp_agent_delete.sql /docker-entrypoint-initdb.d/31-amp_agent_delete.sql
@@ -341,7 +341,7 @@ RUN cd /usr/local/src/nm && \
       -DTRANSPORT_UNIX_SOCKET=OFF \
       -DTRANSPORT_PROXY_SOCKET=ON \
       -DTRANSPORT_ION_BP=OFF \
-      -DBUILD_TESTING=OFF \
+      -DBUILD_UNITTEST=OFF \
       -DBUILD_DOCS_API=OFF -DBUILD_DOCS_MAN=OFF \
       -G Ninja && \
     cmake --build build/default && \

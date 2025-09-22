@@ -148,13 +148,13 @@
                 }
             }
         },
-        "/agents/name/{agent_id_string}": {
+        "/agents/name/{agent_endpoint_uri}": {
             "get": {
                 "tags": [
                     "ARIs"
                 ],
                 "summary": "Registered Agent By Name",
-                "operationId": "registered_agent_by_name_agents_name__agent_id_string__get",
+                "operationId": "registered_agent_by_name_agents_name__agent_endpoint_uri__get",
                 "parameters": [
                     {
                         "required": true,
@@ -162,7 +162,7 @@
                             "title": "Agent Id String",
                             "type": "string"
                         },
-                        "name": "agent_id_string",
+                        "name": "agent_endpoint_uri",
                         "in": "path"
                     }
                 ],
@@ -4187,7 +4187,7 @@
                 "title": "RegisteredAgent",
                 "type": "object",
                 "properties": {
-                    "agent_id_string": {
+                    "agent_endpoint_uri": {
                         "title": "Agent Id String",
                         "type": "string"
                     },

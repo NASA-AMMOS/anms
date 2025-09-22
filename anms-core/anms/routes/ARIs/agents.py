@@ -62,9 +62,9 @@ async def registered_agent_by_id(registered_agents_id: int):
         return result.one_or_none()
 
 
-@router.get("/name/{agent_id_string}", status_code=status.HTTP_200_OK, response_model=ARIs.RegisteredAgent)
-async def registered_agent_by_name(agent_id_string: str):
-    stmt = select(RegisteredAgent).where(RegisteredAgent.agent_id_string == agent_id_string)
+@router.get("/name/{agent_endpoint_uri}", status_code=status.HTTP_200_OK, response_model=ARIs.RegisteredAgent)
+async def registered_agent_by_name(agent_endpoint_uri: str):
+    stmt = select(RegisteredAgent).where(RegisteredAgent.agent_endpoint_uri == agent_endpoint_uri)
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         return result.one_or_none()
@@ -75,7 +75,7 @@ async def paged_registered_agents(query: str, params: Params = Depends()):
     async with get_async_session() as session:
         query = '%' + query + '%'
         return await paginate(session, select(RegisteredAgent).where(or_(
-            RegisteredAgent.agent_id_string.ilike(query),
+            RegisteredAgent.agent_endpoint_uri.ilike(query),
             RegisteredAgent.first_registered.cast(String).ilike(query),
             RegisteredAgent.last_registered.cast(String).ilike(query)
         )).order_by(RegisteredAgent.registered_agents_id), params)

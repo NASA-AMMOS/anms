@@ -99,12 +99,12 @@ def send_parameter(agent_id: int, agent_parameter_id: int, command_parameters: d
         try:
             session.add(in_stm)
             session.commit()
-            # getting agent_id_string
-            agent_id_string = session.execute(select(RegisteredAgent.agent_id_string).where(
+            # getting agent_endpoint_uri
+            agent_endpoint_uri = session.execute(select(RegisteredAgent.agent_endpoint_uri).where(
                 RegisteredAgent.registered_agents_id == agent_id))
-            agent_id_string = agent_id_string.one_or_none()[0]
+            agent_endpoint_uri = agent_endpoint_uri.one_or_none()[0]
             err = process_command(agent_parameter_id, command_parameters,
-                            AGENT_PARAMETER.get_agent(),agent_id_string)
+                            AGENT_PARAMETER.get_agent(),agent_endpoint_uri)
             if not err:
                 return err
         except IntegrityError:
