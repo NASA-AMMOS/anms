@@ -93,7 +93,7 @@ export default {
       api.methods.apiGetAgent(state.agentId)
         .then(res => {
 
-          api.methods.apiEntriesForReportTemplate(res.data.agent_id_string)
+          api.methods.apiEntriesForReportTemplate(res.data.registered_agents_id)
             .then(res => {
               commit('rptt', res.data)
             }).catch(error => {
@@ -102,7 +102,7 @@ export default {
               console.info("error obj:", error);
               commit('rptt', [])
             });
-          api.methods.apiEntriesForOperations(res.data.agent_id_string)
+          api.methods.apiEntriesForOperations(res.data.registered_agents_id)
             .then(res => {
               commit('operations', res.data)
             }).catch(error => {

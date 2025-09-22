@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <h5>Reports sent:</h5>
@@ -16,7 +15,7 @@
         value="-1">-- Select Sent Reports --</b-form-select-option>
       <b-form-select-option v-for="rpt, index in rptts"
         :key="index"
-        :value="index">{{ rpt }}</b-form-select-option>
+        :value="index">{{ rpt.exec_set }}</b-form-select-option>
     </b-form-select>
     <div v-for="(_, index) in tableHeaders" :key="index">
       <b-table sticky-header
@@ -35,7 +34,7 @@ import toastr from "toastr";
 
 export default {
   name: "reports",
-  props: ["agentName", "rptts"],
+  props: ["agentName", "rptts", "registered_agents_id"],
   data() {
     return {
       selected: -1,
@@ -53,10 +52,10 @@ export default {
       this.tableHeaders = [];
       this.tableItems = [];
       this.loading = true;
-      let correlator_nonce = this.rptts[this.selected].correlator_nonce;
-      correlator_nonce = correlator_nonce;
+      let nonce_cbor = this.rptts[this.selected].nonce_cbor;
+      nonce_cbor = nonce_cbor;
       // let rpt_adm = this.rptts[this.selected].adm;
-      await api.methods.apiEntriesForReport(this.agentName, correlator_nonce)
+      await api.methods.apiEntriesForReport(this.registered_agents_id, nonce_cbor)
         .then(res => {
           this.processReport(res.data);
           this.reports[this.selected] = this.tableItems;
@@ -98,7 +97,7 @@ export default {
   mounted() {
     this.loading = true;
     this.rptts.forEach((rpt, index) => {
-      api.methods.apiEntriesForReport(this.agentName, rpt.correlator_nonce)
+      api.methods.apiEntriesForReport(this.registered_agents_id, rpt.nonce_cbor)
         .then(res => {
           this.reports[index] = res.data
         }).catch(error => {

@@ -35,18 +35,18 @@ from sqlalchemy import LargeBinary
 class Report(Model):
     __tablename__ = 'ari_rptset'
     ari_rptset_id = Column(Integer, primary_key=True)
-    correlator_nonce = Column(Integer)
+    nonce_cbor = Column(LargeBinary)
     reference_time = Column(Integer)
     report_list	= Column(String)
     report_list_cbor = Column(LargeBinary)
-    agent_id = Column(String)
+    agent_id = Column(Integer)
     def __repr__(self) -> str:
         return self.as_dict().__repr__()
 
     def as_dict(self) -> Dict[str, Any]:
         dict_obj = {
                     'ari_rptset_id': getattr(self, 'ari_rptset_id'),
-                    'correlator_nonce': getattr(self, 'correlator_nonce'),        
+                    'nonce_cbor': getattr(self, 'nonce_cbor'),        
                     'reference_time': getattr(self, 'reference_time'),
                     'report_list': getattr(self, 'report_list'),
                     'report_list_cbor': getattr(self, 'report_list_cbor'),
