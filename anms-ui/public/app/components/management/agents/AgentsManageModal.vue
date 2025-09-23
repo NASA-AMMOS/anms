@@ -12,7 +12,7 @@
             <div class="agent-info">
               <div v-for="agent in agents">
                 <b-badge pill
-                  variant="primary"> {{ agent.agent_id_string }} </b-badge>
+                  variant="primary"> {{ agent.agent_endpoint_uri }} </b-badge>
               </div>
             </div>
             <div v-if="this.ariString">
@@ -173,10 +173,10 @@ export default {
       this.sendButtonText = "Sending ARI CBOR to Agent(s)";
       this.agents.forEach((agent) => {
         api.methods
-          .apiSendRawCommand(agent.agent_id_string, this.ariCBOR)
+          .apiSendRawCommand(agent.agent_endpoint_uri, this.ariCBOR)
           .then((response) => {
             if (response.status == 200) {
-              toastr.success(`Submitted ARI CBOR to agent ${agent.agent_id_string}`);
+              toastr.success(`Submitted ARI CBOR to agent ${agent.agent_endpoint_uri}`);
             }
           })
           .catch((error) => {

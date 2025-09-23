@@ -9,7 +9,7 @@
       <div v-if="agentInfo">
         <div class="agent-info">
           <div>Agent: <b-badge pill
-              variant="primary"> {{ agentInfo.agent_id_string }} </b-badge></div>
+              variant="primary"> {{ agentInfo.agent_endpoint_uri }} </b-badge></div>
           <div>Registered Agents ID: <b-badge pill
               variant="primary"> {{ agentInfo.registered_agents_id }} </b-badge></div>
           <div>First Registered: <b-badge pill
@@ -17,9 +17,9 @@
           <div>Last Registered: <b-badge pill
               variant="primary">{{ agentInfo.last_registered }}</b-badge></div>
         </div>
-        <reports :agentName="agentInfo.agent_id_string"
-          :rptts="rptt" />
-
+        <reports :agentName="agentInfo.agent_endpoint_uri"
+          :rptts="rptt" 
+          :registered_agents_id="agentInfo.registered_agents_id"/>
         <crud :agentId="agentInfo.registered_agents_id"
           :Operations="operations">
         </crud>

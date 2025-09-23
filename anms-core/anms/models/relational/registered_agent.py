@@ -37,7 +37,7 @@ class RegisteredAgent(Model):
     __tablename__ = 'registered_agents'
 
     registered_agents_id = Column(Integer, primary_key=True)
-    agent_id_string = Column(
+    agent_endpoint_uri = Column(
         String(128),
         default='ipn:0.0',
         unique=True,
