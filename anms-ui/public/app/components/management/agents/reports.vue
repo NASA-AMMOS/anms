@@ -54,8 +54,7 @@ export default {
       this.loading = true;
       let nonce_cbor = this.rptts[this.selected].nonce_cbor;
       nonce_cbor = nonce_cbor;
-      // let rpt_adm = this.rptts[this.selected].adm;
-      await api.methods.apiEntriesForReport(this.registered_agents_id, nonce_cbor)
+      await api.methods.apiEntriesForReport(this.registered_agents_id,encodeURIComponent(nonce_cbor))
         .then(res => {
           this.processReport(res.data);
           this.reports[this.selected] = this.tableItems;

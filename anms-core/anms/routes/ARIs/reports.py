@@ -83,36 +83,37 @@ async def report_def_by_id(agent_id: int):
         agent_id_str = agent_id_str.agent_endpoint_uri
         for res in result.all():   
             # select from exec_set 
-            nonce_cbor = res.nonce_cbor
             try:
+                nonce_cbor = res.nonce_cbor
                 stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
                 result: Result = await session.scalars(stmt)
                 exc_set = result.all()
                 for res in exc_set:
                     ari_val = ""
                     if(res):
-                        hex_str = "0x"+res.entries.hex()
-                        hex_str = hex_str.upper()
+                        hex_str = res.entries.hex()
+                        hex_str = "0x"+hex_str.upper()
                         ari_val = await transcoder.transcoder_put_cbor_await(hex_str)
                         ari_val =  ari_val['data']
-                        addition = {'exec_set': ari_val,'nonce_cbor':nonce_cbor}    
+                        logger.info(str(nonce_cbor))
+                        addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
                         if addition not in final_res:
                             final_res.append(addition)
             except Exception as e:
                 logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
-
+    
     return final_res
 
 
 # entries tabulated returns header and values in correct order
 @router.get("/entries/table/{agent_id}/{nonce_cbor}", status_code=status.HTTP_200_OK,
             response_model=list)
-async def report_ac(agent_id: int, nonce_cbor: bytes):
-    final_res = []
+async def report_ac(agent_id: int, nonce_cbor: str):
+    
     ari = None
     dec = ace.ari_cbor.Decoder()
-    buf = nonce_cbor
-    
+    enc = ace.ari_text.Encoder()
+    nonce_cbor = eval(nonce_cbor)
     agent_id_str =""
     agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.registered_agents_id == agent_id)
     async with get_async_session() as session:
@@ -141,13 +142,13 @@ async def report_ac(agent_id: int, nonce_cbor: bytes):
                 ari = dec.decode(io.BytesIO(in_bytes))
                 
             except Exception as err:
-                logger.info(err)
+                logger.error(err)
                 
     # current ARI should be  an exection set 
     if ari:
         if type(ari.value) == ace.ari.ExecutionSet: 
             try:
-                enc = ace.ari_text.Encoder()
+                
                 # run through targets and their parameters to get all things parts translated 
                 for targ in ari.value.targets: 
                     buf = io.StringIO()
@@ -166,7 +167,7 @@ async def report_ac(agent_id: int, nonce_cbor: bytes):
                     exec_set_dir[out_text_targ] = [exec_set_entry]
                     
             except Exception as err:
-                logger.info(err)
+                logger.error(err)
                 
                     
     # final_res.append(exec_set_entry)
@@ -205,9 +206,7 @@ async def report_ac(agent_id: int, nonce_cbor: bytes):
                             
                             exec_set_dir[out_text].append(addition)  
                         except Exception as err:
-                            logger.error(err)
-                
-                
+                            logger.error(err)            
     
     return list(exec_set_dir.values())
     
