@@ -22,6 +22,7 @@
 # subcontract 1658085.
 #
 from typing import List
+import ast 
 
 from fastapi import APIRouter, Depends
 from fastapi import status
@@ -113,7 +114,12 @@ async def report_ac(agent_id: int, nonce_cbor: str):
     ari = None
     dec = ace.ari_cbor.Decoder()
     enc = ace.ari_text.Encoder()
-    nonce_cbor = eval(nonce_cbor)
+    try:
+        nonce_cbor = ast.literal_eval(nonce_cbor)
+    except Exception as e:
+        logger.error(f"{e} while processing nonce")
+        return []
+    
     agent_id_str =""
     agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.registered_agents_id == agent_id)
     async with get_async_session() as session:
