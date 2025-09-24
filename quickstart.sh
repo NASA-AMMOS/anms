@@ -25,6 +25,9 @@
 # is not specified the #AUTHNZ_* lines in .env will be uncommented to
 # use ports that do not require root permissions.
 #
+# FORCE_BUILD=y  If 'y', all ANMS-specific containers will be built locally.
+#    Otherwise, prebuilt containers will be pulled from ghcr for quicker startup.
+#
 # Note: This script was created with assistance from openai/gpt-oss-120b
 set -e
 
@@ -81,8 +84,12 @@ cp docker-compose.no-security-override.yml docker-compose.override.yml
 ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
 
 # Build system
-${DOCKER_CMD} compose build
-
+if [[ ${FORCE_BUILD:-} == y ]]; then
+    ${DOCKER_CMD} compose --profile full --profile dev build
+else
+    ${DOCKER_CMD} compose --profile full --profile dev pull
+fi
+    
 # Start testenv (unless disabled)
 if [[ ${USE_TESTENV:-} != n ]]; then
     ${DOCKER_CMD} compose -f testenv-compose.yml up -d
