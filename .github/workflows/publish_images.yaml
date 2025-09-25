@@ -1,0 +1,53 @@
+# On merge to main publish with the 'latest' label
+# Publish with release label when a releaes is published.
+name: Build and publish containers
+on:
+  push:
+    branches:
+    - main
+    # For testing: delete this prior to merging PR
+    - feature/177-ghcr_container_publishing
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set prefix
+        run: |
+          echo "DOCKER_IMAGE_PREFIX=${REGISTRY}/${OWNER,,}/${REPO,,}/" >>${GITHUB_ENV}
+          echo "DBG: owner = ${REGISTRY}"
+          echo "DBG: repo  = ${REPO}"
+        env:
+          OWNER: '${{ github.repository_owner }}'
+          REPO: '${{ github.repository }}'
+      - name: Set image tag
+        id: vars
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "DOCKER_IMAGE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          else
+            echo "DOCKER_IMAGE_TAG=latest" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push base images via compose
+        run: |
+          docker compose build --push
+      - name: Build and push testenv images via compose
+        run: |
+          docker compose -f testenv-compose.yml build --push
