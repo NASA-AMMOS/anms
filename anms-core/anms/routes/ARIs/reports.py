@@ -102,7 +102,7 @@ async def report_def_by_id(agent_id: int):
                             final_res.append(addition)
             except Exception as e:
                 logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
-    
+
     return final_res
 
 

@@ -47,7 +47,7 @@ jobs:
           bundler-cache: true
 
       - name: Install puppet-lint
-        run: gem install puppet-lint
+        run: gem install puppet-lint -v 4.3.0
 
       - name: Run puppet-lint
         run: puppet-lint puppet --sarif --ignore-paths 'puppet/modules/anms/files/*' > puppet-lint-results.sarif
