@@ -79,7 +79,9 @@ docker stop $(docker ps -q); docker rm $(docker ps --all -q); docker system prun
 
 `./quickstart.sh`
 
-The quickstart script will configure, build, and start the ANMS system for the first time.  See comments in the script for additional details, including optional ENV variables to override default behavior.
+The quickstart script will configure, pull, and start the ANMS system for the first time.  See comments in the script for additional details, including optional ENV variables to override default behavior.
+
+NOTICE: By default, quick start will pull pre-built containers from the github registry (ghcr.io). To force a rebuild, run it as `FORCE_REBULD=y ./quickstart.sh`. See the script header for details.
 
 To stop the system use `podman compose -f testenv-compose.yml -f docker-compose.yml down`.
 
@@ -104,6 +106,7 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
 - Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
 - Setup Volume containing PKI configuration (certificate chains and private keys):
   - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
+- OPTIONAL: The next 2 steps  will build all ANMS containers. If desired, these steps can be replaced with 'pull'ing prebuilt containers from ghcr.
 - Build Core Images using one of the following:
   - `docker compose -f docker-compose.yml build`
   - `podman compose -f docker-compose.yml build`
@@ -227,6 +230,8 @@ or if there is an environment variable overriding this.
 Refer to the `.env` file for port binding overrides, or `docker-compose.yml` for defaults. Consult with your system admin for any firewall issues.
 
 ### ANMS-UI is not visible at hostname
+
+Ensure that you are running with the 'full' profile. This is the default option when using the `.env` file, however some older versions of podman-compose may not parse the COMPOSE_PROFILES ENV variable correctly. If this is the case, specify the profile explicitly in your compose up commands. For example, `podman compose --profile full up`.
 
 Check the startup logs for any errors. If using podman, some port numbers may need to be remapped using the `.env` file to higher numbered ports, or the system configuration modified to adjust permissions (not recommended).
 
