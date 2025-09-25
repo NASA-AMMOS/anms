@@ -5,8 +5,6 @@ on:
   push:
     branches:
     - main
-    # For testing: delete this prior to merging PR
-    - feature/177-ghcr_container_publishing
   release:
     types: [published]
 
