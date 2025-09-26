@@ -1728,7 +1728,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"items\": [\n    {\n      \"agent_id_string\": \"Lorem incididunt quis ullamco\",\n      \"first_registered\": \"1957-10-13T19:33:33.148Z\",\n      \"last_registered\": \"2014-05-02T06:21:44.543Z\",\n      \"registered_agents_id\": 80685875\n    },\n    {\n      \"agent_id_string\": \"ut cillum qui sunt\",\n      \"first_registered\": \"1964-03-19T12:57:01.700Z\",\n      \"last_registered\": \"1954-11-14T02:14:25.881Z\",\n      \"registered_agents_id\": -62745836\n    }\n  ],\n  \"total\": 73937038,\n  \"page\": 72027872,\n  \"size\": 73888144\n}"
+							"body": "{\n  \"items\": [\n    {\n      \"agent_endpoint_uri\": \"Lorem incididunt quis ullamco\",\n      \"first_registered\": \"1957-10-13T19:33:33.148Z\",\n      \"last_registered\": \"2014-05-02T06:21:44.543Z\",\n      \"registered_agents_id\": 80685875\n    },\n    {\n      \"agent_endpoint_uri\": \"ut cillum qui sunt\",\n      \"first_registered\": \"1964-03-19T12:57:01.700Z\",\n      \"last_registered\": \"1954-11-14T02:14:25.881Z\",\n      \"registered_agents_id\": -62745836\n    }\n  ],\n  \"total\": 73937038,\n  \"page\": 72027872,\n  \"size\": 73888144\n}"
 						},
 						{
 							"name": "Validation Error",
@@ -1828,7 +1828,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "[\n  {\n    \"agent_id_string\": \"cupidatat dolor ex\",\n    \"first_registered\": \"1971-07-16T15:25:55.040Z\",\n    \"last_registered\": \"1986-11-15T21:36:02.558Z\",\n    \"registered_agents_id\": -13167962\n  },\n  {\n    \"agent_id_string\": \"ea labore reprehenderit\",\n    \"first_registered\": \"1969-05-15T01:43:07.486Z\",\n    \"last_registered\": \"1982-06-22T00:28:08.921Z\",\n    \"registered_agents_id\": 26003950\n  }\n]"
+							"body": "[\n  {\n    \"agent_endpoint_uri\": \"cupidatat dolor ex\",\n    \"first_registered\": \"1971-07-16T15:25:55.040Z\",\n    \"last_registered\": \"1986-11-15T21:36:02.558Z\",\n    \"registered_agents_id\": -13167962\n  },\n  {\n    \"agent_endpoint_uri\": \"ea labore reprehenderit\",\n    \"first_registered\": \"1969-05-15T01:43:07.486Z\",\n    \"last_registered\": \"1982-06-22T00:28:08.921Z\",\n    \"registered_agents_id\": 26003950\n  }\n]"
 						}
 					]
 				},
@@ -1907,7 +1907,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"agent_id_string\": \"dolor ut culpa\",\n  \"first_registered\": \"1959-08-06T13:00:08.389Z\",\n  \"last_registered\": \"1963-05-07T15:20:50.166Z\",\n  \"registered_agents_id\": -37321482\n}"
+							"body": "{\n  \"agent_endpoint_uri\": \"dolor ut culpa\",\n  \"first_registered\": \"1959-08-06T13:00:08.389Z\",\n  \"last_registered\": \"1963-05-07T15:20:50.166Z\",\n  \"registered_agents_id\": -37321482\n}"
 						},
 						{
 							"name": "Validation Error",
@@ -1969,18 +1969,18 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/agents/name/:agent_id_string",
+							"raw": "{{baseUrl}}/agents/name/:agent_endpoint_uri",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"agents",
 								"name",
-								":agent_id_string"
+								":agent_endpoint_uri"
 							],
 							"variable": [
 								{
-									"key": "agent_id_string",
+									"key": "agent_endpoint_uri",
 									"value": "consequat proident culpa quis sed",
 									"description": "(Required) "
 								}
@@ -1994,18 +1994,18 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseUrl}}/agents/name/:agent_id_string",
+									"raw": "{{baseUrl}}/agents/name/:agent_endpoint_uri",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
 										"agents",
 										"name",
-										":agent_id_string"
+										":agent_endpoint_uri"
 									],
 									"variable": [
 										{
-											"key": "agent_id_string",
+											"key": "agent_endpoint_uri",
 											"value": "consequat proident culpa quis sed",
 											"description": "(Required) "
 										}
@@ -2022,7 +2022,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"agent_id_string\": \"dolor ut culpa\",\n  \"first_registered\": \"1959-08-06T13:00:08.389Z\",\n  \"last_registered\": \"1963-05-07T15:20:50.166Z\",\n  \"registered_agents_id\": -37321482\n}"
+							"body": "{\n  \"agent_endpoint_uri\": \"dolor ut culpa\",\n  \"first_registered\": \"1959-08-06T13:00:08.389Z\",\n  \"last_registered\": \"1963-05-07T15:20:50.166Z\",\n  \"registered_agents_id\": -37321482\n}"
 						},
 						{
 							"name": "Validation Error",
@@ -2030,18 +2030,18 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseUrl}}/agents/name/:agent_id_string",
+									"raw": "{{baseUrl}}/agents/name/:agent_endpoint_uri",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
 										"agents",
 										"name",
-										":agent_id_string"
+										":agent_endpoint_uri"
 									],
 									"variable": [
 										{
-											"key": "agent_id_string",
+											"key": "agent_endpoint_uri",
 											"value": "consequat proident culpa quis sed",
 											"description": "(Required) "
 										}
@@ -2157,7 +2157,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"items\": [\n    {\n      \"agent_id_string\": \"pariatur sed Lorem nostrud aliquip\",\n      \"first_registered\": \"2011-08-09T03:14:19.673Z\",\n      \"last_registered\": \"2014-02-12T10:02:52.538Z\",\n      \"registered_agents_id\": 62347121\n    },\n    {\n      \"agent_id_string\": \"minim aliquip velit dolore laborum\",\n      \"first_registered\": \"1947-06-29T16:55:50.710Z\",\n      \"last_registered\": \"1943-07-15T07:03:23.307Z\",\n      \"registered_agents_id\": -37869581\n    }\n  ],\n  \"total\": 23463388,\n  \"page\": 94004728,\n  \"size\": 47500231\n}"
+							"body": "{\n  \"items\": [\n    {\n      \"agent_endpoint_uri\": \"pariatur sed Lorem nostrud aliquip\",\n      \"first_registered\": \"2011-08-09T03:14:19.673Z\",\n      \"last_registered\": \"2014-02-12T10:02:52.538Z\",\n      \"registered_agents_id\": 62347121\n    },\n    {\n      \"agent_endpoint_uri\": \"minim aliquip velit dolore laborum\",\n      \"first_registered\": \"1947-06-29T16:55:50.710Z\",\n      \"last_registered\": \"1943-07-15T07:03:23.307Z\",\n      \"registered_agents_id\": -37869581\n    }\n  ],\n  \"total\": 23463388,\n  \"page\": 94004728,\n  \"size\": 47500231\n}"
 						},
 						{
 							"name": "Validation Error",

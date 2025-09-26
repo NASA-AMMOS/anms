@@ -35,7 +35,7 @@ from sqlalchemy import LargeBinary
 class ExecutionSet(Model):
     __tablename__ = 'vw_execution_set'
     execution_set_id = Column(Integer, primary_key=True)
-    correlator_nonce = Column(Integer)
+    nonce_cbor = Column(LargeBinary)
     use_desc = Column(String)
     agent_id = Column(String)
     num_entries = Column(Integer)
@@ -47,7 +47,7 @@ class ExecutionSet(Model):
     def as_dict(self) -> Dict[str, Any]:
         dict_obj = {
                     'execution_set_id': getattr(self, 'execution_set_id'),
-                    'correlator_nonce': getattr(self, 'correlator_nonce'),        
+                    'nonce_cbor': getattr(self, 'nonce_cbor'),        
                     'use_desc': getattr(self, 'use_desc'),
                     'agent_id': getattr(self, 'agent_id'),
                     'num_entries': getattr(self, 'num_entries'),

@@ -56,7 +56,7 @@ logger = OpenSearchLogger(__name__).logger
 AdmData = adm_data.AdmData
 DataModel = data_model_view.DataModel
 
-ACCEPT_FILE_CONTENT_TYPE = "application/octet-stream"
+ACCEPT_FILE_CONTENT_TYPE = ["application/octet-stream","application/yang" ]
 
 
 class RequestError(BaseModel):
@@ -136,8 +136,10 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
         if not replace:
             logger.info('Not replacing existing ADM name %s', adm_file.norm_name)
             return []
+        data_rec = None
+        async with get_async_session() as session:
+            data_rec,_ = await AdmData.get(data_model_view.data_model_id,session)
 
-        data_rec = await AdmData.get(data_model_view.data_model_id)
         if data_rec:
             # Compare old and new contents
             logger.info("Checking existing ADM name %s", adm_file.norm_name)
@@ -154,7 +156,7 @@ async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session
     # Use CAmPython to generate sql
     out_path = ""  # This is empty string since we don't need to write the generated sql to a file
     sql_dialect = 'pgsql'
-    writer = create_sql.Writer(admset, adm_file, out_path, False, dialect=sql_dialect)
+    writer = create_sql.Writer(admset, adm_file, out_path, sql_dialect)
     string_buffer = io.StringIO()
     writer.write(string_buffer)
 
@@ -194,7 +196,7 @@ async def update_adm(file: UploadFile, request: Request):
     message = ""
     error_details = []  # This is used to store the comparison details between the old adm and the new adm
     # Check if not application/json
-    if file.content_type != ACCEPT_FILE_CONTENT_TYPE:
+    if file.content_type not in ACCEPT_FILE_CONTENT_TYPE:
         message = f"Expect {ACCEPT_FILE_CONTENT_TYPE}. Received: {file.content_type}"
         status_code = status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
         logger.error(message)
@@ -205,7 +207,7 @@ async def update_adm(file: UploadFile, request: Request):
         try:
             adm_file_contents = await file.read()
             try:
-                adm_file = admset.load_from_data(io.BytesIO(adm_file_contents).getvalue(), del_dupe=False)
+                adm_file = admset.load_from_data(io.StringIO(adm_file_contents.decode('utf-8')), del_dupe=False)
             except Exception as err:
                 adm_file = None
                 status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -214,19 +216,21 @@ async def update_adm(file: UploadFile, request: Request):
 
             if adm_file:
                 logger.info("Adm name: %s", adm_file.norm_name)
+                data_rec = None
                 # get data_model_id
-                data_model_rec, error_message = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name )
-                if error_message:
-                    raise Exception(error_message)
-
-
-                data_rec, error_message = await AdmData.get(data_model_rec.data_model_id )
-                if error_message:
-                    raise Exception(error_message)
+                async with get_async_session() as session:
+                    data_model_rec = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name, session )
+                    if data_model_rec == None:
+                        logger.info("new ADM dont compare" )
+                    else:
+                        data_rec,_ = await AdmData.get(data_model_rec.data_model_id,session )
+                        if data_rec == None:
+                            logger.warning("ADM not in DB can't compare")
+                    
                 # Compare with existing adm
                 if data_rec:
                     # Compare old and new contents
-                    old_adm = admset.load_from_data(io.BytesIO(data_rec.data).getvalue(), del_dupe=False)
+                    old_adm = admset.load_from_data(io.StringIO(data_rec.data.decode('utf-8')), del_dupe=False)
                     status_code = status.HTTP_200_OK
                     if not comp.compare_adms(old_adm, adm_file):
                         message = f"Updating existing adm {adm_file.norm_name}"
@@ -235,9 +239,10 @@ async def update_adm(file: UploadFile, request: Request):
                         # reload adm_set
                         admset.db_session().close()
                         admset = ace.AdmSet(cache_dir=False)
-                        adm_file = admset.load_from_data(io.BytesIO(adm_file_contents), del_dupe=False)
+                        adm_file = admset.load_from_data(io.StringIO(adm_file_contents.decode('utf-8')), del_dupe=False)
                     else: # if its the same nothing else to be done
-                        logger.info("Duplicate ADM add attempted")
+                        logger.warning("Duplicate ADM add attempted")
+                        message = "Duplicate ADM add attempted"
                         response = JSONResponse(status_code=status_code,
                                                 content={"message": message, "error_details": error_details})
                         return response
@@ -247,7 +252,7 @@ async def update_adm(file: UploadFile, request: Request):
             logger.info(f"{info_message} adm: {adm_file.norm_name}")
             out_path = ""  # This is empty string since we don't need to write the generated sql to a file
             sql_dialect = 'pgsql'
-            writer = create_sql.Writer(admset, adm_file, out_path, dialect=sql_dialect)
+            writer = create_sql.Writer(admset, adm_file, out_path, sql_dialect)
             string_buffer = io.StringIO()
             try: # catching error in sql creation
                 writer.write(string_buffer)
@@ -277,7 +282,7 @@ async def update_adm(file: UploadFile, request: Request):
             try:
                 async with get_async_session() as session:
                     # get data_model_id 
-                    
+                    data_model_rec = await DataModel.get(adm_file.ns_model_enum, adm_file.ns_org_name, session )
                     # Save the adm file of the new adm
                     data = {"enumeration": data_model_rec.data_model_id, "data": adm_file_contents}
                     response, error_message = await AdmData.add_data(data, session)

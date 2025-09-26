@@ -46,8 +46,7 @@
     try {
       // /entry/values/{agent_id}/{ADM}/{report_name}
       let obj_agent_id = req.params.obj_agent_id
-      let correlator_nonce = req.params.correlator_nonce
-  
+      let correlator_nonce = encodeURIComponent(req.params.correlator_nonce)
       
       const url = utils.generateAnmsCoreUrl(['report','entries','table', obj_agent_id, correlator_nonce]);
       const name_entries = await axios.get(url);
@@ -56,48 +55,6 @@
       return next(Boom.badGateway('Error Getting reports', err));
     }
   };
-
-  // exports.getReportsPaged = async function (req, res, next) {
-  //   try {
-  //     if (req.query.page === undefined) {
-  //       return next(Boom.badData('Invalid page=' + req.query.page));
-  //     }
-  //     if (req.query.size === undefined) {
-  //       return next(Boom.badData('Invalid size=' + req.query.size));
-  //     }
-  //     const params = {'page': req.query.page, 'size': req.query.size };
-  //     const url = utils.generateAnmsCoreUrl(['report','all'], params);
-      
-  //     const transcoderLog = await axios.get(url);
-  //     return res.status(200).json(transcoderLog.data);
-  //   } catch (err) {
-  //     return next(Boom.badGateway('Error Getting Paged Reports', err));
-  //   }
-  // };
-
-  /*
-  exports.getTranscoderPagedBySearch = async function (req, res, next) {
-    try {
-      const transcoderQuery = req.params.query;
-      if (!_.isString(transcoderQuery)) {
-        return next(Boom.badData('Invalid Agent Search'));
-      }
-      if (req.query.page === undefined) {
-        return next(Boom.badData('Invalid page=' + req.query.page));
-      }
-      if (req.query.size === undefined) {
-        return next(Boom.badData('Invalid size=' + req.query.size));
-      }
-      const params = {'page': req.query.page, 'size': req.query.size };
-      const url = utils.generateAnmsCoreUrl(['transcoder', 'db', 'search', transcoderQuery], params);
-      const transcoderLog = await axios.get(url);
-      return res.status(200).json(transcoderLog.data);
-    } catch (err) {
-      return next(Boom.badGateway('Error Getting transcoderLog with search', err));
-    }
-  };
-  */
-
 })();
 
 

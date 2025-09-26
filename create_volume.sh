@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Construct and fill volumes needed by the ANMS compose config.
 # Use:
 #  ./create_volume {optional tls file source path}
@@ -15,7 +15,11 @@ SRCPATH=$1
 if [ -z "${SRCPATH}" ]
 then
     SRCPATH=$VOLPATH
+elif [ ! -e "$SRCPATH" ]; then
+    echo "Error: '$SRCPATH' does not exist."
+    exit 1
 fi
+
 
 # Determine base command (docker or podman)
 if [ -n "$DOCKER_CMD" ]; then
@@ -33,9 +37,16 @@ fi
 
 
 ${DOCKER_CMD} volume create ${VOLNAME}
+
+# Delete our created volume if there is an error to prevent issues on retry
+trap '${DOCKER_CMD} volume rm ${VOLNAME}' ERR
+
 CTRNAME=$(${DOCKER_CMD} run --detach --rm \
           -v ${VOLNAME}:${VOLPATH} \
           docker.io/redhat/ubi9 tail -f /dev/null)
+
+# Ensure container is stopped with script, even if there is an error
+trap '${DOCKER_CMD} stop ${CTRNAME} >/dev/null' EXIT
 
 ${DOCKER_CMD} exec ${CTRNAME} rm -rf ${VOLPATH}/*
 for FN in ${SRCPATH}/*
@@ -43,8 +54,6 @@ do
     echo "Copying from ${FN}"
     ${DOCKER_CMD} cp ${FN} ${CTRNAME}:${VOLPATH}/
 done
-
-${DOCKER_CMD} stop ${CTRNAME} >/dev/null
 
 # creating socket volume 
 ${DOCKER_CMD} volume create sockdir    

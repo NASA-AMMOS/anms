@@ -161,7 +161,7 @@ export default {
             let curr_str=  ""  
             currValue = [];
               value.forEach((ari) => {
-                currValue.push(ari.replaceAll('"', ""));
+                currValue.push(ari);
               });
               if(currValue.length = 1 ){
                 testResult.push(currValue[0])

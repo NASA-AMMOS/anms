@@ -49,7 +49,16 @@ If your computer is behind a network proxy, this may cause issues related to usi
 Though ANMS can be run behind a proxy; building the ANMS Docker images from behind a network proxy may result in errors.
 
 The first steps in each of the container image `Dockerfile` is to attempt to download an APLNIS root CA to validate the APLNIS HTTPS proxy.
-When building images outside of the APLNIS, this download will gracefully fail and the image will not be able to run within the APLNIS.
+When building images outside of the APLNIS, this download will gracefully fail and the image will not be able to run within the APLNIS.  The URL for this certificate can be changed for users requiring equivalent functionality on their own networks.
+
+### Special Notes on Podman
+
+If not otherwise specified, most commands in this document allow podman and docker to be used interchangeably. It is also possible to install an alias (provided in most package managers) to map `docker` to `podman` if desired.
+
+Podman, running as a standard user, is typically unable to bind to **low-numbered ports**. It is recommended to edit the `.env` file and uncomment the lines at top for AUTHNZ_PORT and AUTHNZ_HTTPS_PORT to remap those services to a higher port number.  In the directions below, you would then use for example http://localhost:8084 and https://localhost:8443 instead of the default.
+
+Note: If running on a system where **SELinux** is enabled, the system will not start if the appropriate security groups have not been defined. As an alternative, the `security_opt` sections can be commented out in the *-compose.yml files if required.
+
 
 ### Upgrading ANMS
 
@@ -63,32 +72,41 @@ The following command sequence uses standard Docker commands to stop all contain
 docker stop $(docker ps -q); docker rm $(docker ps --all -q); docker system prune -f; docker volume prune -f
 ```
 
-### Deployment Scenario
-
-The current ANMS capability is designed to run on `localhost` and on a development virtual machine.
-This guide presumes that you can either connect via a VMRC remote console or with ssh tunnelling to the machine, hence the use of `localhost` in db connection information and in URLs.
-If you deploy this to a VM, you will need to replace `localhost` with the hostname of the machine where it is deployed.
-
-### Special Notes on Podman
-
-If not otherwise specified, most commands in this document allow podman and docker to be used interchangeably. It is also possible to install an alias (provided in most package managers) to map `docker` to `podman` if desired.
-
-Podman, running as a standard user, is typically unable to bind to **low-numbered ports**. It is recommended to edit the `.env` file and uncomment the lines at top for AUTHNZ_PORT and AUTHNZ_HTTPS_PORT to remap those services to a higher port number.  In the directions below, you would then use for example http://localhost:8084 and https://localhost:8443 instead of the default.
-
-Note: If running on a system where **SELinux** is enabled, the system will not start if the appropriate security groups have not been defined. As an alternative, the `security_opt` sections can be commented out in the *-compose.yml files if required.
-
 
 ## ANMS build and deploy
 
+## Quickstart
+
+`./quickstart.sh`
+
+The quickstart script will configure, pull, and start the ANMS system for the first time.  See comments in the script for additional details, including optional ENV variables to override default behavior.
+
+NOTICE: By default, quick start will pull pre-built containers from the github registry (ghcr.io). To force a rebuild, run it as `FORCE_REBULD=y ./quickstart.sh`. See the script header for details.
+
+To stop the system use `podman compose -f testenv-compose.yml -f docker-compose.yml down`.
+
+To start the system in the future use `podman compose -f testenv-compose.yml up` and `podman compose up`.
+
+## Manual Startup
 Choose the appropriate docker, podman or podman-compose commands in the directions below as appropriate for your system.
 
-- Select appropriate profile(s) as desired. 
-  - If no profiles are set, a "light" deployment of the ANMS focused on browser-less API-only ANMS users.
-  - For a full deployment: `export COMPOSE_PROFILES=full`
-  - For a full deployment with additional developer tools: `export COMPOSE_PROFILES=full,dev`
+- Edit `.env` file as appropriately
+  - Select appropriate profile(s) as desired. 
+    - Core ANMS services are always started.
+    - The 'full' profile starts up all UI and related services.
+    - The 'dev' profile adds development tools, such as adminer
+    - Profiles can be set with COMPOSE_PROFILES in the .env file. The default includes full and dev profiles.
+  - Adjust network ports as necessary to avoid any conflicts or permissions issues.
+    - For rootless podman, the AUTHNZ_* ports must be changed to higher number ports to avoid permissions issues. 
+    - The corresponding lines can be uncommented in .env.
+- SELinux Security Labels Setup
+  - If your system does not support security labels, no additional steps are needed.
+  - If security labels are supported and you are unable to define them, they can be disabled for development purposes:
+    - `cp docker-compose.no-security-override.yml docker-compose.override.yml`
 - Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
 - Setup Volume containing PKI configuration (certificate chains and private keys):
   - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
+- OPTIONAL: The next 2 steps  will build all ANMS containers. If desired, these steps can be replaced with 'pull'ing prebuilt containers from ghcr.
 - Build Core Images using one of the following:
   - `docker compose -f docker-compose.yml build`
   - `podman compose -f docker-compose.yml build`
@@ -98,7 +116,6 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
   - `docker compose -f testenv-compose.yml build`
   - `podman compose -f testenv-compose.yml build`
   - `podman-compose --podman-build-args='--format docker' -f testenv-compose.yml build`
-  
 - Start System using one of the following:
   - `docker compose -f docker-compose.yml up -d`
   - `podman compose -f docker-compose.yml up -d`
@@ -213,6 +230,8 @@ or if there is an environment variable overriding this.
 Refer to the `.env` file for port binding overrides, or `docker-compose.yml` for defaults. Consult with your system admin for any firewall issues.
 
 ### ANMS-UI is not visible at hostname
+
+Ensure that you are running with the 'full' profile. This is the default option when using the `.env` file, however some older versions of podman-compose may not parse the COMPOSE_PROFILES ENV variable correctly. If this is the case, specify the profile explicitly in your compose up commands. For example, `podman compose --profile full up`.
 
 Check the startup logs for any errors. If using podman, some port numbers may need to be remapped using the `.env` file to higher numbered ports, or the system configuration modified to adjust permissions (not recommended).
 

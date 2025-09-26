@@ -73,7 +73,7 @@ COPY deps/dtnma-adms /usr/src/dtnma-adms
 FROM postgres:14 AS anms-sql
 
 COPY deps/anms_db_tables/*.sql /docker-entrypoint-initdb.d/
-COPY deps/dtnma-tools/refdb-sql/postgres/Database_Scripts/*/*.sql /docker-entrypoint-initdb.d/
+COPY deps/dtnma-tools/refdb-sql/postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/
 
 # This is used for testing, it is easier to delete the amp_agent after inserting it using adm_amp_agent.sql instead of removing the script since other scripts are also relying on amp_agent
 # COPY postgres/Database_Scripts/Routines/amp_agent_delete.sql /docker-entrypoint-initdb.d/31-amp_agent_delete.sql
@@ -91,7 +91,7 @@ ENV NODE_OPTIONS=--use-openssl-ca
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y https://rpm.nodesource.com/pub_16.x/el/9/x86_64/nodesource-release-el9-1.noarch.rpm && \
     dnf install -y nodejs && \
-    npm install --global yarn && \
+    npm install --ignore-scripts --global yarn && \
     yarn config set --global cafile ${PIP_CERT}
 
 
@@ -112,14 +112,14 @@ COPY --chown=${APP_USER}:${APP_USER} \
     anms-ui/server/package.json anms-ui/server/yarn.lock ${APP_WORK_DIR}/server/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
     cd ${APP_WORK_DIR}/server && \
-    yarn install --immutable --immutable-cache
+    yarn install --ignore-scripts --immutable --immutable-cache
 
 # Install NodeJS UI Dependencies
 COPY --chown=${APP_USER}:${APP_USER} \
     anms-ui/public/package.json anms-ui/public/yarn.lock ${APP_WORK_DIR}/public/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
     cd ${APP_WORK_DIR}/public && \
-    yarn install --immutable --immutable-cache
+    yarn install --ignore-scripts --immutable --immutable-cache
 
 # Build Backend/Frontend
 # These copies do not overwrite node_modules
@@ -129,7 +129,7 @@ RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
     cd ${APP_WORK_DIR}/public && \
     yarn run build && \
     rm -rf ${APP_WORK_DIR}/public/node_modules && \
-    yarn install --immutable --immutable-cache --production
+    yarn install --ignore-scripts --immutable --immutable-cache --production
 
 COPY --chmod=755 anms-ui/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 ENTRYPOINT ["docker-entrypoint"]
@@ -260,6 +260,16 @@ EXPOSE 5555/tcp
 HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
     CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/hello"]
 
+# for anms-core integration test
+FROM yarn-base AS anms-core-integration
+
+# Install node+yarn from upstream
+RUN npm install --ignore-scripts -g newman
+
+COPY anms-core/integration_test /root/
+WORKDIR /root
+CMD ["./run_test.sh"]
+
 
 # Build on more permissive CentOS image
 # Run on RHEL UBI image
@@ -276,9 +286,11 @@ ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
 
 
-RUN dnf install -y epel-release && \
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y epel-release && \
     crb enable
-RUN dnf install -y \
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y \
         gcc g++ \
         cmake ninja-build ruby pkg-config \
         flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel && \
@@ -329,7 +341,7 @@ RUN cd /usr/local/src/nm && \
       -DTRANSPORT_UNIX_SOCKET=OFF \
       -DTRANSPORT_PROXY_SOCKET=ON \
       -DTRANSPORT_ION_BP=OFF \
-      -DBUILD_TESTING=OFF \
+      -DBUILD_UNITTEST=OFF \
       -DBUILD_DOCS_API=OFF -DBUILD_DOCS_MAN=OFF \
       -G Ninja && \
     cmake --build build/default && \
@@ -340,7 +352,8 @@ RUN cd /usr/local/src/nm && \
 # Runtime image for REFDM
 FROM anms-base AS amp-manager
 
-RUN dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
     crb enable && \
     dnf install -y \
         pcre2 civetweb openssl-libs cjson libpq
