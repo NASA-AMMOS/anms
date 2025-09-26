@@ -30,3 +30,34 @@ jobs:
         run: |
           FAIL_SRC=0
           flake8 src || FAIL_SRC=$?
+  anms-core_integration-test:
+    runs-on: ubuntu-24.04
+    env:
+      ANMS_COMPOSE_OPTS: -f docker-compose.yml --profile light
+      TEST_COMPOSE_OPTS: -f anms-core/integration_test/docker-compose.yml
+      HOST_SOCKDIR: /run/anms
+      DOCKER_CMD: docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build ANMS
+        run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
+      - name: Build TEST
+        run: ${DOCKER_CMD} compose ${TEST_COMPOSE_OPTS} build
+      - name: Build Volume
+        run: |
+          ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
+          sudo mkdir /run/anms
+      - name: Start
+        run: |
+          ${DOCKER_CMD} compose ${TEST_COMPOSE_OPTS} up -d test-transport
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
+      - name: Test
+        run: ${DOCKER_CMD} compose ${TEST_COMPOSE_OPTS} run test-runner
+      - name: Status
+        if: failure()
+        run: |
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} logs anms-core

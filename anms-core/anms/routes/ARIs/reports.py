@@ -22,14 +22,15 @@
 # subcontract 1658085.
 #
 from typing import List
-import re
+import ast 
+
 from fastapi import APIRouter, Depends
 from fastapi import status
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
-from io import StringIO
+
 from urllib.parse import unquote
 
 from anms.components.schemas import ARIs
@@ -37,6 +38,8 @@ from anms.models.relational import get_async_session, get_session
 
 from anms.models.relational.report import Report
 from anms.models.relational.execution_set import ExecutionSet
+from anms.models.relational.registered_agent import RegisteredAgent
+
 from anms.shared.opensearch_logger import OpenSearchLogger
 import io
 
@@ -44,8 +47,6 @@ import anms.routes.transcoder as transcoder
 
 # for handling report set and exec set  
 import ace
-import ace.models
-
 
 logger = OpenSearchLogger(__name__, log_console=True)
 
@@ -69,84 +70,115 @@ async def all_report_name():
 
 @router.get("/entry/name/{agent_id}", status_code=status.HTTP_200_OK, response_model=list,
             tags=["REPORTS"])
-async def report_def_by_id(agent_id: str):
+async def report_def_by_id(agent_id: int):
     # select all reports belonging to the agent
-    agent_id = agent_id.strip()
     final_res = []
+    agent_id_str = ""
     stmt = select(Report).where(Report.agent_id == agent_id)
+    agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.registered_agents_id == agent_id)
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
+        # Execution set uses URI as agent_id
+        result_agent: Result = await session.scalars(agent_id_stmt)
+        agent_id_str = result_agent.one_or_none()
+        agent_id_str = agent_id_str.agent_endpoint_uri
         for res in result.all():   
             # select from exec_set 
-            correlator_nonce = res.correlator_nonce
-            stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == correlator_nonce) )
-            result: Result = await session.scalars(stmt)
-            exc_set = result.all()
-            for res in exc_set:
-                ari_val = ""
-                if(res):
-                    ari_val = await transcoder.transcoder_put_cbor_await("0x"+res.entries.hex())
-                    ari_val =  ari_val['data']
-                    addition = {'exec_set': ari_val,'correlator_nonce':correlator_nonce}    
-                    if addition not in final_res:
-                        final_res.append(addition)
+            try:
+                nonce_cbor = res.nonce_cbor
+                stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
+                result: Result = await session.scalars(stmt)
+                exc_set = result.all()
+                for res in exc_set:
+                    ari_val = ""
+                    if(res):
+                        hex_str = res.entries.hex()
+                        hex_str = "0x"+hex_str.upper()
+                        ari_val = await transcoder.transcoder_put_cbor_await(hex_str)
+                        ari_val =  ari_val['data']
+                        logger.info(str(nonce_cbor))
+                        addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
+                        if addition not in final_res:
+                            final_res.append(addition)
+            except Exception as e:
+                logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
 
     return final_res
 
 
 # entries tabulated returns header and values in correct order
-@router.get("/entries/table/{agent_id}/{correlator_nonce}", status_code=status.HTTP_200_OK,
+@router.get("/entries/table/{agent_id}/{nonce_cbor}", status_code=status.HTTP_200_OK,
             response_model=list)
-async def report_ac(agent_id: str, correlator_nonce: int):
-    agent_id = agent_id.strip()
-    final_res = []
+async def report_ac(agent_id: int, nonce_cbor: str):
+    
     ari = None
+    dec = ace.ari_cbor.Decoder()
+    enc = ace.ari_text.Encoder()
+    try:
+        nonce_cbor = ast.literal_eval(nonce_cbor)
+    except Exception as e:
+        logger.error(f"{e} while processing nonce")
+        return []
+    
+    agent_id_str =""
+    agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.registered_agents_id == agent_id)
+    async with get_async_session() as session:
+        result_agent: Result = await session.scalars(agent_id_stmt)
+        agent_id_str = result_agent.one_or_none()
+        agent_id_str = agent_id_str.agent_endpoint_uri
+
     # Load in adms 
     # get command that made the report as first entry 
-    stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id, ExecutionSet.correlator_nonce == correlator_nonce) )
+    stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
-        result = result.one_or_none()
-        exec_set_entry=["time"]
+        
+        # there should only be one execution per agent per nonce_cbor
+        # in the event that two occur pull the latest one  
+        result = result.all()
+        exec_set_dir = {}
+        
         if result:
+            result = result[-1]
             exec_set = result.entries.hex()
             # use ACE to handle report set decoding  
             in_text = '0x'+exec_set
             try:
                 in_bytes = ace.cborutil.from_hexstr(in_text)
-                dec = ace.ari_cbor.Decoder()
                 ari = dec.decode(io.BytesIO(in_bytes))
                 
             except Exception as err:
-                logger.info(err)
+                logger.error(err)
                 
     # current ARI should be  an exection set 
     if ari:
         if type(ari.value) == ace.ari.ExecutionSet: 
             try:
-                enc = ace.ari_text.Encoder()
-                buf = io.StringIO()
+                
                 # run through targets and their parameters to get all things parts translated 
                 for targ in ari.value.targets: 
-                    if targ.params:
-                        for param in targ.params:
-                            enc.encode(param, buf)
+                    buf = io.StringIO()
+                    exec_set_entry=["time"]
+                    enc.encode(targ, buf)
+                    out_text_targ = buf.getvalue()    
+                    if targ is ace.LiteralARI and targ.type_id is  ace.StructType.AC:
+                        for part in targ.value:
+                            buf = io.StringIO()
+                            enc.encode(part, buf)
                             out_text = buf.getvalue()
-                            ari_val = await transcoder.transcoder_put_await_str(out_text)
-                            exec_set_entry.append(ari_val['data'])
+                            exec_set_entry.append(out_text)
                     else:
-                        enc.encode(targ, buf)
-                        out_text = buf.getvalue()
-                        ari_val = await transcoder.transcoder_put_await_str(out_text)
-                        exec_set_entry.append(ari_val['data'])
-
+                        exec_set_entry.append(out_text_targ)
+                    
+                    exec_set_dir[out_text_targ] = [exec_set_entry]
+                    
             except Exception as err:
-                logger.info(err)
+                logger.error(err)
                 
                     
-    final_res.append(exec_set_entry)
+    # final_res.append(exec_set_entry)
     ari = None
-    stmt = select(Report).where(and_(Report.agent_id == agent_id, Report.correlator_nonce == correlator_nonce) )
+    stmt = select(Report).where(and_(Report.agent_id == agent_id, Report.nonce_cbor == nonce_cbor) )
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for res in result.all():
@@ -157,7 +189,6 @@ async def report_ac(agent_id: str, correlator_nonce: int):
             in_text = '0x'+rpt_set
             try:
                 in_bytes = ace.cborutil.from_hexstr(in_text)
-                dec = ace.ari_cbor.Decoder()
                 ari = dec.decode(io.BytesIO(in_bytes))
 
             except Exception as err:
@@ -173,13 +204,15 @@ async def report_ac(agent_id: str, correlator_nonce: int):
                             for item in rpt.items:
                                 buf = io.StringIO()
                                 enc.encode(item, buf)
-                                out_text = buf.getvalue()
-                                ari_val = await transcoder.transcoder_put_await_str(out_text)
-                                addition.append(ari_val['data'])
+                                out_text = buf.getvalue()    
+                                addition.append(out_text)
+                            buf = io.StringIO()
+                            enc.encode(rpt.source, buf)
+                            out_text = buf.getvalue()    
+                            
+                            exec_set_dir[out_text].append(addition)  
                         except Exception as err:
-                            logger.error(err)
-            
-                if addition not in final_res:
-                    final_res.append(addition)
-    return final_res
+                            logger.error(err)            
+    
+    return list(exec_set_dir.values())
     

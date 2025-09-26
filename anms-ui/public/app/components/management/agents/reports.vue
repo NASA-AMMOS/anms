@@ -1,4 +1,3 @@
-
 <template>
   <div>
     <h5>Reports sent:</h5>
@@ -16,18 +15,16 @@
         value="-1">-- Select Sent Reports --</b-form-select-option>
       <b-form-select-option v-for="rpt, index in rptts"
         :key="index"
-        :value="index">{{ rpt }}</b-form-select-option>
+        :value="index">{{ rpt.exec_set }}</b-form-select-option>
     </b-form-select>
-    <b-table sticky-header
+    <div v-for="(_, index) in tableHeaders" :key="index">
+      <b-table sticky-header
       hover
       bordered
       responsive
       v-if="!loading && selected != -1"
-      id="report-table"
-      :fields="tableHeaders"
-      :items="tableItems"
-      >
-    </b-table>
+      id="report-table" :items="tableItems[index]" :fields="tableHeaders[index]"></b-table>
+    </div>
   </div>
 </template>
 
@@ -37,7 +34,7 @@ import toastr from "toastr";
 
 export default {
   name: "reports",
-  props: ["agentName", "rptts"],
+  props: ["agentName", "rptts", "registered_agents_id"],
   data() {
     return {
       selected: -1,
@@ -55,10 +52,9 @@ export default {
       this.tableHeaders = [];
       this.tableItems = [];
       this.loading = true;
-      let correlator_nonce = this.rptts[this.selected].correlator_nonce;
-      correlator_nonce = correlator_nonce;
-      // let rpt_adm = this.rptts[this.selected].adm;
-      await api.methods.apiEntriesForReport(this.agentName, correlator_nonce)
+      let nonce_cbor = this.rptts[this.selected].nonce_cbor;
+      nonce_cbor = nonce_cbor;
+      await api.methods.apiEntriesForReport(this.registered_agents_id,encodeURIComponent(nonce_cbor))
         .then(res => {
           this.processReport(res.data);
           this.reports[this.selected] = this.tableItems;
@@ -73,17 +69,25 @@ export default {
       this.loading = false;
     },
     processReport(report) {
-      let holdHeader = report.shift();
-      this.tableHeaders = [];
-      for (let i = 0; i < holdHeader.length; i++) {
-        this.tableHeaders.push({"key":holdHeader[i]});
-        }
-      for (let item of report) {
-        let row = {};
+      
+      for(const rpt of report){
+      
+        let currTableItems = [];
+        let currTableHeaders = []
+        let holdHeader = rpt.shift();
         for (let i = 0; i < holdHeader.length; i++) {
-          row[holdHeader[i]] = item[i];
+          currTableHeaders.push({"key":holdHeader[i]});
+          }
+        this.tableHeaders.push(currTableHeaders);
+        
+        for (let item of rpt) {
+          let row = {};
+          for (let i = 0; i < holdHeader.length; i++) {
+            row[holdHeader[i]] = item[i];
+          }
+          currTableItems.push(row);
         }
-        this.tableItems.push(row);
+        this.tableItems.push(currTableItems)
       }
     }
   },
@@ -92,7 +96,7 @@ export default {
   mounted() {
     this.loading = true;
     this.rptts.forEach((rpt, index) => {
-      api.methods.apiEntriesForReport(this.agentName, rpt.correlator_nonce)
+      api.methods.apiEntriesForReport(this.registered_agents_id, rpt.nonce_cbor)
         .then(res => {
           this.reports[index] = res.data
         }).catch(error => {

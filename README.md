@@ -49,7 +49,16 @@ If your computer is behind a network proxy, this may cause issues related to usi
 Though ANMS can be run behind a proxy; building the ANMS Docker images from behind a network proxy may result in errors.
 
 The first steps in each of the container image `Dockerfile` is to attempt to download an APLNIS root CA to validate the APLNIS HTTPS proxy.
-When building images outside of the APLNIS, this download will gracefully fail and the image will not be able to run within the APLNIS.
+When building images outside of the APLNIS, this download will gracefully fail and the image will not be able to run within the APLNIS.  The URL for this certificate can be changed for users requiring equivalent functionality on their own networks.
+
+### Special Notes on Podman
+
+If not otherwise specified, most commands in this document allow podman and docker to be used interchangeably. It is also possible to install an alias (provided in most package managers) to map `docker` to `podman` if desired.
+
+Podman, running as a standard user, is typically unable to bind to **low-numbered ports**. It is recommended to edit the `.env` file and uncomment the lines at top for AUTHNZ_PORT and AUTHNZ_HTTPS_PORT to remap those services to a higher port number.  In the directions below, you would then use for example http://localhost:8084 and https://localhost:8443 instead of the default.
+
+Note: If running on a system where **SELinux** is enabled, the system will not start if the appropriate security groups have not been defined. As an alternative, the `security_opt` sections can be commented out in the *-compose.yml files if required.
+
 
 ### Upgrading ANMS
 
@@ -63,30 +72,41 @@ The following command sequence uses standard Docker commands to stop all contain
 docker stop $(docker ps -q); docker rm $(docker ps --all -q); docker system prune -f; docker volume prune -f
 ```
 
-### Deployment Scenario
-
-The current ANMS capability is designed to run on `localhost` and on a development virtual machine.
-This guide presumes that you can either connect via a VMRC remote console or with ssh tunnelling to the machine, hence the use of `localhost` in db connection information and in URLs.
-If you deploy this to a VM, you will need to replace `localhost` with the hostname of the machine where it is deployed.
-
-### Special Notes on Podman
-
-If not otherwise specified, most commands in this document allow podman to be substituted with docker without change. It is also possible to install an alias (provided in most package managers) to map `docker` to `podman` if desired.
-
-Podman support is a work in progress.  It is currently known that the docker.sock interface is not compatible with podman, which causes **the 'Services' tab to show all services as unavailable**.
-
-Podman, running as a standard user, is typically unable to bind to **low-numbered ports**. It is recommended to edit the `.env` file and uncomment the lines at top for AUTHNZ_PORT and AUTHNZ_HTTPS_PORT to remap those services to a higher port number.  In the directions below, you would then use for example http://localhost:8084 and https://localhost:8443 instead of the default.
-
-Note: If running on a system where **SELinux** is enabled, the system will not start if the appropriate security groups have not been defined. As an alternative, the `security_opt` sections can be commented out in the *-compose.yml files if required.
-
 
 ## ANMS build and deploy
 
+## Quickstart
+
+`./quickstart.sh`
+
+The quickstart script will configure, pull, and start the ANMS system for the first time.  See comments in the script for additional details, including optional ENV variables to override default behavior.
+
+NOTICE: By default, quick start will pull pre-built containers from the github registry (ghcr.io). To force a rebuild, run it as `FORCE_REBULD=y ./quickstart.sh`. See the script header for details.
+
+To stop the system use `podman compose -f testenv-compose.yml -f docker-compose.yml down`.
+
+To start the system in the future use `podman compose -f testenv-compose.yml up` and `podman compose up`.
+
+## Manual Startup
 Choose the appropriate docker, podman or podman-compose commands in the directions below as appropriate for your system.
 
+- Edit `.env` file as appropriately
+  - Select appropriate profile(s) as desired. 
+    - Core ANMS services are always started.
+    - The 'full' profile starts up all UI and related services.
+    - The 'dev' profile adds development tools, such as adminer
+    - Profiles can be set with COMPOSE_PROFILES in the .env file. The default includes full and dev profiles.
+  - Adjust network ports as necessary to avoid any conflicts or permissions issues.
+    - For rootless podman, the AUTHNZ_* ports must be changed to higher number ports to avoid permissions issues. 
+    - The corresponding lines can be uncommented in .env.
+- SELinux Security Labels Setup
+  - If your system does not support security labels, no additional steps are needed.
+  - If security labels are supported and you are unable to define them, they can be disabled for development purposes:
+    - `cp docker-compose.no-security-override.yml docker-compose.override.yml`
 - Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
 - Setup Volume containing PKI configuration (certificate chains and private keys):
   - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
+- OPTIONAL: The next 2 steps  will build all ANMS containers. If desired, these steps can be replaced with 'pull'ing prebuilt containers from ghcr.
 - Build Core Images using one of the following:
   - `docker compose -f docker-compose.yml build`
   - `podman compose -f docker-compose.yml build`
@@ -99,7 +119,7 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
 - Start System using one of the following:
   - `docker compose -f docker-compose.yml up -d`
   - `podman compose -f docker-compose.yml up -d`
-- Start ION nodes for manager and test agents using one of the following:
+- Start sample ION nodes for manager and test agents using one of the following:
   - `docker compose -f testenv-compose.yml up -d`
   - `podman compose -f testenv-compose.yml up -d`
 
@@ -107,112 +127,27 @@ To shutdown the system when needed:
 - `docker|podman compose -f docker-compose.yml -f testenv-compose.yml down`
 
 
-### Alternative "light" Deployment
-
-In the above steps, replacing `docker-compose.yml` with `light-compose.yml` will cause a "light" deployment of the ANMS focused on browser-less API-only ANMS users.
-This compose config is explained in more detail in the ANMS Product Guide, but simply removes containers that only support web-browser user agents.
-
-### Alternative Build.sh setup script (deprecated, docker-only)
-The ANMS repository contains a build script which will build and run multiple Docker containers.
-These containers comprise the ANMS software and services, including demonstration AMP agents running on non-ANMS containers.
-
-To build the containers, run the `build.sh` script.
-When running the ANMS outside an envirionment where the AMMOS Common Access Manager (CAM) is not available, a CAM Gateway emulator is enabled by the `AUTHNZ_EMU` environment; this emulator includes the local accounts and credentials `test:test` and `admin:admin`.
-This script has a `check` option which will run a docker container inspection after startup to see if all the containers are in working order.
-
-To establish a docker volume containing PKI configuration (certificate chains and private keys) the `create_volume.sh` script is provided along with test PKI authenticating the DNS name `localhost`.
-
-```
-./create_volume.sh ./puppet/modules/apl_test/files/anms/tls
-AUTHNZ_EMU=1 ./build.sh check
-```
-
-> Note: the build process reaches out to external repositories.
-> This process may be inhibited depending on your network setup, e.g., if you are behind an internet proxy. 
-> If this is a prohibitor for your setup, please contact the ANMS team for pre-built Docker images.
-
-The build command will take several minutes.
-When it completes, the build script will perform an ION ping test and output the result of a call to `docker ps`, which lists all containers running on your system.
-An example of this output is below, where some slower containers show "health: starting" while others are already showing "healthy".
-You can manually run `docker-compose ps` at any time to verify the status and health of all ANMS containers.
-
-~~~
-Pinging node 1...
-read interval of 0 ad 0.000000
-64 bytes from ipn:1.4  seq=0 time=0.261199 s
-64 bytes from ipn:1.4  seq=1 time=0.288515 s
-64 bytes from ipn:1.4  seq=2 time=0.295226 s
-3 bundles transmitted, 3 bundles received, 0.00% bundle loss, time 1.106324 s
-rtt min/avg/max/sdev = 261.199/281.646/295.226/14.728 ms
-
-Pinging node 2...
-read interval of 0 ad 0.000000
-64 bytes from ipn:2.4  seq=0 time=0.135766 s
-64 bytes from ipn:2.4  seq=1 time=0.156283 s
-64 bytes from ipn:2.4  seq=2 time=0.166642 s
-3 bundles transmitted, 3 bundles received, 0.00% bundle loss, time 1.094418 s
-rtt min/avg/max/sdev = 135.766/152.897/166.642/12.830 ms
-
-Pinging node 3...
-read interval of 0 ad 0.000000
-64 bytes from ipn:3.4  seq=0 time=0.125470 s
-64 bytes from ipn:3.4  seq=1 time=0.171092 s
-64 bytes from ipn:3.4  seq=2 time=0.169872 s
-3 bundles transmitted, 3 bundles received, 0.00% bundle loss, time 1.082884 s
-rtt min/avg/max/sdev = 125.470/155.478/171.092/21.224 ms
-
-The following containers are now running:
-CONTAINER ID   IMAGE                                  COMMAND                  CREATED          STATUS                             PORTS
-                                                                                                             NAMES
-a4b751ba46d1   ion-agent:4.1.1                        "/sbin/init"             22 seconds ago   Up 20 seconds (healthy)            1113/udp, 4556/udp                                                                                                                    ion-agent2
-fc00f2f119f0   ion-agent:4.1.1                        "/sbin/init"             22 seconds ago   Up 20 seconds (healthy)            1113/udp, 4556/udp                                                                                                                    ion-agent3
-dd0d441dbd62   authnz-emu                             "/usr/sbin/httpd -D …"   29 seconds ago   Up 27 seconds                      0.0.0.0:80->80/tcp, :::80->80/tcp                                                                                                     authnz-emu
-efefb956c272   anms-nginx                             "/docker-entrypoint.…"   30 seconds ago   Up 28 seconds                      80/tcp
-                                                                                                             nginx
-9db32dda0bcd   anms-ui                                "docker-entrypoint p…"   31 seconds ago   Up 29 seconds (health: starting)   0.0.0.0:9030->9030/tcp, :::9030->9030/tcp, 0.0.0.0:9443->9443/tcp, :::9443->9443/tcp                                                  anms-ui
-4ac5b4b42db9   transcoder                             "python3 src/main.py"    35 seconds ago   Up 34 seconds
-                                                                                                             transcoder
-e5be006388bd   ion-manager:4.1.1                      "/sbin/init"             36 seconds ago   Up 34 seconds (healthy)            0.0.0.0:8089->8089/tcp, :::8089->8089/tcp, 0.0.0.0:49168->1113/udp, :::49168->1113/udp, 0.0.0.0:49167->4556/udp, :::49167->4556/udp   ion-manager
-f7353e36cfa7   anms-core                              "python3 run_gunicor…"   46 seconds ago   Up 44 seconds (health: starting)   0.0.0.0:5555->5555/tcp, :::5555->5555/tcp                                                                                             anms-core
-c878a43d46bb   redis:6.0-alpine                       "docker-entrypoint.s…"   49 seconds ago   Up 46 seconds (healthy)            0.0.0.0:6379->6379/tcp, :::6379->6379/tcp                                                                                             redis
-c83406b1435a   mqtt-broker                            "/docker-entrypoint.…"   49 seconds ago   Up 45 seconds (healthy)            0.0.0.0:1883->1883/tcp, :::1883->1883/tcp                                                                                             mqtt-broker
-ea0c66364d70   grafana/grafana:9.1.3                  "/run.sh"                49 seconds ago   Up 45 seconds                      0.0.0.0:3000->3000/tcp, :::3000->3000/tcp                                                                                             grafana
-0d6dcb88eaa6   grafana/grafana-image-renderer:3.6.1   "dumb-init -- node b…"   49 seconds ago   Up 45 seconds                      0.0.0.0:8081->8081/tcp, :::8081->8081/tcp                                                                                             grafana-image-renderer
-6d1137be4eab   postgres:14                            "docker-entrypoint.s…"   49 seconds ago   Up 46 seconds (healthy)            0.0.0.0:5432->5432/tcp, :::5432->5432/tcp                                                                                             postgres
-2716a68c6617   adminer:latest                         "entrypoint.sh docke…"   49 seconds ago   Up 46 seconds                      0.0.0.0:8080->8080/tcp, :::8080->8080/tcp                                                                                             adminer
-1a967d58b2dd   js-amp.me                              "/bin/sh -c 'npm sta…"   49 seconds ago   Up 45 seconds                      0.0.0.0:3001->3001/tcp, :::3001->3001/tcp                                                                                             js-amp.me
-------- Done -------
-~~~
 
 ## Usage
 
-To confirm that ANMS is running, open a browser and navigate to `http://localhost/`.
+To confirm that ANMS is running, open a browser and navigate to `http://localhost/`.  If you changed AUTHNZ_PORT in the `.env` file, append the specified port to the URI, ie: http://localhost:8084.
 There you should see the ANMS login via CAM emulator page (figure below). Default credentials is admin/admin when using the emulator.
 
 ![ANMS Login](Screenshots/ANMS-Login.png)
 
-After running the `build.sh` script, you can stop all docker containers running on your system with the command `docker stop $(docker ps -q)`, and can start the ANMS system again by running:
-```sh
-docker-compose -f docker-compose.yml up -d
-```
-from within the `anms/` folder.
+NOTE: If you started ANMS with the 'full' profile, you will be brought to the UI after logging in. Otherwise, it is expected that you will be redirected to an error page, but should be able to subsequently access the REST API, such as http://localhost/nm/version.
 
-To restart the agents forcefully, controlled with a different compose file `testenv-compose.yml` run:
-```sh
-docker-compose -f testenv-compose.yml up -d --force-recreate
-```
+To restart the system, use the 'up' and 'down' commands as described in the previous section.
 
 ### Compose Environment and Options
 
 The top-level `docker-compose.yml` uses the environment defined by the sibling file `.env`.  Note: If using the legacy/deprecated build.sh script, that script may additionally override some environment variables.
 
-Two principal options of the compose configuration, which are both defaulted to empty text, are:
+The principal options of the compose configuration are:
 
-* `DOCKER_CTR_PREFIX` which controls any container name prefix added to all ANMS containers.
-  This can be used to disambiguate container names on a shared host (specifically for common container names like `nginx` or `postgres`).
 * `DOCKER_IMAGE_PREFIX` which controls any image name prefix added to all ANMS images.
   For a local build, this can be left empty, but for builds intended to be pushed to a Docker image registry this can be set to the full path on the registry before the image names (e.g. `DOCKER_IMAGE_PREFIX=some.host.example.com:5000/path/to/images`).
-
+* `HOST_SOCKDIR` which controls the source of the bind mount on `amp-manager` container for its transport socket. This can either be a volume name, for inter-container or non-root user use, or an absolute path on the host filesystem, used in the production deployment.
 
 
 ### AMP Database Querying
@@ -296,14 +231,14 @@ Refer to the `.env` file for port binding overrides, or `docker-compose.yml` for
 
 ### ANMS-UI is not visible at hostname
 
+Ensure that you are running with the 'full' profile. This is the default option when using the `.env` file, however some older versions of podman-compose may not parse the COMPOSE_PROFILES ENV variable correctly. If this is the case, specify the profile explicitly in your compose up commands. For example, `podman compose --profile full up`.
+
 Check the startup logs for any errors. If using podman, some port numbers may need to be remapped using the `.env` file to higher numbered ports, or the system configuration modified to adjust permissions (not recommended).
 
 If you go to your browser and hostname:9030 (replace hostname with the server's hostname) and you see the ANMS UI,
-but http://hostname does not render the same page, then NGinx is having an issue.  You should look at the
-docker-compose services list and see what it's status is. You may need to restart nginx via 
-`docker-compose -f docker-compose.yml restart nginx`. If this fails you may need to look at nginx.conf in the
-root of the anms-ammos project. You want to make sure that `anms-ui` or `localhost` are specified for port `80` and
-not an incorrect hostname.
+but http://hostname does not render the same page, then Authnz is having an issue.  You should look at the
+docker-compose services list and see what it's status is. You may need to restart it via 
+`docker-compose -f docker-compose.yml restart authnz`. 
 
 ### `OCI runtime error: unable to process ecurity attribute`
 

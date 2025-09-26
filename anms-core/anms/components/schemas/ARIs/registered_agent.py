@@ -31,7 +31,7 @@ from pydantic import Field
 
 # Shared properties
 class RegisteredAgentBase(BaseModel):
-    agent_id_string: Optional[str] = None
+    agent_endpoint_uri: Optional[str] = None
     first_registered: Optional[datetime] = None
     last_registered: Optional[datetime] = None
 

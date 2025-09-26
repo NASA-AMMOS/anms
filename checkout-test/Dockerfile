@@ -21,15 +21,25 @@
 ##
 
 # Allow the checkout tests to be run within a docker network
-FROM localhost/anms-base
+FROM registry.access.redhat.com/ubi9/ubi:9.2 AS anms-base
+
+# Optional APL network configuration from
+# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
+RUN ( \
+      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
+      update-ca-trust && \
+      echo "Root CA added" \
+    ) || true
+ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+ENV PIP_DEFAULT_TIMEOUT=300
 
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y iputils python3 python3-pip python3-wheel
 
-COPY requirements.txt /usr/src/checkout-test/
+COPY requirements.txt /usr/local/src/checkout-test/
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip3 install -r /usr/src/checkout-test/requirements.txt
-COPY . /usr/src/checkout-test
+    pip3 install -r /usr/local/src/checkout-test/requirements.txt
+COPY *.sh *.py /usr/local/src/checkout-test
 
 # First argument is the base URL to test
-ENTRYPOINT ["/usr/src/checkout-test/run.sh"]
+ENTRYPOINT ["/usr/local/src/checkout-test/entrypoint.sh"]

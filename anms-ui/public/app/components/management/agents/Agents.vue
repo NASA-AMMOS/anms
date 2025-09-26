@@ -123,7 +123,7 @@ export default {
           sortable: false,
         },
         {
-          key: "agent_id_string",
+          key: "agent_endpoint_uri",
           sortable: false,
         },
         {
