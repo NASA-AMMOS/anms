@@ -93,11 +93,11 @@ async def get_adm(enumeration: int,namespace: str):
             if result:
                 return result.data
             else:
-                logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a know ADM")
-                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a know ADM")
+                logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
         else:
-            logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a know DataModel")
-            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a know DataModel")
+            logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known DataModel")
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known DataModel")
 
 
 
@@ -126,8 +126,8 @@ async def remove_adm(enumeration: int, namespace:str):
             await session.commit()
             return status.HTTP_200_OK
         else:
-            logger.debug(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a know ADM")
-            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a know ADM")
+            logger.debug(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
 
 
 
