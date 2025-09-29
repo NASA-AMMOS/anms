@@ -23,7 +23,7 @@
 #
 
 # External modules
-from fastapi import APIRouter, status, Request
+from fastapi import APIRouter, status, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi import UploadFile
 from pydantic import BaseModel
@@ -88,9 +88,16 @@ async def getall():
 async def get_adm(enumeration: int,namespace: str):
     async with get_async_session() as session:
         result_dm =  await DataModel.get(enumeration, namespace, session)
-        result, _ =  await AdmData.get(result_dm.data_model_id, session)
-        if result:
-            return result.data
+        if result_dm:
+            result, _ =  await AdmData.get(result_dm.data_model_id, session)
+            if result:
+                return result.data
+            else:
+                logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+        else:
+            logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known DataModel")
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known DataModel")
 
 
 
@@ -112,15 +119,15 @@ async def remove_adm(enumeration: int, namespace:str):
     async with get_async_session() as session:
         nm_row = await DataModel.get(enumeration, namespace, session)
         if nm_row:
-            logger.info(f"Removing {nm_row.data_model_name} ADM")
+            logger.info(f"Removing {nm_row.name} ADM")
             stmt_2 = delete(AdmData).where(AdmData.enumeration == nm_row.data_model_id)
             await session.execute(stmt_1)
             await session.execute(stmt_2)
             await session.commit()
             return status.HTTP_200_OK
         else:
-            logger.debug(f"ADM ENUM:{enumeration} not a know ADM")
-            return status.HTTP_400_BAD_REQUEST
+            logger.debug(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
 
 
 
