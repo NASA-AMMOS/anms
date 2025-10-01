@@ -158,7 +158,6 @@ export default {
         }else{ // else it needs to be removed from list 
           this.selected_cbors = this.selected_cbors.filter(obj => ![entryUpdated.transcoder_log_id].includes(obj.transcoder_log_id));
         }
-
       }
     },
     sendTranscoderCodeSelected(){
@@ -200,5 +199,3 @@ export default {
   color: var(--success)
 }
 </style>
-
-<!-- TODO changing from page to page is brokeski -->
