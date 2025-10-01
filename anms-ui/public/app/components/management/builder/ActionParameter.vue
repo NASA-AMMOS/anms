@@ -11,7 +11,6 @@
           <template v-slot:list-header="{ search, _ }">
               <b-button size="sm" @click="addARI(search)">Add ARI</b-button>
           </template>
-
         </v-select>
       </b-form-group>
 

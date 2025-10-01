@@ -72,7 +72,6 @@
                   </option>
                 </select>
               </div>
-              
               <b-pagination v-model="page"
                 class="m-0"
                 :total-rows="count"
@@ -80,7 +79,6 @@
                 aria-controls="transcoder-table"
                 @change="handlePageChange"></b-pagination>
             </div>
-          <!-- </div> -->
         </b-col>
         <br/>
       </b-row>
@@ -172,13 +170,16 @@ export default {
     handlePageChange(value) {
       const vm = this;
       vm.setPage(value);
-      vm.reloadTranscoderLog();
+      // slight buffer to allow transcoder to catch up of needed 
+      let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+      sleep(200).then(() => {
+        vm.reloadTranscoderLog();
+      });
     },
     handlePageSizeChange(event) {
       const vm = this;
       vm.setPageSize(event.target.value);
-      handlePageChange(1);
-      reloadTranscoderLog();
+      vm.handlePageChange(1);
     },
     handleSearchStringChange(event) {
       const vm = this;
