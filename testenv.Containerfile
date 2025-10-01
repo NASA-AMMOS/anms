@@ -148,8 +148,7 @@ RUN systemctl enable ion bpecho@4 ion-app-proxy && \
     mkdir -p /var/run/ion
 
 # Runtime config for this container
-COPY deps/dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
-COPY deps/test-ion-configs/mgr.rc etc/ion/
+COPY deps/test-ion-configs/mgr.rc etc/ion/node-1.rc
 
 # CMD is systemd init
 EXPOSE 1113/udp
@@ -176,7 +175,6 @@ RUN systemctl enable ion bpecho@4 refda-ion && \
     mkdir -p /var/run/ion
 
 # Runtime config for this container
-# COPY deps/dtnma-tools/integration-test-ion/node-*.rc /etc/ion/
 COPY deps/test-ion-configs/agent-2.rc /etc/ion/node-2.rc
 COPY deps/test-ion-configs/agent-3.rc /etc/ion/node-3.rc
 
