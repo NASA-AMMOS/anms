@@ -285,7 +285,7 @@ services:
       dockerfile: anms.Containerfile
       target: amp-manager
     ports:
-      - "8089:8089/tcp"
+      - "${ION_MGR_PORT:-8089}:8089/tcp"
     depends_on:
       postgres:
         condition: service_healthy
