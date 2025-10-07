@@ -27,15 +27,16 @@
               <button class="btn btn-outline-secondary" @click="reloadTranscoderLog()" data-toggle="tooltip" data-placement="top" title="Refresh Transcoder Log Table!"> &#x21bb;</button>
             </div>
           </div>
+          <p>Select CBOR(s) to send to Agents tab</p>
           <div class="b-table">
-            <p>Select CBOR(s) to send to Agents tab</p>
             <b-table scr
               id="transcoder-table"
+              striped
+              bordered
+              no-border-collapse
               :items="currentTranscoderLogs"
               :fields="fields"
               :per-page="pageSize"
-              hover
-              bordered
               :sort-by.sync="sortField"
               :sort-desc.sync="sortDesc">
               <template #cell(selected)="{ item }">
@@ -43,15 +44,15 @@
                     <b-form-checkbox :checked="item.selected"  @change="selectTranscoderLog($event, item)"></b-form-checkbox>
                 </div>
               </template>
-              <template #cell(cbor)="{ item }">
-                <h5 v-b-tooltip.hover
+          <template #cell(cbor)="{ item }">
+                <p v-b-tooltip.hover
                   title="send to agents page"
                   @click="sendTranscoderCode(item.cbor)">
                   {{ item.cbor }}
-                </h5>
-              </template>
-            </b-table>
-            
+          </p>
+            </template>
+          </b-table>
+          </div>
             <div class="d-flex float-right">
               <div>
               <button class="btn btn-outline-secondary"
@@ -71,7 +72,6 @@
                   </option>
                 </select>
               </div>
-              
               <b-pagination v-model="page"
                 class="m-0"
                 :total-rows="count"
@@ -79,7 +79,6 @@
                 aria-controls="transcoder-table"
                 @change="handlePageChange"></b-pagination>
             </div>
-          </div>
         </b-col>
         <br/>
       </b-row>
@@ -90,13 +89,12 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 
-
 export default {
   name: "Transcoder",
   data() {
     return {
       fields: [
-        { key: "selected", label: "", sortable: false }, {key: "transcoder_log_id", sortable: true }, { key: "input_string", sortable: true }, { key: "parsed_as", sortable: true }, { key: "cbor", sortable: false }, { key: "ari", sortable: false }, { key: "uri", sortable: false },
+        { key: "selected", label: "", sortable: false}, {key: "transcoder_log_id", sortable: true}, { key: "input_string", sortable: true }, { key: "parsed_as", sortable: true }, { key: "cbor", sortable: false }, { key: "ari", sortable: false }, { key: "uri", sortable: false },
       ],
       nodeMan: null,
       node: null,
@@ -160,7 +158,6 @@ export default {
         }else{ // else it needs to be removed from list 
           this.selected_cbors = this.selected_cbors.filter(obj => ![entryUpdated.transcoder_log_id].includes(obj.transcoder_log_id));
         }
-
       }
     },
     sendTranscoderCodeSelected(){
@@ -171,13 +168,17 @@ export default {
     },
     handlePageChange(value) {
       const vm = this;
-      vm.reloadTranscoderLog();
       vm.setPage(value);
+      // slight buffer to allow transcoder to catch up of needed 
+      let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+      sleep(200).then(() => {
+        vm.reloadTranscoderLog();
+      });
     },
     handlePageSizeChange(event) {
       const vm = this;
       vm.setPageSize(event.target.value);
-      handlePageChange(1);
+      vm.handlePageChange(1);
     },
     handleSearchStringChange(event) {
       const vm = this;
@@ -189,7 +190,7 @@ export default {
 
 <style>
 .b-table {
-  max-height: calc(100vh - 300px);
+  max-height: calc(90vh - 300px);
   overflow-y: auto;
 }
 
