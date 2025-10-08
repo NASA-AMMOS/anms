@@ -62,33 +62,48 @@ export default {
         }).catch(error => {
           // handle error
           console.error("reports error", error);
-          console.info("error obj:", error);
           toastr.error("reports error: " + error)
         });
     
       this.loading = false;
     },
     processReport(report) {
-      
-      for(const rpt of report){
-      
-        let currTableItems = [];
-        let currTableHeaders = []
-        let holdHeader = rpt.shift();
-        for (let i = 0; i < holdHeader.length; i++) {
-          currTableHeaders.push({"key":holdHeader[i]});
-          }
-        this.tableHeaders.push(currTableHeaders);
-        
-        for (let item of rpt) {
-          let row = {};
-          for (let i = 0; i < holdHeader.length; i++) {
-            row[holdHeader[i]] = item[i];
-          }
-          currTableItems.push(row);
-        }
-        this.tableItems.push(currTableItems)
+      let rpt = [];
+      if(this.rptts[this.selected].exec_set in report){
+        rpt = report[this.rptts[this.selected].exec_set];
+      }else{
+        rpt = report[this.rptts[this.selected].nonce_cbor];
       }
+      
+      
+      let currTableItems = [];
+      let currTableHeaders = []
+      let holdHeader = rpt.shift();
+      console.log(rpt[0].length);
+      console.log(holdHeader.length);
+      console.log(rpt[0].length - holdHeader.length);
+      if(rpt[0].length > holdHeader.length){
+        for (let i = 0; i <= rpt[0].length - holdHeader.length; i++) {
+          holdHeader.push(" ".padStart(i, ' '));
+        }
+      }
+      console.log(holdHeader);
+      for (let i = 0; i < holdHeader.length; i++) {
+        currTableHeaders.push({"key":holdHeader[i]});
+      }
+
+      for (let item of rpt) {
+        let row = {};
+        for (let i = 0; i < item.length; i++) {
+          let curr_item =  item[i];
+            row[holdHeader[i]]  = curr_item; 
+        }
+        console.log(row)
+        currTableItems.push(row);
+      }
+      this.tableHeaders.push(currTableHeaders);
+      this.tableItems.push(currTableItems)
+    console.log(this.tableItems);
     }
   },
   computed: {
@@ -102,7 +117,7 @@ export default {
         }).catch(error => {
           // handle error
           console.error("reports error", error);
-          console.info("error obj:", error);
+          console.log("error obj:", error);
 
         });
     });
