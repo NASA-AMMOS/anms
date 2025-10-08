@@ -74,6 +74,11 @@ async def report_def_by_id(agent_id: int):
     # select all reports belonging to the agent
     final_res = []
     agent_id_str = ""
+    dec = ace.ari_cbor.Decoder()
+    enc = ace.ari_text.Encoder()
+    adms = ace.AdmSet()
+    adms.load_default_dirs()
+    nn_func = ace.nickname.Converter(ace.nickname.Mode.FROM_NN , adms.db_session(), False)
     stmt = select(Report).where(Report.agent_id == agent_id)
     agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.registered_agents_id == agent_id)
     async with get_async_session() as session:
@@ -84,37 +89,64 @@ async def report_def_by_id(agent_id: int):
         agent_id_str = agent_id_str.agent_endpoint_uri
         for res in result.all():   
             # select from exec_set 
-            try:
+            # try:
                 nonce_cbor = res.nonce_cbor
-                stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
-                result: Result = await session.scalars(stmt)
-                exc_set = result.all()
-                for res in exc_set:
-                    ari_val = ""
-                    if(res):
-                        hex_str = res.entries.hex()
-                        hex_str = "0x"+hex_str.upper()
-                        ari_val = await transcoder.transcoder_put_cbor_await(hex_str)
-                        ari_val =  ari_val['data']
-                        logger.info(str(nonce_cbor))
-                        addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
-                        if addition not in final_res:
-                            final_res.append(addition)
-            except Exception as e:
-                logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
+                if(nonce_cbor != b'\xf6'): # not a null nonce
+                    stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
+                    result: Result = await session.scalars(stmt)
+                    exc_set = result.all()
+                    for res_exec in exc_set:
+                        ari_val = ""
+                        if(res_exec):
+                            hex_str = res_exec.entries.hex()
+                            hex_str = "0x"+hex_str.upper()
+                            ari_val = await transcoder.transcoder_put_cbor_await(hex_str)
+                            ari_val =  ari_val['data']
+                            addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
+                            if addition not in final_res:
+                                final_res.append(addition)
+                else: #null nonce use report source
+                    rpt_set = res.report_list_cbor.hex()
+                    # Using Ace to translate CBOR into ARI object to process individual parts  
+                    in_text = '0x'+rpt_set
+                    ari_rpt = None
+                    # try:
+                    in_bytes = ace.cborutil.from_hexstr(in_text)
+                    ari_rpt = dec.decode(io.BytesIO(in_bytes))
+                    # except Exception as err:
+                    #     logger.error(err)
+
+                    # running through and translating all parts of rptset
+                    for rpt in ari_rpt.value.reports:
+                        # try:
+                            enc = ace.ari_text.Encoder()
+                            buf = io.StringIO()
+                            enc.encode(rpt.source, buf)
+                            out_text = buf.getvalue()    
+                            ari_val = out_text
+                            # ari_val= nn_func(ari_val)
+                            # TODO look at better way to handle storing nonce with null
+                            addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
+                            if addition not in final_res:
+                                final_res.append(addition)
+                        # except Exception as err:
+                        #     logger.error(err)
+
+            # except Exception as e:
+                # logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
 
     return final_res
 
-
 # entries tabulated returns header and values in correct order
-@router.get("/entries/table/{agent_id}/{nonce_cbor}", status_code=status.HTTP_200_OK,
-            response_model=list)
-async def report_ac(agent_id: int, nonce_cbor: str):
-    
+# handling if nonce_cbor is null
+@router.get("/entries/table/{agent_id}/{nonce_cbor}", status_code=status.HTTP_200_OK)
+async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
+    processed_none = False
     ari = None
     dec = ace.ari_cbor.Decoder()
     enc = ace.ari_text.Encoder()
     try:
+        store_nonce = nonce_cbor 
         nonce_cbor = ast.literal_eval(nonce_cbor)
     except Exception as e:
         logger.error(f"{e} while processing nonce")
@@ -149,7 +181,7 @@ async def report_ac(agent_id: int, nonce_cbor: str):
                 
             except Exception as err:
                 logger.error(err)
-                
+        
     # current ARI should be  an exection set 
     if ari:
         if type(ari.value) == ace.ari.ExecutionSet: 
@@ -157,8 +189,9 @@ async def report_ac(agent_id: int, nonce_cbor: str):
                 
                 # run through targets and their parameters to get all things parts translated 
                 for targ in ari.value.targets: 
-                    buf = io.StringIO()
                     exec_set_entry=["time"]
+                    
+                    buf = io.StringIO()
                     enc.encode(targ, buf)
                     out_text_targ = buf.getvalue()    
                     if targ is ace.LiteralARI and targ.type_id is  ace.StructType.AC:
@@ -170,11 +203,47 @@ async def report_ac(agent_id: int, nonce_cbor: str):
                     else:
                         exec_set_entry.append(out_text_targ)
                     
-                    exec_set_dir[out_text_targ] = [exec_set_entry]
+                    exec_set_dir[store_nonce] = [exec_set_entry]
                     
             except Exception as err:
                 logger.error(err)
                 
+    else: # not an execution set checking if nonce is null then generating report entries for all null nonce
+        if nonce_cbor == b'\xf6':
+            if not processed_none: 
+                processed_none = True
+                ari = None
+                stmt = select(Report).where(and_(Report.agent_id == agent_id, Report.nonce_cbor == nonce_cbor) )
+                async with get_async_session() as session:
+                    result: Result = await session.scalars(stmt)
+                    for res in result.all():
+                        # used to hold final report set 
+                        
+                        rpt_set = res.report_list_cbor.hex()
+                        # Using Ace to translate CBOR into ARI object to process individual parts  
+                        in_text = '0x'+rpt_set
+                        try:
+                            in_bytes = ace.cborutil.from_hexstr(in_text)
+                            ari = dec.decode(io.BytesIO(in_bytes))
+
+                        except Exception as err:
+                            logger.error(err)
+                            
+                        # current ARI should be  an report set 
+                        if ari:
+                            if type(ari.value) == ace.ari.ReportSet:                    
+                                for rpt in ari.value.reports:
+                                    exec_set_entry=["time"]
+                                    try:
+                                        enc = ace.ari_text.Encoder()
+                                        buf = io.StringIO()
+                                        enc.encode(rpt.source, buf)
+                                        out_text = buf.getvalue()    
+                                        exec_set_entry.append(out_text)
+                                        exec_set_dir[out_text] = [exec_set_entry]               
+                                    except Exception as err:
+                                        logger.error(err)
+                                
                     
     # final_res.append(exec_set_entry)
     ari = None
@@ -202,17 +271,32 @@ async def report_ac(agent_id: int, nonce_cbor: str):
                             enc = ace.ari_text.Encoder()
                             # running through and translating all parts of rptset
                             for item in rpt.items:
-                                buf = io.StringIO()
-                                enc.encode(item, buf)
-                                out_text = buf.getvalue()    
-                                addition.append(out_text)
+                                logger.info(item)
+                                logger.info(item.value)
+                                # using ace to decode the components 
+                                # item = dec.decode(item)
+                                if type(item.value) == ace.ari.Table:
+                                    table_vals = []
+                                    for tab_val in item.value:
+                                        logger.info(tab_val)
+                                        table_vals.append([t.value for t in tab_val])
+                                    addition.append(table_vals)
+                                else:#handle values as normal    
+                                    buf = io.StringIO()
+                                    enc.encode(item, buf)
+                                    out_text = buf.getvalue()    
+                                    addition.append(out_text)
+                            
+                            # placing all the values in the sources section 
                             buf = io.StringIO()
                             enc.encode(rpt.source, buf)
                             out_text = buf.getvalue()    
-                            
-                            exec_set_dir[out_text].append(addition)  
+                            if(nonce_cbor == b'\xf6' ):
+                                exec_set_dir[out_text].append(addition)  
+                            else:
+                                exec_set_dir[store_nonce].append(addition)  
                         except Exception as err:
                             logger.error(err)            
     
-    return list(exec_set_dir.values())
+    return exec_set_dir
     
