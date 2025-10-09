@@ -107,7 +107,9 @@ def get_containers_status():
       # If no other check defined, test that host can be pinged
       try:
         cmd = ["ping", "-c1", f"-W{timeout}", hostname]
-        result = subprocess.run(cmd, shell=False)
+        
+        # Capturing output to suppress it (otherwise it floods system log)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
         if result.returncode == 0:
           statuses[name] = "healthy"
         else:
