@@ -271,14 +271,11 @@ async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
                             enc = ace.ari_text.Encoder()
                             # running through and translating all parts of rptset
                             for item in rpt.items:
-                                logger.info(item)
-                                logger.info(item.value)
                                 # using ace to decode the components 
                                 # item = dec.decode(item)
                                 if type(item.value) == ace.ari.Table:
                                     table_vals = []
                                     for tab_val in item.value:
-                                        logger.info(tab_val)
                                         table_vals.append([t.value for t in tab_val])
                                     addition.append(table_vals)
                                 else:#handle values as normal    
