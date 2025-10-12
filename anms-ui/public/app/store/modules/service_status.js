@@ -62,12 +62,12 @@ export default {
         commit('updateAlerts',res.data)
         
         // TODO rethink tracking alerts for multiple accounts 
-        // _.forEach(res.data, (alert) => {
-        //   if( !state.alertIds.includes(alert.id)){
-        //   commit('updateAlerts',alert)
-        //   commit('updateAlertIds',alert.id)
-        //  } 
-        // });
+        _.forEach(res.data, (alert) => {
+          if( !state.alertIds.includes(alert.id)){
+          commit('updateAlerts',alert)
+          commit('updateAlertIds',alert.id)
+         } 
+        });
       });
 
       api.methods.apiGetServiceStatus().then(res => {

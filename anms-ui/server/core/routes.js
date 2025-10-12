@@ -113,7 +113,6 @@
 
       // alerts
       const alerts = require('../components/alerts');
-      router.put('/alerts/incoming', alerts.putAlerts);
       router.get('/alerts/incoming', alerts.getAlerts);
       router.put('/alerts/acknowledge/:index', alerts.acknowledgeAlert);
 

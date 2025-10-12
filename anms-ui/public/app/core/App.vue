@@ -40,6 +40,7 @@
       </div>
       <router-view/>
     </b-container>
+    {{ alerts }}
     <div  v-for="(alert, index) in alerts" :key="index">
         <b-alert @dismissed="removeAlertAndUpdate(index)" :show="alert.visible" :variant="alert.type"  dismissible>ALERT#{{alert.id}}: {{alert.msg}}</b-alert>
       </div>
@@ -97,6 +98,7 @@
       }
     },
     mounted() {
+
       console.log("Environment variables: ", process.env);
       this.updateServiceStatus();
       this.statusWorkerId = setInterval(() => {
@@ -108,7 +110,8 @@
       this.ariWorkerId = setInterval(() => {
         console.log("Calling schedule ARI refresh in App");
         this.reloadARIs();
-    }, status_refresh_rate);
+      }, status_refresh_rate);
+      console.log(this.alerts);
     },
     beforeDestroy() {
       console.log("Clearing interval with id:", this.statusWorkerId);

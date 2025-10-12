@@ -150,7 +150,7 @@ HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
 
 # Local grafana configuration
 #
-FROM docker.io/grafana/grafana:9.1.3 AS grafana
+FROM docker.io/grafana/grafana:12.2.0 AS grafana
 
 # Optional APL network configuration from
 # https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34

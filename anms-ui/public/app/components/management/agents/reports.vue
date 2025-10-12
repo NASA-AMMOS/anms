@@ -12,13 +12,14 @@
         v-model="selected"
         @option:selected="onReportSelect()"></v-select>
     <div v-for="(_, index) in tableItems" :key="index">
-      <b-table id="report-table" :items="tableHeaders[index]" thead-class="d-none">{{  }}</b-table>
+      <b-table bordered id="report-table" :items="tableHeaders[index]" thead-class="d-none">{{  }}</b-table>
       <div class="scrollable-div">
         <b-table 
+        bordered
         striped
         responsive
         v-if="!loading && selected != -1"
-        id="report-table" :items="tableItems[index]"
+        id="report-table" :items="tableItems[index]" 
         thead-class="d-none" />
       </div>
     </div>
@@ -76,18 +77,25 @@ export default {
       }else{
         rpt = report[this.selected.nonce_cbor];
       }
+
       let currTableItems = [];
-      let holdHeader = rpt.shift();
+      // let holdHeader = rpt.shift();
+      
+      console.log(rpt);
+      
+      let holdHeader = Object.keys(rpt[0]);
+      console.log(holdHeader);
       for (let item of rpt) {
-        let row = {};
-        for (let i = 0; i < item.length; i++) {
-          let curr_item =  item[i];
-          row[i]  = curr_item; 
+          let row = [];
+          for (let hI of holdHeader) {
+            row.push(item[hI]);
+          }
+          currTableItems.push(row.flat(10));
+          console.log(currTableItems);
         }
-        currTableItems.push(row);
-      }
+    
       this.tableHeaders.push([holdHeader]);
-      this.tableItems.push(currTableItems)
+      this.tableItems.push(currTableItems);
     }
   },
   computed: {
