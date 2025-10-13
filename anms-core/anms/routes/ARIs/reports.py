@@ -89,7 +89,7 @@ async def report_def_by_id(agent_id: int):
         agent_id_str = agent_id_str.agent_endpoint_uri
         for res in result.all():   
             # select from exec_set 
-            # try:
+            try:
                 nonce_cbor = res.nonce_cbor
                 if(nonce_cbor != b'\xf6'): # not a null nonce
                     stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
@@ -110,15 +110,15 @@ async def report_def_by_id(agent_id: int):
                     # Using Ace to translate CBOR into ARI object to process individual parts  
                     in_text = '0x'+rpt_set
                     ari_rpt = None
-                    # try:
-                    in_bytes = ace.cborutil.from_hexstr(in_text)
-                    ari_rpt = dec.decode(io.BytesIO(in_bytes))
-                    # except Exception as err:
-                    #     logger.error(err)
+                    try:
+                        in_bytes = ace.cborutil.from_hexstr(in_text)
+                        ari_rpt = dec.decode(io.BytesIO(in_bytes))
+                    except Exception as err:
+                        logger.error(err)
 
                     # running through and translating all parts of rptset
                     for rpt in ari_rpt.value.reports:
-                        # try:
+                        try:
                             enc = ace.ari_text.Encoder()
                             buf = io.StringIO()
                             enc.encode(rpt.source, buf)
@@ -129,11 +129,11 @@ async def report_def_by_id(agent_id: int):
                             addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
                             if addition not in final_res:
                                 final_res.append(addition)
-                        # except Exception as err:
-                        #     logger.error(err)
+                        except Exception as err:
+                            logger.error(err)
 
-            # except Exception as e:
-                # logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
+            except Exception as e:
+                logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
 
     return final_res
 
@@ -145,6 +145,7 @@ async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
     ari = None
     dec = ace.ari_cbor.Decoder()
     enc = ace.ari_text.Encoder()
+    exec_set_dir = {}
     try:
         store_nonce = nonce_cbor 
         nonce_cbor = ast.literal_eval(nonce_cbor)
@@ -152,9 +153,7 @@ async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
         logger.error(f"{e} while processing nonce")
         return []
         
-    exec_set_dir = {}
-                                                            
-    # final_res.append(exec_set_entry)  
+                                                        
     # process each report in the rpt set and place inside appropiate nonce case or if null use source as key
     # TODO use td off set in report set to update actual time 
     # 
@@ -205,12 +204,9 @@ async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
                                     enc.encode(item, buf)
                                     out_text = buf.getvalue()    
                                     rpt_entries.append(out_text)
-                            logger.info("GEST")
-                            logger.info(rpt_entries)
-
+                        
                             # placing all the values in the sources section 
                             addition[rpt_src] = rpt_entries
-                            logger.info(addition)
                             
                             if(nonce_cbor == b'\xf6' ):
                                 curr_dic = exec_set_dir.get(rpt_src,[])
