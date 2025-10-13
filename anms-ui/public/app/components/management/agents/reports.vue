@@ -12,7 +12,7 @@
         v-model="selected"
         @option:selected="onReportSelect()"></v-select>
     <div v-for="(_, index) in tableItems" :key="index">
-      <b-table bordered id="report-table" :items="tableHeaders[index]" thead-class="d-none">{{  }}</b-table>
+      <b-table id="report-table" :items="tableHeaders[index]" thead-class="d-none">{{  }}</b-table>
       <div class="scrollable-div">
         <b-table 
         bordered
@@ -90,7 +90,7 @@ export default {
           for (let hI of holdHeader) {
             row.push(item[hI]);
           }
-          currTableItems.push(row.flat(10));
+          currTableItems.push(row.flat());
           console.log(currTableItems);
         }
     
