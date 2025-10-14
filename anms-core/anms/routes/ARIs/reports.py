@@ -124,7 +124,6 @@ async def report_def_by_id(agent_id: int):
                             enc.encode(rpt.source, buf)
                             out_text = buf.getvalue()    
                             ari_val = out_text
-                            # ari_val= nn_func(ari_val)
                             # TODO look at better way to handle storing nonce with null
                             addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
                             if addition not in final_res:
@@ -141,7 +140,6 @@ async def report_def_by_id(agent_id: int):
 # handling if nonce_cbor is null
 @router.get("/entries/table/{agent_id}/{nonce_cbor}", status_code=status.HTTP_200_OK)
 async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
-    processed_none = False
     ari = None
     dec = ace.ari_cbor.Decoder()
     enc = ace.ari_text.Encoder()
