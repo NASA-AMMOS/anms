@@ -33,7 +33,7 @@ logger = OpenSearchLogger(__name__, log_console=True)
 @router.get("/incoming", status_code=status.HTTP_200_OK)
 def alerts_get():
     MANAGER_CECKER.check_list()
-    alerts = MANAGER_CECKER.alerts
+    alerts = MANAGER_CECKER.get_alerts()
     return list(alerts.values())
 
 

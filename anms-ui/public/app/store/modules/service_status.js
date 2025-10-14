@@ -64,7 +64,6 @@ export default {
         // TODO rethink tracking alerts for multiple accounts 
         _.forEach(res.data, (alert) => {
           if( !state.alertIds.includes(alert.id)){
-          commit('updateAlerts',alert)
           commit('updateAlertIds',alert.id)
          } 
         });
@@ -119,9 +118,10 @@ export default {
        
       });
     },
-    setAlert({ state, commit}, index ){
-      api.methods.apiAcknowledgeAlerts(index);
-      // commit('removeAlert', index);
+    async setAlert({ state, commit}, index ){
+      let alert_id = state.alerts[index]["id"]
+      api.methods.apiAcknowledgeAlerts(alert_id);
+      state.alerts[index]["id"]["visible"]=false;
     },
   },
   mutations: {

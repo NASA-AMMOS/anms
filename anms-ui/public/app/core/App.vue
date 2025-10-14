@@ -18,7 +18,6 @@
             <b-button-group size="sm" pills class="my-3">
               <b-button variant="outline-success" @click="$router.push('/monitor')">Monitor</b-button>
               <b-button variant="outline-success" @click="$router.push('/agents')">Agents</b-button>
-              <!-- <b-button variant="outline-success" @click="$router.push('/messaging')">Messaging</b-button> -->
               <b-button variant="outline-success" @click="$router.push('/build')">Build</b-button>
               <b-button variant="outline-success" @click="$router.push('/status')">
                 <template v-if="serviceError">
@@ -40,10 +39,9 @@
       </div>
       <router-view/>
     </b-container>
-    {{ alerts }}
     <div  v-for="(alert, index) in alerts" :key="index">
-        <b-alert @dismissed="removeAlertAndUpdate(index)" :show="alert.visible" :variant="alert.type"  dismissible>ALERT#{{alert.id}}: {{alert.msg}}</b-alert>
-      </div>
+      <b-alert @dismissed="removeAlertAndUpdate(index)" :show="alert.visible" :variant="alert.type"  dismissible class="fixed-top-left">ALERT#{{alert.id}}: {{alert.msg}}</b-alert>
+    </div>
   </div>
 </template>
 
@@ -67,8 +65,7 @@
         viewAdmin: _.intersection(Constants.USER_DETAILS.roles, ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN']).length >= 1,
         showStubbedTabs: false,
         statusWorkerId: "",
-        ariWorkerId: "",
-        alerts:[]
+        ariWorkerId: ""
       };
     },
     computed: {
@@ -123,18 +120,14 @@
     methods: {
       removeAlertAndUpdate(index){
         this.removeAlert(index);
+        this.updateServiceStatus();
       },
 
-      // removeAlert(index){
-      //   this.alerts.delete(index);
-      // },
       ...mapActions("service_status", {
         updateServiceStatus: "updateStatus",
         removeAlert: "setAlert"
       }),
-      // ...mapActions("agents", {
-      //   removeAlert: "removeAlert"
-      // }),
+
       ...mapActions("build", {
       reloadARIs: "reloadARIs",
     }),
@@ -186,5 +179,12 @@
   }
   .status-normal {
     color: green
+  }
+
+  .fixed-top-left {
+    position: fixed;
+    top: 20px; /* Adjust as needed for desired spacing from the top */
+    left: 20px; /* Adjust as needed for desired spacing from the left */
+    z-index: 1050; /* Ensure it appears above other content */
   }
 </style>
