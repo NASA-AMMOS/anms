@@ -144,12 +144,17 @@ async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
     dec = ace.ari_cbor.Decoder()
     enc = ace.ari_text.Encoder()
     exec_set_dir = {}
+    logger.info(nonce_cbor)
+    logger.info(type(nonce_cbor))
     try:
         store_nonce = nonce_cbor 
         nonce_cbor = ast.literal_eval(nonce_cbor)
     except Exception as e:
-        logger.error(f"{e} while processing nonce")
-        return []
+        try:
+            nonce_cbor = ast.literal_eval(str(bytes.fromhex(nonce_cbor)))
+        except Exception as e:
+            logger.error(f"{e} while processing nonce")
+            return []
         
                                                         
     # process each report in the rpt set and place inside appropiate nonce case or if null use source as key
