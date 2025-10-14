@@ -10,7 +10,7 @@
         <template v-if="stringMode">
           <label>Enter Text To Translate:</label>
           <div class="input-group mb-3">
-            <input type="text" class="form-control" placeholder="ari:0x0" v-model="cborString"
+            <input type="text" class="form-control" placeholder="0x0" v-model="cborString"
               v-on:keyup.enter="handleCbor($event.target.value)" />
             <div class="input-group-append">
               <b-button variant="info" class="btn btn-outline-secondary" type="button" @click="handleCbor(cborString)">
