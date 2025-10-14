@@ -20,9 +20,11 @@
 # subcontract 1658085.
 #
 
-
-from threading import *
+import json
+from threading import Lock
 from anms.routes.network_manager import nm_get_agents
+from anms.routes.ARIs.agents import all_registered_agents
+
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
 
@@ -35,6 +37,7 @@ class ManagerChecker:
     def __init__(self, config):
         self.known_agents = {}
         self.lock = Lock()
+        self.alert_file = '/usr/local/share/anms/alerts.json'
         self.ui_url = "http://" + config['UI_HOST'] + ":" + str(config['UI_PORT']) + config['UI_API_BASE']
         self.manager_connect = True  # tracks manager connection status so doesnt repeat alerts of disconnect
         self.curr_id = 0  # tracking the alert id for acknowledging
@@ -56,69 +59,99 @@ class ManagerChecker:
 
     # set visibility to false so no longer displayed
     def acknowledge(self, index):
-        logger.info(f"ACK {index}")
-        curr_alert = self.alerts.get(index)
-        if curr_alert:
-            curr_alert.update({"visible": False})
-            self.alerts.update({index: curr_alert})
+        with self.lock:
+            try:
+                curr_alert = None
+                with open(self.alert_file, 'r') as f:
+                    alerts = json.load(f)
+                    logger.info(alerts)
+                logger.info(index)
+                curr_alert = alerts.get(str(index))
+                logger.info(curr_alert)
+                if curr_alert:
+                    logger.info(f"ACK {index}")
+                    curr_alert["visible"]= False
+                    alerts[str(index)] = curr_alert
+                with open(self.alert_file, 'w') as f:
+                    logger.info(alerts)
+                    json.dump(alerts, f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                logger.error("ERROR reading alert.json")
+                
+    def get_alerts(self):
+        data = {}
+        with self.lock:
+            try:
+                with open(self.alert_file, 'r') as f:
+                    data = json.load(f)
+                return data 
+            except Exception as e:
+                logger.error(e)
+        return data
 
     def check_list(self):
-        logger.info('checking agents list')
-
         now_know = []  # for tracking new agents
         # get the current list of agents from manager
         # if new one is added or removed then send alert
-
-        try:
-            agents = nm_get_agents()
-            if agents == -1:  # counlnt connect to manager
+        curr_alerts = self.get_alerts()
+        with self.lock:
+            try:
+                # TODO enhancement compare manager known agents vs database known agents 
+                logger.info('checking agents list')
+                agents = nm_get_agents()
+                if agents == -1:  # counlnt connect to manager
+                    if self.manager_connect:
+                        curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
+                                                    "msg": f"failed to reach manager", "visible": True}
+                        self.curr_id = self.curr_id + 1
+                        logger.error("could not reach nm manager")
+                        self.manager_connect = False
+                    agents = []
+                else:
+                    if not self.manager_connect:  # if manager was disconnected alert for reconnect
+                        curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
+                                                    "msg": f"reconnected to manager", "visible": True}
+                        self.curr_id = self.curr_id + 1
+                        self.manager_connect = True
+                    agents = agents["agents"]
+            except Exception as e:
                 if self.manager_connect:
-                    self.alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
-                                                 "msg": f"failed to reach manager", "visible": True}
+                    curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
+                                                "msg": f"failed to reach manager", "visible": True}
                     self.curr_id = self.curr_id + 1
                     logger.error("could not reach nm manager")
                     self.manager_connect = False
+                logger.error(f"{e} while getting agents")
                 agents = []
-            else:
-                if not self.manager_connect:  # if manager was disconnected alert for reconnect
-                    self.alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
-                                                 "msg": f"reconnected to manager", "visible": True}
+
+            # process agent list from manager
+            for agent in agents:
+                curr_name = agent["name"]
+                now_know.append(curr_name)
+                if curr_name not in self.known_agents:
+                    curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "new_agent", "type": "info",
+                                                "msg": f"{curr_name} added", "visible": True}
+                    self.known_agents[curr_name] = agent
                     self.curr_id = self.curr_id + 1
-                    self.manager_connect = True
-                agents = agents["agents"]
-        except Exception:
-            if self.manager_connect:
-                self.alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
-                                             "msg": f"failed to reach manager", "visible": True}
-                self.curr_id = self.curr_id + 1
-                logger.error("could not reach nm manager")
-                self.manager_connect = False
-            agents = []
 
-        # process agent list from manager
-        for agent in agents:
-            curr_name = agent["name"]
-            now_know.append(curr_name)
-            if curr_name not in self.known_agents:
-                self.alerts[self.curr_id] = {"id": self.curr_id, "name": "new_agent", "type": "info",
-                                             "msg": f"{curr_name} added", "visible": True}
-                self.known_agents[curr_name] = agent
+            # check if any agents were removed
+            missing = self.known_agents.keys() - now_know
+            for miss in missing:
+                curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "removed_agent", "type": "warning",
+                                            "msg": f"{miss} removed", "visible": True}
                 self.curr_id = self.curr_id + 1
+                self.known_agents.pop(miss)
+            #last step write back alerts 
+            with open(self.alert_file, 'w') as f:
+                json.dump(curr_alerts, f)
 
-        # check if any agents were removed
-        missing = self.known_agents.keys() - now_know
-        for miss in missing:
-            self.alerts[self.curr_id] = {"id": self.curr_id, "name": "removed_agent", "type": "warning",
-                                         "msg": f"{miss} removed", "visible": True}
-            self.curr_id = self.curr_id + 1
-            self.known_agents.pop(miss)
-    # TODO Reworks so alerts are pushed to UI server and the front end instead of frontend requesting alerts
-    # send alerts to UI
-    # if self.alerts:
-    #     logger.info(self.alerts)
-    #     url = self.ui_url + "alerts/incoming"
-    #     # logger.info
-    #     # logger.info(requests.put(url=url, data={"data": self.alerts}))
+        # TODO Reworks so alerts are pushed to UI server and the front end instead of frontend requesting alerts
+        # send alerts to UI
+        # if self.alerts:
+        #     logger.info(self.alerts)
+        #     url = self.ui_url + "alerts/incoming"
+        #     # logger.info
+        #     # logger.info(requests.put(url=url, data={"data": self.alerts}))
 
 
 MANAGER_CECKER = ManagerChecker(config)

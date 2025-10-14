@@ -249,6 +249,8 @@ RUN ${PIP} install ${APP_WORK_DIR}
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-adms /usr/local/share/ace/adms
 COPY anms-core/anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
+RUN touch /usr/local/share/anms/alerts.json
+RUN chmod go+w  /usr/local/share/anms/alerts.json
 
 RUN setcap cap_net_raw=ep /usr/bin/ping
 COPY --chmod=755 anms-core/docker-entrypoint.sh /usr/local/bin/

@@ -49,7 +49,7 @@ status_cfg = [
   {"name": "anms-ui", "url": "http://anms-ui:9030"},
   {"name": "aricodec"},
   {"name": "authnz", "url": "http://authnz/authn/login.html"},
-  {"name": "grafana", "url": "http://grafana:3000"},
+  {"name": "grafana", "tcp_port": 3000},
   {"name": "grafana-image-renderer", "url": "http://grafana-image-renderer:8081"},
   {"name": "amp-manager", "url": "http://amp-manager:8089/nm/api/version"},
   {"name": "mqtt-broker"},
@@ -78,7 +78,7 @@ def get_containers_status():
     if "url" in container:
       url = container['url']
       try:
-        response = requests.get(url, timeout=timeout)
+        response = requests.get(url, timeout=timeout, allow_redirects=False)
         if response.status_code == 200:
           statuses[name] = "healthy"
         else:
