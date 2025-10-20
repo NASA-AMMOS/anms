@@ -52,7 +52,7 @@ export default {
     return {
       ariKey: undefined,
       ac: [],
-      result: { index: this.index, type: "AC", value: [] },
+      result: { index: this.index, type: this.type, value: [] },
       keys: [],
       currAc: [],
       keysRealIndex: [],
@@ -65,14 +65,9 @@ export default {
       this.addToList();
     },
     addToList: function () {
-      if(this.ac.length >= this.count){
-        this.ac.pop();
-      }
-
       if (this.ariKey != null) {
         this.ac.push(this.ariKey)
       }
-      
       this.ariKey = null;
       this.createAC();
     },
