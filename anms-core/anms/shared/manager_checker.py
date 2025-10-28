@@ -64,16 +64,12 @@ class ManagerChecker:
                 curr_alert = None
                 with open(self.alert_file, 'r') as f:
                     alerts = json.load(f)
-                    logger.info(alerts)
-                logger.info(index)
                 curr_alert = alerts.get(str(index))
-                logger.info(curr_alert)
                 if curr_alert:
                     logger.info(f"ACK {index}")
                     curr_alert["visible"]= False
                     alerts[str(index)] = curr_alert
                 with open(self.alert_file, 'w') as f:
-                    logger.info(alerts)
                     json.dump(alerts, f)
             except (FileNotFoundError, json.JSONDecodeError):
                 logger.error("ERROR reading alert.json")

@@ -39,6 +39,7 @@ ENV APP_USER=anms
 RUN groupadd -r -g 9999 ${APP_USER} && \
     useradd -m -r -g ${APP_USER} -u 9999 ${APP_USER}
 
+
 # This image includes common libraries used by the aricodec and anms-core
 # containers.
 # Sets environment:
@@ -46,11 +47,9 @@ RUN groupadd -r -g 9999 ${APP_USER} && \
 #
 FROM anms-base AS dtnma-acelib
 
-
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install gcc-c++ python-devel python3-pip python3-wheel python3-setuptools iputils && \
-    pip3 install pip-tools
+    dnf -y install gcc-c++ python-devel python3-pip python3-wheel python3-setuptools iputils
 
 # Use specific OS python version
 ENV PIP=pip3
@@ -58,13 +57,16 @@ ENV PYTHON=python3
 # Submodules with dependencies
 ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
-RUN ${PIP} install --upgrade pip
+RUN --mount=type=cache,target=/root/.cache/pip \
+    ${PIP} install --upgrade 'pip~=24.0' 'pip-tools~=7.5'
 
 COPY deps/dtnma-ace /usr/src/dtnma-ace
-RUN ${PIP} -v wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
+RUN --mount=type=cache,target=/root/.cache/pip \
+    ${PIP} wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
 
 COPY deps/dtnma-camp /usr/src/dtnma-camp
-RUN ${PIP} wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
+RUN --mount=type=cache,target=/root/.cache/pip \
+    ${PIP} wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
 
 COPY deps/dtnma-adms /usr/src/dtnma-adms
 
@@ -189,7 +191,8 @@ ENV APP_WORK_DIR=/opt/app
 # Copy over all required content (source, data, etc.)
 COPY --chown=${APP_USER}:${APP_USER} transcoder ${APP_WORK_DIR}
 # Install all python dependencies
-RUN ${PIP} install -r ${APP_WORK_DIR}/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    ${PIP} install -r ${APP_WORK_DIR}/requirements.txt
 
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
@@ -239,12 +242,14 @@ ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
 COPY anms-core/pyproject.toml ${APP_WORK_DIR}/
-RUN cd ${APP_WORK_DIR} && \
+RUN --mount=type=cache,target=/root/.cache/pip \
+    cd ${APP_WORK_DIR} && \
     pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml && \
     ${PIP} install  --ignore-installed  -r requirements.txt
 # Actual main package
 COPY anms-core/anms ${APP_WORK_DIR}/anms
-RUN ${PIP} install ${APP_WORK_DIR}
+RUN --mount=type=cache,target=/root/.cache/pip \
+    ${PIP} install ${APP_WORK_DIR}
 
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-adms /usr/local/share/ace/adms
