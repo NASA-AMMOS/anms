@@ -135,7 +135,7 @@ services:
 
   mqtt-broker:
     hostname: mqtt-broker
-    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker
+    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
     build:
       dockerfile: anms.Containerfile
       target: mqtt-broker
