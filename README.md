@@ -190,7 +190,7 @@ A limitation in the current NM REST API disallows multiple controls in a single 
 
 It is recommended to build all containers using the instructions in this document when practical for local deployment.  To support other use cases, all images may also be built once and exported to a tar.gz using standard tools for offline deploments.
 
-The script `export.sh` will create a single .tar.gz file suitable for import by Docker or Podman without requiring access to external resources.
+The script `export.sh` will build or pull all necessary images and create a single .tar.gz file suitable for import by Docker or Podman without requiring access to external resources.
 
 The tar.gz file can be imported using `podman|docker import anms-${VERSION}-images.tar.gz`
 

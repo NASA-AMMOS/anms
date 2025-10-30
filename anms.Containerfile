@@ -72,7 +72,7 @@ COPY deps/dtnma-adms /usr/src/dtnma-adms
 
 
 # This is a postgres stateful database with data definition startup SQL scripts
-FROM postgres:14 AS anms-sql
+FROM docker.io/library/postgres:14 AS anms-sql
 
 COPY deps/anms_db_tables/*.sql /docker-entrypoint-initdb.d/
 COPY deps/dtnma-tools/refdb-sql/postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/
