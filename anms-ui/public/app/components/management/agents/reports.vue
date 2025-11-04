@@ -12,7 +12,7 @@
         v-model="selected"
         @option:selected="onReportSelect()"></v-select>
     <div v-for="(_, index) in tableItems" :key="index">
-      <b-table id="report-table" :items="tableHeaders[index]" thead-class="d-none">{{  }}</b-table>
+      <b-table id="report-table" :items="tableHeaders[index]" thead-class="d-none"/>
       <div class="scrollable-div">
         <b-table 
         bordered
