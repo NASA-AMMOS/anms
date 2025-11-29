@@ -35,20 +35,6 @@ datasources:
   secureJsonData:
     password: grafana
   database: amp_core
-  ssl_mode: disable
   version: 1
   editable: true
-- name: amp_core_mysql
-  type: mysql
-  access: proxy
-  url: postgres:3306
-  jsonData:
-    keepCookies: []
-    sslmode: disable
-  user: amp
-  secureJsonData:
-    password: amp
-  database: amp_core
-  ssl_mode: disable
-  version: 1
-  editable: true
+  isDefault: true

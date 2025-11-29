@@ -74,6 +74,10 @@ COPY deps/dtnma-adms /usr/src/dtnma-adms
 # This is a postgres stateful database with data definition startup SQL scripts
 FROM docker.io/library/postgres:14 AS anms-sql
 
+# Grafana DB Creation (can't setup second DB via env variable)
+COPY grafana/create_grafana_db.sql /docker-entrypoint-initdb.d/
+
+# ANMS Table Setup
 COPY deps/anms_db_tables/*.sql /docker-entrypoint-initdb.d/
 COPY deps/dtnma-tools/refdb-sql/postgres/Database_Scripts/*.sql /docker-entrypoint-initdb.d/
 
@@ -152,7 +156,7 @@ HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
 
 # Local grafana configuration
 #
-FROM docker.io/grafana/grafana:9.1.3 AS grafana
+FROM docker.io/grafana/grafana:12.3.0 AS grafana
 
 # Optional APL network configuration from
 # https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
@@ -164,9 +168,7 @@ RUN ( \
     ) || true
 USER grafana
 
-COPY --chown=grafana grafana/grafana_vol /var/lib/grafana
-COPY grafana/provisioning /etc/grafana/provisioning
-COPY grafana/plugins /var/lib/grafana/plugins
+COPY --chown=grafana grafana/provisioning /etc/grafana/provisioning
 COPY grafana/grafana.ini /etc/grafana/grafana.ini
 
 
