@@ -10,7 +10,7 @@
     <h1>Developer Resources</h1>
     <li><a :href="apiDocsUrl">ANMS REST API Docs</a></li>
     <li><a href="/grafana">Grafana</a> - This powers the 'Monitor' tab. Tip: Press the 'Esc' key in the Monitor tab after clicking within the display to exit Kiosk mode and access the full UI interface.</li>
-    <li><a href="/adminer">Adminer (DB Management)</a> (if ANMS is configured with 'dev' profile</li>
+    <li><a href="/adminer?pgsql=postgres&username=root">Adminer (DB Management)</a> (if ANMS is configured with 'dev' profile</li>
     <ul>
     </ul>
     
