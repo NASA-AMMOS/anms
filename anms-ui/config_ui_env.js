@@ -24,7 +24,7 @@ window.anms_env_config = {
     VUE_APP_STATUS_REFRESH_RATE: 60000,
     SERVICE_INFO: {
         names: [
-            "adminer","anms-core","authnz",
+            "adminer","anms-core","authnz","amp-manager",
             "aricodec","postgres",
             "redis","mqtt-broker","transcoder",
             "grafana","grafana-image-renderer"
