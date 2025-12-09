@@ -91,7 +91,17 @@ def do_nm_put_hex_eid(eid: str, ari: str):
     logger.info('post to nm manager %s  with eid %s and data %s' % (url, eid, ari))
     
     try:        
-        request = requests.post(url=url, data=ari, headers={'Content-Type': 'text/plain'})
+        request = requests.post(url=url,
+                                data=ari,
+                                headers={'Content-Type': 'text/plain'},
+                                timeout=(2.0, 8.0) # 2s for manager to connect, 8s for it to respond
+                                )
+    except requests.exceptions.ConnectTimeout:
+        return status.HTTP_504_GATEWAY_TIMEOUT
+    except requests.exceptions.ReadTimeout:
+        return status.HTTP_504_GATEWAY_TIMEOUT
+    except requests.exceptions.Timeout:
+        return status.HTTP_504_GATEWAY_TIMEOUT
     except Exception:
         return status.HTTP_500_INTERNAL_SERVER_ERROR
     return request.status_code

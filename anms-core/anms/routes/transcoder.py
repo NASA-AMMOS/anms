@@ -85,16 +85,16 @@ async def transcoder_put_input_cbor(input_cbor: str):
             session.refresh(c1)
             transcoder_log_id = c1.transcoder_log_id
             session.commit()
-            status = "Submitted ARI to transcoder"
+            state = "Submitted ARI to transcoder"
         else:
             # the input_ari has already been submitted
-            status = "ARI previously submitted, check log"
+            state = "ARI previously submitted, check log"
             transcoder_log_id = curr_uri.transcoder_log_id
 
     logger.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
     MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
 
-    return {"id": transcoder_log_id, "status": status}
+    return {"id": transcoder_log_id, "status": state}
 
 
 @router.get("/ui/incoming/await/{cbor}/hex", status_code=status.HTTP_200_OK)
@@ -200,16 +200,16 @@ def transcoder_put_str(input_ari: str):
             session.refresh(c1)
             transcoder_log_id = c1.transcoder_log_id
             session.commit()
-            status = "Submitted ARI to transcoder"
+            state = "Submitted ARI to transcoder"
         else:
             # the input_ari has already been submitted
-            status = "ARI previously submitted, check log"
+            state = "ARI previously submitted, check log"
             transcoder_log_id = curr_uri.transcoder_log_id
 
     logger.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
     MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
 
-    return {"id": transcoder_log_id, "status": status}
+    return {"id": transcoder_log_id, "status": state}
 
 
 
@@ -223,21 +223,24 @@ async def transcoder_send_ari_str(eid: str, ari: str):
         # Retrieve details and wait for completion
         retries = 10
         while True:
+            # Wait for request to process before checking state
+            await asyncio.sleep(1)
+            
             info = do_transcoder_log_by_id(idinfo["id"])
+
             if info.parsed_as != "pending":
                 break
             if retries <= 0:
                 return { "idinfo" : idinfo, "info" : info, "status" : 504 }
-            await asyncio.sleep(1)
             retries -= 1
 
         if info.parsed_as == "ERROR":
             return { "idinfo" : idinfo, "info" : info, "status" : 500 }
-        
-        # Publish
-        status = do_nm_put_hex_eid( eid, info.cbor )
 
-        return { "idinfo" : idinfo, "info" : info, "status" : status }
+        # Publish
+        state = do_nm_put_hex_eid( eid, info.cbor )
+
+        return { "idinfo" : idinfo, "info" : info, "status" : state }
     except Exception as e:
         logger.exception(e)
         return status.HTTP_500_INTERNAL_SERVER_ERROR
