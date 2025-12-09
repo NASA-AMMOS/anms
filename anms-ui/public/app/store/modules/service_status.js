@@ -72,8 +72,8 @@ export default {
       api.methods.apiGetServiceStatus().then(res => {
         console.log("updateStatus response", res.data);
         let jsonStatus = {};
-        try{
-          jsonStatus = JSON.parse(res.data); //?Asomehow axios does not parse the Json response
+          try {
+              jsonStatus = (typeof jsonStatus === 'object') ? res.data : JSON.parse(res.data);
         } catch (e){
           console.error(e)
           jsonStatus = {};
