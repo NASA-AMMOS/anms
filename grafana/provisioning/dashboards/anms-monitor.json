@@ -14,6 +14,12 @@
       "version": "1.0.0"
     },
     {
+      "type": "datasource",
+      "id": "Infinity",
+      "name": "Infinity",
+      "version": "1.0.0"
+    },
+    {
       "type": "panel",
       "id": "table",
       "name": "Table",
@@ -597,7 +603,228 @@
       ],
       "title": "ARIs",
       "type": "table"
+    },
+    {
+  "id": 73,
+  "type": "table",
+  "title": "Hello_rpt_agent_1",
+  "gridPos": {
+    "x": 0,
+    "y": 16,
+    "h": 8,
+    "w": 12
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "align": "auto",
+        "footer": {
+          "reducers": []
+        },
+        "cellOptions": {
+          "type": "auto"
+        },
+        "inspect": false,
+        "hideFrom": {
+          "viz": false
+        }
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "red",
+            "value": 80
+          }
+        ]
+      },
+      "color": {
+        "mode": "thresholds"
+      }
+    },
+    "overrides": []
+  },
+  "pluginVersion": "12.3.0",
+  "targets": [
+    {
+      "columns": [],
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "PA0935669E4DE7FB6"
+      },
+      "filters": [],
+      "format": "table",
+      "global_query_id": "",
+      "parser": "backend",
+      "refId": "A",
+      "root_selector": "",
+      "source": "url",
+      "type": "uql",
+      "uql": "    parse-json\n    | scope \"ari://ietf/dtnma-agent/CONST/hello\"\n    | extend \"hello\"=array_to_map(\"ari://ietf/dtnma-agent/CONST/hello\",'sw_vendor','sw_version', 'capabilities')\n    | extend \"time\"=todatetime(\"time\")\n    | project \"time\", \"sw_vendor\"=\"hello.sw_vendor\", \"sw_version\"=\"hello.sw_version\", \"capabilities\"=\"hello.capabilities\"\n    | order by \"time\" desc\n",
+      "url": "http://anms-core:5555/report/entries/table/1/b%27%5Cxf6%27",
+      "url_options": {
+        "data": "",
+        "headers": [],
+        "method": "GET",
+        "params": [
+          {
+            "key": "agent_id",
+            "value": "1"
+          },
+          {
+            "key": "nonce_cbor",
+            "value": "b%27%5Cxf6%27"
+          }
+        ]
+      }
     }
+  ],
+  "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "PA0935669E4DE7FB6"
+  },
+  "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "sortBy": []
+  }
+    },
+    {
+  "id": 74,
+  "type": "timeseries",
+  "title": "ari://ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/num-msg-rx)",
+  "gridPos": {
+    "x": 0,
+    "y": 8,
+    "h": 8,
+    "w": 12
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "drawStyle": "line",
+        "lineInterpolation": "smooth",
+        "barAlignment": 0,
+        "barWidthFactor": 0.6,
+        "lineWidth": 1,
+        "fillOpacity": 0,
+        "gradientMode": "none",
+        "spanNulls": false,
+        "insertNulls": false,
+        "showPoints": "auto",
+        "showValues": false,
+        "pointSize": 5,
+        "stacking": {
+          "mode": "none",
+          "group": "A"
+        },
+        "axisPlacement": "auto",
+        "axisLabel": "",
+        "axisColorMode": "text",
+        "axisBorderShow": false,
+        "scaleDistribution": {
+          "type": "linear"
+        },
+        "axisCenteredZero": false,
+        "hideFrom": {
+          "tooltip": false,
+          "viz": false,
+          "legend": false
+        },
+        "thresholdsStyle": {
+          "mode": "off"
+        }
+      },
+      "color": {
+        "mode": "palette-classic"
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          },
+          {
+            "color": "red",
+            "value": 80
+          }
+        ]
+      }
+    },
+    "overrides": []
+  },
+  "pluginVersion": "12.3.0",
+  "targets": [
+    {
+      "columns": [],
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "PA0935669E4DE7FB6"
+      },
+      "filters": [],
+      "format": "table",
+      "global_query_id": "",
+      "parser": "backend",
+      "refId": "A",
+      "root_selector": "",
+      "source": "url",
+      "type": "uql",
+      "uql": "parse-json\n    | scope \"b'\\\\x18{'\"\n    | extend  \"num_msg_rx\"=\"ari://ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/num-msg-rx).0\"\n    | extend \"num_msg_rx\"=split(\"num_msg_rx\",'/')\n    | extend \"num_msg_rx\"=\"num_msg_rx.2\"\n    | extend \"ipn_3_6\"=tonumber(\"num_msg_rx\")\n    | extend \"time\"=todatetime(\"time\")\n    | project \"time\", \"ipn_3_6\"\n    ",
+      "url": "1/b%27%5Cx18%7B%27",
+      "url_options": {
+        "data": "",
+        "method": "GET"
+      }
+    },
+    {
+      "columns": [],
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "PA0935669E4DE7FB6"
+      },
+      "filters": [],
+      "format": "table",
+      "global_query_id": "",
+      "hide": false,
+      "parser": "backend",
+      "refId": "B",
+      "root_selector": "",
+      "source": "url",
+      "type": "uql",
+      "uql": "parse-json\n    | scope \"b'\\\\x18{'\"\n    | extend  \"num_msg_rx\"=\"ari://ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/num-msg-rx).0\"\n    | extend \"num_msg_rx\"=split(\"num_msg_rx\",'/')\n    | extend \"num_msg_rx\"=\"num_msg_rx.2\"\n    | extend \"ipn_2_6\"=tonumber(\"num_msg_rx\")\n    | extend \"time\"=todatetime(\"time\")\n    | project \"time\", \"ipn_2_6\"\n    ",
+      "url": "2/b%27%5Cx18%7B%27",
+      "url_options": {
+        "data": "",
+        "method": "GET"
+      }
+    }
+  ],
+  "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "PA0935669E4DE7FB6"
+  },
+  "options": {
+    "tooltip": {
+      "mode": "single",
+      "sort": "none",
+      "hideZeros": false
+    },
+    "legend": {
+      "showLegend": true,
+      "displayMode": "table",
+      "placement": "right",
+      "calcs": []
+    }
+  }
+  }
+
   ],
   "refresh": false,
   "schemaVersion": 37,

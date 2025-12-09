@@ -11,3 +11,6 @@ providers:
     # The path option specifies the directory where your JSON files are located
     # In this case, it can be the current directory ('.')
     path: /etc/grafana/provisioning/dashboards 
+
+
+    

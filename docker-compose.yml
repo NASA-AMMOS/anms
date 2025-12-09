@@ -229,6 +229,8 @@ services:
       GF_DATABASE_PASSWORD: ${DB_PASSWORD}
       GF_DATABASE_SSL_MODE: disable
       GF_DATABASE_PATH: "" # Explicitly disable internal sqlite for clarity
+      GF_PLUGINS_PREINSTALL: "yesoreyeram-infinity-datasource"
+      GODEBUG: x509negativeserial=1 #fix for tls: failed to parse certificate from server: x509: negative serial number
 
   grafana-image-renderer:
     hostname: grafana-image-renderer

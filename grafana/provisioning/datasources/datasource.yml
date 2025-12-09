@@ -39,3 +39,17 @@ datasources:
   version: 1
   editable: true
   isDefault: true
+
+- name: report_entries_table_endpoint
+  type: yesoreyeram-infinity-datasource
+  typeName: Infinity  
+  access: proxy
+  url: http://anms-core:5555/report/entries/table/
+  user: 
+  database: 
+  basicAuth: false
+  isDefault: false
+  jsonData: 
+    global_queries: []
+    pdcInjected: false
+    
