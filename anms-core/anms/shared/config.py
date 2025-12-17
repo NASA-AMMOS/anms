@@ -195,6 +195,10 @@ class BaseConfig(AbstractConfig):
     UI_PORT = 9030
     UI_API_BASE = "/api/"
 
+
+    #Transcoding 
+    Transcoder = "Internal"
+
     def on_finalized(self):
         pass
 
