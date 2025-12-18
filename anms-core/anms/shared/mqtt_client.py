@@ -41,16 +41,17 @@ class MQTTClient:
             return
 
         # Create MQTT Client
-        client = mqtt.client.Client("Core_MQTT_Client", clean_session=False)
-        client.on_connect = self._on_connect
-        client.on_message = self._on_message
-        logger.info('Connecting to MQTT broker at %s:%s', host, port)
-        client.connect_async(host, port, keepalive=60)
-        self.client = client
-        checking_child = Thread(target=self._check_pending)
-        checking_child.daemon = True
-        checking_child.start()
-        client.loop_start()
+        if config.Transcoder != "Internal":
+            client = mqtt.client.Client("Core_MQTT_Client", clean_session=False)
+            client.on_connect = self._on_connect
+            client.on_message = self._on_message
+            logger.info('Connecting to MQTT broker at %s:%s', host, port)
+            client.connect_async(host, port, keepalive=60)
+            self.client = client
+            checking_child = Thread(target=self._check_pending)
+            checking_child.daemon = True
+            checking_child.start()
+            client.loop_start()
 
     def publish(self, *args, **kwargs):
         ''' If connected, pass through a publish request. '''

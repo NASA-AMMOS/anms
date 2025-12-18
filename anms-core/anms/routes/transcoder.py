@@ -96,8 +96,10 @@ async def transcoder_put_cbor_await(cbor: str):
 
 def _transcoder_put_cbor(input_cbor):
     transcoder_log_id = None
+    send_to_transcode = False
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter(or_(TranscoderLog.input_string==input_cbor, TranscoderLog.cbor==input_cbor)).first()
+        
         if curr_uri is None:
             c1 = TranscoderLog(input_string=input_cbor, parsed_as='pending')
             session.add(c1)
@@ -105,13 +107,16 @@ def _transcoder_put_cbor(input_cbor):
             session.refresh(c1)
             transcoder_log_id = c1.transcoder_log_id
             session.commit()
-            status = "Submitted ARI to transcoder"
-            TRANSMORGIFIER.transcode(input_cbor)
+            send_to_transcode = True
         else:
             # the input_ari has already been submitted
             status = "ARI previously submitted, check log"
             transcoder_log_id = curr_uri.transcoder_log_id
-    
+        
+    if(send_to_transcode):
+        status = "Submitted ARI to transcoder"
+        TRANSMORGIFIER.transcode(input_cbor)
+
     return {"id": transcoder_log_id, "status": status}
 
 
@@ -142,6 +147,7 @@ def transcoder_incoming_str(input_ari: str):
 def _transcoder_put_str(input_ari: str):
     input_ari = input_ari.strip()
     transcoder_log_id = None
+    send_to_transcode = False
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter(or_(TranscoderLog.input_string==input_ari,TranscoderLog.ari==input_ari, TranscoderLog.cbor==input_ari)).first()
         if curr_uri is None:
@@ -151,17 +157,17 @@ def _transcoder_put_str(input_ari: str):
             session.refresh(c1)
             transcoder_log_id = c1.transcoder_log_id
             session.commit()
-
-            state = "Submitted ARI to transcoder"
-            TRANSMORGIFIER.transcode(input_ari)
-
+            send_to_transcode = True
         else:
             # the input_ari has already been submitted
-            status = "ARI previously submitted, check log"
+            state = "ARI previously submitted, check log"
             transcoder_log_id = curr_uri.transcoder_log_id
+    
+    if(send_to_transcode):
+        state = "Submitted ARI to transcoder"
+        TRANSMORGIFIER.transcode(input_ari)
 
     return {"id": transcoder_log_id, "status": state}
-
 
 
 # PUT 	/ui/incoming_send/str 	Body is str ARI to send to transcoder

@@ -31,6 +31,7 @@ from anms.models.relational import get_async_session
 from anms.routes.adms.adm import handle_adm
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
+from anms.shared.transmogrifier import TRANSMORGIFIER
 
 
 logger = OpenSearchLogger(__name__).logger
@@ -67,17 +68,10 @@ async def import_adms():
             logger.error('ADM %s handling failed: %s', adm_file.norm_name, err)
             logger.debug('%s', traceback.format_exc())
 
+     
     # Notify the aricodec of startup
-    config = ConfigBuilder.get_config()
-    host = config.get('MQTT_HOST')
-    port = config.get('MQTT_PORT')
-
-    logger.info('Connecting to MQTT broker %s to notify aricodec', host)
-    client = mqtt.client.Client()
-    client.connect(host, port)
-    msg = client.publish('aricodec/reload', b'')
-    msg.wait_for_publish()
-    client.disconnect()
+    TRANSMORGIFIER.reload()
+    
 
     logger.info('Startup finished')
 
