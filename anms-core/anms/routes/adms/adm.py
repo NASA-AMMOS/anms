@@ -29,20 +29,17 @@ from fastapi import UploadFile
 from pydantic import BaseModel
 import io
 import traceback
-from typing import TextIO
 
 # Internal modules
-from sqlalchemy import delete, select, and_
-from sqlalchemy.engine import Result
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete,  and_
 
 from anms.models.relational.adms import (adm_data, data_model_view)
-from anms.models.relational.adms.data_model_view import DataModel as ADM
 
 from anms.routes.adms.adm_compare import (AdmCompare)
 from anms.shared.opensearch_logger import OpenSearchLogger
-from anms.shared.mqtt_client import MQTT_CLIENT
-from anms.models.relational import get_async_session, get_session
+
+from anms.shared.transmogrifier import TRANSMORGIFIER
+from anms.models.relational import get_async_session
 from anms.components.schemas.adm import DataModelSchema
 import ace
 from camp.generators import (create_sql)
@@ -296,7 +293,7 @@ async def update_adm(file: UploadFile, request: Request):
                 if error_message:
                     raise Exception(error_message)
                 # Notify the transcoder
-                MQTT_CLIENT.publish('aricodec/reload', adm_file.norm_name)
+                TRANSMORGIFIER.reload(adm_file.norm_name)
                 logger.info(f"{info_message} adm file:  {file.filename} successfully")
             except Exception as err:
                 logger.error(f"{sql_dialect} execution error: {err.args}")
