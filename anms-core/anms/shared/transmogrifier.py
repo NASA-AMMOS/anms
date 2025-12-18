@@ -31,6 +31,9 @@ from anms.models.relational.transcoder_log import TranscoderLog
 import traceback
 import ace
 import io
+import io
+import json
+import sqlalchemy
 
 config = ConfigBuilder.get_config()
 LOGGER = OpenSearchLogger(__name__, log_console=True)
@@ -47,17 +50,17 @@ class Transmorgifier:
             LOGGER.info('Connecting to SQL DB at %s', args.db_uri)
             self._dbeng = sqlalchemy.create_engine(args.db_uri)
             self._adms = ace.AdmSet(cache_dir=False)
-            self.transcode = _transcode_internal
-            self.reload = _reload_internal
+            self.transcode = self._transcode_internal
+            self.reload = self._reload_internal
             self._adm_reload(None)
         else:
             # setting up the MQTT server instead
-            self.transcode = _transcode_mqtt
-            self.reload = _reload_mqtt 
+            self.transcode = self._transcode_mqtt
+            self.reload = self._reload_mqtt 
 
     def _transcode_mqtt(self, input):
         msg = json.dumps({'uri': input})
-        logger.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
+        LOGGER.info('PUBLISH to transcode/CoreFacing/Outgoing, msg = %s' % msg)
         MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
 
     def _transcode_internal(self, input):
@@ -67,7 +70,7 @@ class Transmorgifier:
         res_obj['cbor'] = ""
         
         try:
-            req_obj = json.loads(msg.payload)
+            req_obj = input
             LOGGER.info('Request %s', req_obj)
 
             in_text = req_obj['uri'].strip()
