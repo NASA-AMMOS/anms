@@ -134,6 +134,8 @@ services:
       - "${DB_PORT-5432}:5432"
 
   mqtt-broker:
+    profiles:
+      - external_transcode
     hostname: mqtt-broker
     image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
     build:
@@ -146,6 +148,8 @@ services:
       - "${MQTT_PORT:-1883}:1883"
       
   transcoder:
+    profiles:
+      - external_transcode
     hostname: transcoder
     image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
     build:
@@ -159,6 +163,8 @@ services:
         condition: service_healthy
 
   aricodec:
+    profiles:
+      - external_transcode
     hostname: aricodec
     image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG}
     build:
@@ -281,8 +287,6 @@ services:
       amp-manager:
         condition: service_started
       postgres:
-        condition: service_healthy
-      mqtt-broker:
         condition: service_healthy
 
   amp-manager:
