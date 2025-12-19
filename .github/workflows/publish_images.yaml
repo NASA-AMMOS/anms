@@ -38,6 +38,8 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "release" ]]; then
             echo "DOCKER_IMAGE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "DOCKER_IMAGE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
           else
             echo "DOCKER_IMAGE_TAG=latest" >> $GITHUB_ENV
           fi
