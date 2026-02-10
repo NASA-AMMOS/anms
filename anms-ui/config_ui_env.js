@@ -25,9 +25,7 @@ window.anms_env_config = {
     SERVICE_INFO: {
         names: [
             "adminer","anms-core","authnz","amp-manager",
-            "aricodec","postgres",
-            "redis","mqtt-broker","transcoder",
-            "grafana","grafana-image-renderer"
+           "postgres","redis","grafana","grafana-image-renderer"
         ],
         normal_status: ["running","healthy"],
         error_status: ["not-running","unhealthy"]
