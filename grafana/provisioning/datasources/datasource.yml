@@ -34,7 +34,7 @@ datasources:
     database: amp_core
   user: grafana
   secureJsonData:
-    password: grafana
+    password: ${GRAFANA_PASS}
   database: amp_core
   version: 1
   editable: true

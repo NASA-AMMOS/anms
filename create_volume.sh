@@ -31,7 +31,6 @@ elif command -v podman &> /dev/null; then
 elif command -v docker &> /dev/null; then
     echo "Docker is installed"
     DOCKER_CMD="docker"
-    EXTRA_FLAGS="--ignore"
 else
     echo "Neither Docker nor Podman is installed"
     exit 1
