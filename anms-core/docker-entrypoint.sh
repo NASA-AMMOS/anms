@@ -28,6 +28,6 @@ set -e
 PYTHON=${PYTHON:-python3}
 
 # initialize DB state
-${PYTHON} -m anms.init_adms
+# ${PYTHON} -m anms.init_adms
 
 exec ${PYTHON} -m anms.run_gunicorn
