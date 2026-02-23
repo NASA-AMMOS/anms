@@ -40,7 +40,7 @@ jobs:
           submodules: recursive
       - name: Tag name env
         run: |
-          DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
+          DOCKER_IMAGE_TAG=${{ github.sha }}
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
       - name: Build ANMS
         run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
