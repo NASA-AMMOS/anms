@@ -1,0 +1,16 @@
+apiVersion: 1
+providers:
+- name: 'ANMS Dashboards'
+  orgId: 1
+  folder: '' # This places the dashboard at the root level
+  type: file
+  disableDeletion: false
+  editable: true
+  updateIntervalSeconds: 30 # Grafana will check for updates every 30 seconds
+  options:
+    # The path option specifies the directory where your JSON files are located
+    # In this case, it can be the current directory ('.')
+    path: /etc/grafana/provisioning/dashboards 
+
+
+    

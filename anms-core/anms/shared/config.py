@@ -126,8 +126,8 @@ class BaseConfig(AbstractConfig):
     MQTT_USER = None
 
     # nm Settings
-    NM_HOST = "amp-manager"
-    NM_PORT = 8089
+    NM_HOST = os.environ.get('NM_HOST',"amp-manager")
+    NM_PORT = os.environ.get('NM_PORT', 8089)
     NM_API_BASE ="/nm/api"
 
     # Relation DB Settings (MySQL)
@@ -194,6 +194,13 @@ class BaseConfig(AbstractConfig):
     UI_HOST = "anms-ui"
     UI_PORT = 9030
     UI_API_BASE = "/api/"
+
+
+    #Transcoding 
+    Transcoder = "Internal"
+
+    #alert file 
+    ALERT_FILE = os.environ.get('ALERT_FILE', '/usr/local/share/anms/alerts.json')
 
     def on_finalized(self):
         pass

@@ -138,4 +138,5 @@ async def sys_status_get_version():
 async def sys_status_get_services_status():
   statuses = get_containers_status()
   logger.debug(f"Checking all services' status: {str(statuses)}")
-  return json.dumps(statuses)
+  return statuses
+

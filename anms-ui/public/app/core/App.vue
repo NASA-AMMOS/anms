@@ -33,6 +33,7 @@
                 </template>
               </b-button>
               <b-button variant="outline-success" @click="$router.push('/adms')">Adms</b-button>
+              <b-button variant="outline-success" @click="$router.push('/help')">Help</b-button>
             </b-button-group>
           </b-col>
         </b-row>

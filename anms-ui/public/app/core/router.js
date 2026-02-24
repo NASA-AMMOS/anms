@@ -22,7 +22,10 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Home from '@app/components/home/Home.vue';
-import About from '@app/components/about/About.vue';
+import Help from '@app/components/help/Help.vue';
+import About from '@app/components/about/About.vue'
+import NotFound from '@app/components/notfound/NotFound.vue';
+
 import Constants from '@app/shared/constants';
 import User from '@app/components/user/User';
 import UserProfile from '@app/components/user/UserProfile';
@@ -56,6 +59,11 @@ export default new Router({
       path: '/about',
       name: 'about',
       component: About
+    },
+    {
+      path: '/help',
+      name: 'help',
+      component: Help
     },
     {
       path: '/monitor',
@@ -130,8 +138,8 @@ export default new Router({
       props: true
     },
     {
-      path: '*',
-      redirect: '/'
+        path: '*',
+        component: NotFound
     }
   ]
 });
