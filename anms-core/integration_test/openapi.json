@@ -159,7 +159,7 @@
                     {
                         "required": true,
                         "schema": {
-                            "title": "Agent Id String",
+                            "title": "Agent Endpoint Uri",
                             "type": "string"
                         },
                         "name": "agent_endpoint_uri",
@@ -2517,7 +2517,7 @@
                         "required": true,
                         "schema": {
                             "title": "Agent Id",
-                            "type": "string"
+                            "type": "integer"
                         },
                         "name": "agent_id",
                         "in": "path"
@@ -2549,19 +2549,19 @@
                 }
             }
         },
-        "/report/entries/table/{agent_id}/{correlator_nonce}": {
+        "/report/entries/table/{agent_id}/{nonce_cbor}": {
             "get": {
                 "tags": [
                     "REPORTS"
                 ],
                 "summary": "Report Ac",
-                "operationId": "report_ac_report_entries_table__agent_id___correlator_nonce__get",
+                "operationId": "report_ac_report_entries_table__agent_id___nonce_cbor__get",
                 "parameters": [
                     {
                         "required": true,
                         "schema": {
                             "title": "Agent Id",
-                            "type": "string"
+                            "type": "integer"
                         },
                         "name": "agent_id",
                         "in": "path"
@@ -2569,10 +2569,10 @@
                     {
                         "required": true,
                         "schema": {
-                            "title": "Correlator Nonce",
-                            "type": "integer"
+                            "title": "Nonce Cbor",
+                            "type": "string"
                         },
-                        "name": "correlator_nonce",
+                        "name": "nonce_cbor",
                         "in": "path"
                     }
                 ],
@@ -2581,11 +2581,7 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {
-                                    "title": "Response Report Ac Report Entries Table  Agent Id   Correlator Nonce  Get",
-                                    "type": "array",
-                                    "items": {}
-                                }
+                                "schema": {}
                             }
                         }
                     },
@@ -4188,7 +4184,7 @@
                 "type": "object",
                 "properties": {
                     "agent_endpoint_uri": {
-                        "title": "Agent Id String",
+                        "title": "Agent Endpoint Uri",
                         "type": "string"
                     },
                     "first_registered": {
@@ -4222,24 +4218,21 @@
                 "title": "RptEntry",
                 "type": "object",
                 "properties": {
+                    "ari_rptset_id": {
+                        "title": "Ari Rptset Id",
+                        "type": "string"
+                    },
                     "reference_time": {
                         "title": "Reference Time",
-                        "type": "string"
-                    },
-                    "agent_id": {
-                        "title": "Agent Id",
-                        "type": "string"
-                    },
-                    "correlator_nonce": {
-                        "title": "Correlator Nonce",
-                        "type": "string"
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "report_list": {
                         "title": "Report List",
                         "type": "string"
                     },
-                    "ari_rptset_id": {
-                        "title": "Ari Rptset Id",
+                    "agent_id": {
+                        "title": "Agent Id",
                         "type": "integer"
                     }
                 }
@@ -4248,24 +4241,21 @@
                 "title": "RptEntryBaseInDBBase",
                 "type": "object",
                 "properties": {
+                    "ari_rptset_id": {
+                        "title": "Ari Rptset Id",
+                        "type": "string"
+                    },
                     "reference_time": {
                         "title": "Reference Time",
-                        "type": "string"
-                    },
-                    "agent_id": {
-                        "title": "Agent Id",
-                        "type": "string"
-                    },
-                    "correlator_nonce": {
-                        "title": "Correlator Nonce",
-                        "type": "string"
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "report_list": {
                         "title": "Report List",
                         "type": "string"
                     },
-                    "ari_rptset_id": {
-                        "title": "Ari Rptset Id",
+                    "agent_id": {
+                        "title": "Agent Id",
                         "type": "integer"
                     }
                 }

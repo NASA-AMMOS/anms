@@ -37,7 +37,7 @@ class ManagerChecker:
     def __init__(self, config):
         self.known_agents = {}
         self.lock = Lock()
-        self.alert_file = '/usr/local/share/anms/alerts.json'
+        self.alert_file = config['ALERT_FILE']
         self.ui_url = "http://" + config['UI_HOST'] + ":" + str(config['UI_PORT']) + config['UI_API_BASE']
         self.manager_connect = True  # tracks manager connection status so doesnt repeat alerts of disconnect
         self.curr_id = 0  # tracking the alert id for acknowledging
