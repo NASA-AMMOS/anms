@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2026 The Johns Hopkins University Applied Physics
+Copyright (c) 2022-2026 The Johns Hopkins University Applied Physics
 Laboratory LLC.
 
 This file is part of the Asynchronous Network Management System (ANMS).
@@ -68,10 +68,11 @@ This section details prerequisites to installing the ANMS from source on a devel
 ### Software and OS Versions
 
 The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9  and Ubuntu 20.04.
-To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and podman can generally be used interchangeably, although **please note that for Mac users, using Docker compose instead of Podman compose is generally advised to avoid inexplicable set-up errors.**
+To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and Podman can generally be used interchangeably. 
 
-The ANMS UI capability has been tested on Firefox version 96.0.1. 
-There is no capability that should preclude operation on other modern browsers. 
+**NOTE:** `docker-compose` can be used with `podman`, and `docker` is generally recommended for improved reliability over `podman-compose`, with some platforms (e.g. Mac) failing to startup correctly with Podman.  In all cases, recent versions of the installed compose tool are invoked with `podman compose` or `docker compose` as appropriate. 
+
+The ANMS UI should work on all modern browsers.
 
 ### Network Setup
 
@@ -92,7 +93,8 @@ Note: If running on a system where **SELinux** is enabled, the system will not s
 
 ### Upgrading ANMS
 
-If upgrading from an earlier version, a few steps are necessary to clear out the earlier state.
+If upgrading from an earlier version, a few steps are necessary to clear out the earlier state. **NOTE:** please see the `UPGRADING.md` file in this repo for specific changes when one wishes to preserve data. 
+
 The following command sequence uses standard Docker commands to stop all containers and remove all "dangling" images, networks, and volumes.
 
 :warning: The last command in this sequence removes volumes, **which include DB state**.
