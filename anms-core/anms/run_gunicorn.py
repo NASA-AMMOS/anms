@@ -26,9 +26,7 @@ import secrets
 import ssl
 import sys
 import gunicorn.app.base
-import asyncio 
 
-from anms.shared.transmogrifier import TRANSMORGIFIER
 from anms.shared.config import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
 
@@ -80,7 +78,6 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 if __name__ == "__main__":
-    asyncio.run(TRANSMORGIFIER.load_default_adms())
     # NOTE (for MAC users) export OBJC_DISABLE_INITIALIZE_FORK_SAFETY = YES before running this file
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
     StandaloneApplication().run()

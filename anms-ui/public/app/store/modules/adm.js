@@ -72,6 +72,19 @@ export default {
        
       });
     },
+    async loadAdms({ state, commit }){
+      commit('loading', true);
+      commit('requestError', "");
+      let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+      api_adm.apiLoadAdm()
+      .catch(function (error) {
+        sleep(1000).then(() => {
+          commit('adms', []);
+          commit('requestError', error);
+          commit('loading', false);
+        })
+      });
+    },
     async uploadAdm({ state, commit }, adm_file){
       //commit('loading', true);
       commit('requestError', "");

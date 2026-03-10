@@ -52,8 +52,8 @@ class Transmorgifier:
     def __init__(self, args):
         # if the transcoding in internal to core
         LOGGER.info(config.Transcoder)
-        self.AdmData = adm_data.AdmData
-        self.DataModel = data_model_view.DataModel
+        self.adm_data = adm_data.AdmData
+        self.data_model = data_model_view.DataModel
         if config.Transcoder == "Internal":
             db_uri = f"postgresql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}/{config.DB_CHROOT}"
             LOGGER.info(f'Connecting to SQL DB at {db_uri}')
@@ -66,7 +66,6 @@ class Transmorgifier:
             self.MQTT_CLIENT = anms.shared.mqtt_client.MQTT_CLIENT
             self.transcode = self._transcode_mqtt
             self.reload = self._reload_mqtt 
-        self.reload()
     
     async def handle_adm(self, admset: ace.AdmSet, adm_file: ace.models.AdmModule, session, replace=True):
         ''' Process a received and decoded ADM into the ANMS DB.
@@ -75,14 +74,14 @@ class Transmorgifier:
         :return: A list of issues with the ADM, which is empty if successful.
         '''
         LOGGER.info("Adm name: %s", adm_file.norm_name)
-        data_model_view = await self.DataModel.get(adm_file.ns_model_enum,adm_file.ns_org_name )
+        data_model_view = await self.data_model.get(adm_file.ns_model_enum,adm_file.ns_org_name )
         if data_model_view:
             if not replace:
                 LOGGER.info('Not replacing existing ADM name %s', adm_file.norm_name)
                 return []
             data_rec = None
             async with get_async_session() as session:
-                data_rec,_ = await self.AdmData.get(data_model_view.data_model_id,session)
+                data_rec,_ = await self.adm_data.get(data_model_view.data_model_id,session)
 
             if data_rec:
                 # Compare old and new contents
@@ -117,7 +116,7 @@ class Transmorgifier:
         # Save the adm file of the new adm
         buf = io.StringIO()
         ace.adm_yang.Encoder().encode(adm_file, buf)
-        ret_dm = await self.DataModel.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
+        ret_dm = await self.data_model.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
         
         # Write the encoded string data to the BytesIO object
         bytes_io = io.BytesIO()
@@ -125,10 +124,10 @@ class Transmorgifier:
         # Reset the pointer to the beginning
         bytes_io.seek(0)
         data = {"enumeration":ret_dm.data_model_id, "data": bytes_io.getvalue()}
-        await self.AdmData.add_data(data, session)
+        await self.adm_data.add_data(data, session)
 
         return []
-        
+            
     async def load_default_adms(self):
         admset = ace.AdmSet(cache_dir=False)
         admset.load_default_dirs()
@@ -146,6 +145,8 @@ class Transmorgifier:
                 # The function already logged any SQL issue at error severity
                 LOGGER.error('ADM %s handling failed: %s', adm_file.norm_name, err)
                 LOGGER.debug('%s', traceback.format_exc())
+
+        self.reload()
 
     def _transcode_mqtt(self, input):
         msg = json.dumps({'uri': input})

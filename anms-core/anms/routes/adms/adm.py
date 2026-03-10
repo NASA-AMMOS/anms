@@ -126,6 +126,11 @@ async def remove_adm(enumeration: int, namespace:str):
             logger.debug(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
             raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
 
+@router.post("/load_default", status_code=status.HTTP_201_CREATED)
+async def load_default_adm():
+    await TRANSMORGIFIER.load_default_adms()
+    response = JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Initilized default ADMs", "error_details": ""})
+    return response
 
 @router.post("/", status_code=status.HTTP_201_CREATED,
              responses={400: {"model": RequestError}, 405: {"model": UpdateAdmError}, 500: {"model": RequestError}})
