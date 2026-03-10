@@ -58,7 +58,6 @@ class Transmorgifier:
             db_uri = f"postgresql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}/{config.DB_CHROOT}"
             LOGGER.info(f'Connecting to SQL DB at {db_uri}')
             self._dbeng = sqlalchemy.create_engine(db_uri)
-            asyncio.run(self._load_default_adms())
             self.transcode = self._transcode_internal
             self.reload = self._reload_internal
             self._adm_reload(None)
@@ -116,8 +115,6 @@ class Transmorgifier:
             raise
 
         # Save the adm file of the new adm
-        
-
         buf = io.StringIO()
         ace.adm_yang.Encoder().encode(adm_file, buf)
         ret_dm = await self.DataModel.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
@@ -132,7 +129,7 @@ class Transmorgifier:
 
         return []
         
-    async def _load_default_adms(self):
+    async def load_default_adms(self):
         admset = ace.AdmSet(cache_dir=False)
         admset.load_default_dirs()
         issues = ace.Checker(admset.db_session()).check()
@@ -189,7 +186,6 @@ class Transmorgifier:
                     dec = ace.ari_cbor.Decoder()
                     ari = dec.decode(io.BytesIO(in_bytes))
                     LOGGER.debug(f'decoded as ARI {ari}')
-                    # ace.nickname.Converter(ace.nickname.Mode.FROM_NN, admsSession(self._dbeng), True)(ari)
                     ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari)
                     
                 except Exception as err:
