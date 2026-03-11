@@ -69,7 +69,7 @@ This section details prerequisites to installing the ANMS from source on a devel
 The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9  and Ubuntu 20.04.
 To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and Podman can generally be used interchangeably. 
 
-**NOTE:** `docker-compose` can be used with `podman`, and `docker` is generally recommended for improved reliability over `podman-compose`, with some platforms (e.g. Mac) failing to startup correctly with Podman.  In all cases, recent versions of the installed compose tool are invoked with `podman compose` or `docker compose` as appropriate. 
+**NOTE:** `docker-compose` can be used with `podman`, and `docker-compose` is generally recommended for improved reliability over `podman-compose`, with some platforms (e.g. Mac) failing to startup correctly with Podman.  In all cases, recent versions of the installed compose tool are invoked with `podman compose` or `docker compose` as appropriate. 
 
 The ANMS UI should work on all modern browsers.
 
