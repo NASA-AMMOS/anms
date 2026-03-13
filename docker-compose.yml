@@ -81,7 +81,7 @@ services:
   opensearch:
     profiles: ["full"]
     hostname: opensearch
-    image: docker.io/opensearchproject/opensearch:2.0.0
+    image: docker.io/opensearchproject/opensearch:2.19.5
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch.process"
@@ -89,6 +89,7 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
     # privileged: true # doesn't work
     # ulimits: # acuses permission error
     #   memlock:
@@ -106,7 +107,7 @@ services:
   opensearch-dashboards:
     profiles: ["full"]
     hostname: opensearch-dashboards
-    image: docker.io/opensearchproject/opensearch-dashboards:2.0.0
+    image: docker.io/opensearchproject/opensearch-dashboards:2.19.5
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch-dashboards.process"
