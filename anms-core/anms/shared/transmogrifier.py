@@ -21,13 +21,17 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 
-
+from camp.generators import (create_sql)
 from anms.shared.config import ConfigBuilder
-from anms.shared.logger import Logger
+import asyncio
 import anms.shared.mqtt_client
 from anms.shared.opensearch_logger import OpenSearchLogger
 from anms.models.relational import get_session
+from anms.models.relational import get_async_session
 from anms.models.relational.transcoder_log import TranscoderLog
+from anms.models.relational.adms import (adm_data, data_model_view)
+from anms.routes.adms.adm_compare import (AdmCompare)
+
 import traceback
 import ace
 import io
@@ -40,7 +44,7 @@ LOGGER = OpenSearchLogger(__name__, log_console=True).logger
 
 
 # depending on what the config is for core will either use a MQTT server to send off commands or 
-# use an internal 
+# use an ACE internally to translate 
 class Transmorgifier:
 
     ''' The Transmogifier that can be configured to use an external or internal translator. '''
@@ -48,11 +52,12 @@ class Transmorgifier:
     def __init__(self, args):
         # if the transcoding in internal to core
         LOGGER.info(config.Transcoder)
+        self.adm_data = adm_data.AdmData
+        self.data_model = data_model_view.DataModel
         if config.Transcoder == "Internal":
             db_uri = f"postgresql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}/{config.DB_CHROOT}"
             LOGGER.info(f'Connecting to SQL DB at {db_uri}')
             self._dbeng = sqlalchemy.create_engine(db_uri)
-            
             self.transcode = self._transcode_internal
             self.reload = self._reload_internal
             self._adm_reload(None)
@@ -61,6 +66,87 @@ class Transmorgifier:
             self.MQTT_CLIENT = anms.shared.mqtt_client.MQTT_CLIENT
             self.transcode = self._transcode_mqtt
             self.reload = self._reload_mqtt 
+    
+    async def handle_adm(self, admset: ace.AdmSet, adm_file: ace.models.AdmModule, session, replace=True):
+        ''' Process a received and decoded ADM into the ANMS DB.
+
+        :param replace: If true and the ADM exists it will be checked and replaced.
+        :return: A list of issues with the ADM, which is empty if successful.
+        '''
+        LOGGER.info("Adm name: %s", adm_file.norm_name)
+        data_model_view = await self.data_model.get(adm_file.ns_model_enum,adm_file.ns_org_name )
+        if data_model_view:
+            if not replace:
+                LOGGER.info('Not replacing existing ADM name %s', adm_file.norm_name)
+                return []
+            data_rec = None
+            async with get_async_session() as session:
+                data_rec,_ = await self.adm_data.get(data_model_view.data_model_id,session)
+
+            if data_rec:
+                # Compare old and new contents
+                LOGGER.info("Checking existing ADM name %s", adm_file.norm_name)
+                old_adm = admset.load_from_data(io.BytesIO(data_rec.data), del_dupe=False)
+                comp = AdmCompare(admset)
+                if not comp.compare_adms(old_adm, adm_file):
+                    issues = comp.get_errors()
+                else:
+                    issues = [f"Updating existing adm is not allowed yet"]
+                return issues
+
+        LOGGER.info("Inserting ADM name %s", adm_file.norm_name)
+
+        # Use CAmPython to generate sql
+        out_path = ""  # This is empty string since we don't need to write the generated sql to a file
+        sql_dialect = 'pgsql'
+        writer = create_sql.Writer(admset, adm_file, out_path, sql_dialect)
+        string_buffer = io.StringIO()
+        writer.write(string_buffer)
+
+        # execute generated Sql
+        queries = string_buffer.getvalue()
+        try:
+            await session.execute(queries)
+            await session.commit()
+        except Exception as err:
+            LOGGER.error(f"{sql_dialect} execution error: {err.args}")
+            LOGGER.debug('%s', traceback.format_exc())
+            raise
+
+        # Save the adm file of the new adm
+        buf = io.StringIO()
+        ace.adm_yang.Encoder().encode(adm_file, buf)
+        ret_dm = await self.data_model.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
+        
+        # Write the encoded string data to the BytesIO object
+        bytes_io = io.BytesIO()
+        bytes_io.write(buf.getvalue().encode('utf-8'))
+        # Reset the pointer to the beginning
+        bytes_io.seek(0)
+        data = {"enumeration":ret_dm.data_model_id, "data": bytes_io.getvalue()}
+        await self.adm_data.add_data(data, session)
+
+        return []
+            
+    async def load_default_adms(self):
+        admset = ace.AdmSet(cache_dir=False)
+        admset.load_default_dirs()
+        issues = ace.Checker(admset.db_session()).check()
+        for iss in issues:
+            LOGGER.error('ADM issue %s', iss)
+
+        for adm_file in admset:
+            try:
+                LOGGER.info('ADM %s handling started', adm_file.norm_name)
+                async with get_async_session() as db_sess:
+                    await self.handle_adm(admset, adm_file, db_sess, replace=False)
+                LOGGER.info('ADM %s handling finished', adm_file.norm_name)
+            except Exception as err:
+                # The function already logged any SQL issue at error severity
+                LOGGER.error('ADM %s handling failed: %s', adm_file.norm_name, err)
+                LOGGER.debug('%s', traceback.format_exc())
+
+        self.reload()
 
     def _transcode_mqtt(self, input):
         msg = json.dumps({'uri': input})
@@ -101,7 +187,6 @@ class Transmorgifier:
                     dec = ace.ari_cbor.Decoder()
                     ari = dec.decode(io.BytesIO(in_bytes))
                     LOGGER.debug(f'decoded as ARI {ari}')
-                    # ace.nickname.Converter(ace.nickname.Mode.FROM_NN, admsSession(self._dbeng), True)(ari)
                     ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari)
                     
                 except Exception as err:
