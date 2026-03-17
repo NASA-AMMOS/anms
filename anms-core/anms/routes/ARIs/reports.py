@@ -21,36 +21,63 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
-from typing import List
+
+# for handling report set and exec set  
+import ace
+
 import ast 
+import asyncio
+
+from cachetools import LFUCache
 
 from fastapi import APIRouter, Depends
 from fastapi import status
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
+from fastapi.responses import JSONResponse
+
+import io
+
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
+
+from typing import List
 
 from urllib.parse import unquote
 
 from anms.components.schemas import ARIs
-from anms.models.relational import get_async_session, get_session
 
+from anms.models.relational import get_async_session
 from anms.models.relational.report import Report
 from anms.models.relational.execution_set import ExecutionSet
 from anms.models.relational.registered_agent import RegisteredAgent
 
 from anms.shared.opensearch_logger import OpenSearchLogger
-import io
 
 import anms.routes.transcoder as transcoder
 
-# for handling report set and exec set  
-import ace
+
 
 logger = OpenSearchLogger(__name__, log_console=True)
 
 router = APIRouter(tags=["REPORTS"])
+
+
+# async def _process_reprots(key):
+
+#     return {}
+
+
+# # Cache for Storing translated reports for easy access  
+# class ReportCache(LFUCache):
+#     def __missing__(self, key):
+#         resource = asyncio.create_task( _process_reprots(key))
+#         self[key] = resource
+#         return resource
+
+
+# report_cache = ReportCacheCache(maxsize=16384)
+
 
 
 # routes for ARIs
@@ -138,14 +165,13 @@ async def report_def_by_id(agent_id: int):
 
 # entries tabulated returns header and values in correct order
 # handling if nonce_cbor is null
+# TODO decomuntate the report definition so the columns are better labeled  
 @router.get("/entries/table/{agent_id}/{nonce_cbor}", status_code=status.HTTP_200_OK)
 async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
     ari = None
     dec = ace.ari_cbor.Decoder()
     enc = ace.ari_text.Encoder()
     exec_set_dir = {}
-    logger.info(nonce_cbor)
-    logger.info(type(nonce_cbor))
     try:
         store_nonce = nonce_cbor 
         nonce_cbor = ast.literal_eval(nonce_cbor)
@@ -153,10 +179,17 @@ async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
         try:
             nonce_cbor = ast.literal_eval(str(bytes.fromhex(nonce_cbor)))
         except Exception as e:
-            logger.error(f"{e} while processing nonce")
-            return []
+            message = f"{e} while processing nonce:{nonce_cbor}"
+            logger.error(message)
+            response = JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": message, "error_details": []})
+            return response
         
-                                                        
+    if not isinstance(nonce_cbor, (bytes, bytearray)):
+        message = f"nonce_cbore:{nonce_cbor} should be bytes-like object is required, not 'str'"
+        logger.error(message)
+        response = JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": message, "error_details": []})
+        return response                                  
+    
     # process each report in the rpt set and place inside appropiate nonce case or if null use source as key
     # TODO use td off set in report set to update actual time 
     # 
@@ -174,10 +207,10 @@ async def report_ac(agent_id: int, nonce_cbor: str) -> dict:
             try:
                 in_bytes = ace.cborutil.from_hexstr(in_text)
                 ari = dec.decode(io.BytesIO(in_bytes))
-
             except Exception as err:
                 logger.error(err)
-                
+                response = JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message":err, "error_details": []})
+                return response
             # current ARI should be  an report set 
             if ari:
                 if type(ari.value) == ace.ari.ReportSet:                    
