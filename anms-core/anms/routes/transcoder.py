@@ -208,6 +208,7 @@ async def transcoder_send_ari_str(eid: str, ari: str):
         raise e
     except Exception as e:
         logger.exception(e)
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
