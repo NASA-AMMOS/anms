@@ -193,7 +193,7 @@ point. With ANMS running, go to `localhost:8080` and log in to the database with
 
 ### ADM and Agent Updates
 
-Changes to ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI.
+By default after building the system, ANMS starts with the ADMs defined in `deps/dtnma-adms` and ADMs added to `anms-core/extra_adms`. Changes to and adding new ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI or the REST POST endpoint `http://localhost:5555/adms/`.
 The manager will then be able to use the new ADM.
 
 Changes to a test Agent are more complicated, and require auto-generated C sources built into the ION source tree.

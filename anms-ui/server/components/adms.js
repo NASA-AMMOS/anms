@@ -131,5 +131,29 @@
       }
       return res.status(response.status).json(response.data);
   };
+  exports.loadDefault = async function (req, res, next) {
+      const usersReqHeader = utils.createAuthenticationHeader(req);
+      let requestUrl = utils.generateAnmsCoreUrl(["adms","load_default"]);
+      console.info("loadDefault requestUrl: ", requestUrl);
+     
+      const headers = {
+          ...usersReqHeader,
+          'Content-Type': 'multipart/form-data'
+      };
+      const response = await axios.post(requestUrl,
+          {
+              headers
+          }
+      ).catch(function (error) {
+        console.error("Upload file error: ", error.response.statusText)
+        return error.response
+      });
+      if (_.isNil(response) || _.isNil(response.data) || _.isNil(response.data.message)) {
+        response.status = 500;
+        console.error(response);
+        response.data = {"message": "Internal Server Error"};
+      }
+      return res.status(response.status).json(response.data);
+  };
 
 })();
