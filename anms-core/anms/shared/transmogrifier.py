@@ -91,7 +91,7 @@ class Transmorgifier:
                 if not comp.compare_adms(old_adm, adm_file):
                     issues = comp.get_errors()
                 else:
-                    issues = [f"Updating existing adm is not allowed yet"]
+                    issues = ["Updating existing adm is not allowed yet"]
                 return issues
 
         LOGGER.info("Inserting ADM name %s", adm_file.norm_name)
