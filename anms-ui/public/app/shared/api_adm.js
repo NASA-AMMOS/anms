@@ -53,8 +53,13 @@ const apiUpdateAdm = async (file) => {
     );
 };
 
+const apiLoadAdm = async () => {
+    return axios.post(adm_url+"/load_default", {headers: {accept: 'application/json'}})
+};
+
 export default {
     apiGetAdms,
     apiGetAdm,
-    apiUpdateAdm
+    apiUpdateAdm,
+    apiLoadAdm
 };
