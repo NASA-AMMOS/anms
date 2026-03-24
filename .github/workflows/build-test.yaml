@@ -24,13 +24,12 @@ jobs:
       AUTHNZ_PORT: 8084
       AUTHNZ_HTTPS_PORT: 8443
     steps:
-      # Test: Is this section required? CI warning implies it may not be getting evaluated now
-#      - name: Start Container Service
-#        if: ${{matrix.ctrmgr == 'podman'}}
-#        run: |
-#          systemctl --user start podman.socket
-#          systemctl --user enable podman.socket
-#          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+      - name: Start Container Service
+        if: ${{matrix.ctrmgr == 'podman'}}
+        run: |
+          systemctl --user start podman.socket
+          systemctl --user enable podman.socket
+          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
       - name: Versions
         run: |
           ${DOCKER_CMD} -v
