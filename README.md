@@ -52,7 +52,8 @@ If yes, do not rely on this README for operational guidance. Refer to the ANMS P
 
 **3. Are you a developer contributing to ANMS or setting up a development environment?**
 
-If yes, refer to both this Readme and the ANMS Wiki [Development Guide](https://github.com/NASA-AMMOS/anms/wiki/Development-Guide) for:
+If yes, refer to both this README and the ANMS Wiki [Development Guide](https://github.com/NASA-AMMOS/anms/wiki/Development-Guide) for:
+
 * Local development environment configuration
 * Testing workflows
 * Contribution guidelines
@@ -66,10 +67,10 @@ This section details prerequisites to installing the ANMS from source on a devel
 
 ### Software and OS Versions
 
-The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9  and Ubuntu 20.04.
+The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9 and Ubuntu 20.04.
 To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and Podman can generally be used interchangeably. 
 
-**NOTE:** `docker-compose` can be used with `podman`, and `docker-compose` is generally recommended for improved reliability over `podman-compose`, with some platforms (e.g. Mac) failing to startup correctly with Podman.  In all cases, recent versions of the installed compose tool are invoked with `podman compose` or `docker compose` as appropriate. 
+**NOTE:** `docker-compose` can be used with `podman`, and `docker-compose` is generally recommended for improved reliability over `podman-compose`, with some platforms (e.g. Mac) failing to start up correctly with Podman.  In all cases, recent versions of the installed compose tool are invoked with `podman compose` or `docker compose` as appropriate. 
 
 The ANMS UI should work on all modern browsers.
 
@@ -112,7 +113,7 @@ docker stop $(docker ps -q); docker rm $(docker ps --all -q); docker system prun
 
 The quickstart script will configure, pull, and start the ANMS system for the first time.  See comments in the script for additional details, including optional ENV variables to override default behavior.
 
-NOTICE: By default, quick start will pull pre-built containers from the github registry (ghcr.io). To force a rebuild, run it as `FORCE_REBULD=y ./quickstart.sh`. See the script header for details.
+NOTICE: By default, quick start will pull pre-built containers from the github registry (ghcr.io). To force a rebuild, run it as `FORCE_REBUILD=y ./quickstart.sh`. See the script header for details.
 
 To stop the system, use `podman compose -f testenv-compose.yml -f docker-compose.yml down`.
 
@@ -121,7 +122,7 @@ To start the system in the future, use `podman compose -f testenv-compose.yml up
 ## Manual Startup
 Choose the appropriate docker, podman, or podman-compose commands in the directions below as appropriate for your system.
 
-- Edit `.env` file as appropriately
+- Edit `.env` file as appropriate.
   - Select appropriate profile(s) as desired. 
     - Core ANMS services are always started.
     - The 'full' profile starts up all UI and related services.
@@ -142,7 +143,7 @@ Choose the appropriate docker, podman, or podman-compose commands in the directi
   - `docker compose -f docker-compose.yml build`
   - `podman compose -f docker-compose.yml build`
   - `podman-compose --podman-build-args='--format docker' -f docker-compose.yml build`
-    - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
+    - Note: The docker format argument here enables support for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
 - Build test environment images using one of the following:
   - `docker compose -f testenv-compose.yml build`
   - `podman compose -f testenv-compose.yml build`
@@ -193,7 +194,7 @@ point. With ANMS running, go to `localhost:8080` and log in to the database with
 
 ### ADM and Agent Updates
 
-Changes to ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI.
+By default after building the system, ANMS starts with the ADMs defined in `deps/dtnma-adms` and ADMs added to `anms-core/extra_adms`. Changes to and adding new ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI or the REST POST endpoint `http://localhost:5555/adms/`.
 The manager will then be able to use the new ADM.
 
 Changes to a test Agent are more complicated, and require auto-generated C sources built into the ION source tree.

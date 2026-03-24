@@ -259,6 +259,9 @@ COPY anms-core/anms/agent_parameter.json /usr/local/share/anms/agent_parameter.j
 RUN touch /usr/local/share/anms/alerts.json
 RUN chmod go+w  /usr/local/share/anms/alerts.json
 
+# adding extra ADMS added before build
+COPY anms-core/extra_adms /usr/local/share/ace/adms
+
 RUN setcap cap_net_raw=ep /usr/bin/ping
 COPY --chmod=755 anms-core/docker-entrypoint.sh /usr/local/bin/
 # Remaining commands as the local user

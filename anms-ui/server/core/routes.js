@@ -102,6 +102,8 @@
       router.get('/core/adms', userLimiter, adms.getAll);
       router.get('/core/adms/:adm_enum/:namespace', adms.getOne);
       router.post('/core/adms', userLimiter, upload.single('adm'), adms.upload);
+      router.post('/core/adms/load_default', userLimiter, upload.single('adm'), adms.loadDefault);
+
 
       // ---- Agents Routes ---- //
       const agents = require('../components/registeredAgents');
