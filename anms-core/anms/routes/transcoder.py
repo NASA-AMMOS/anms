@@ -170,7 +170,11 @@ def transcoder_put_str(input_ari: str):
 
 
 # PUT 	/ui/incoming_send/str 	Body is str ARI to send to transcoder
-@router.put("/ui/incoming_send/str", status_code=status.HTTP_200_OK)
+@router.put("/ui/incoming_send/str", status_code=status.HTTP_200_OK,
+            responses={
+                status.HTTP_500_INTERNAL_SERVER_ERROR: {"description" : "Error response from NM"},
+                status.HTTP_504_GATEWAY_TIMEOUT: {"description" : "Manager response timed out"}
+                       })
 async def transcoder_send_ari_str(eid: str, ari: str):
     try:
         # Perform translation (API wrapper)
@@ -187,13 +191,13 @@ async def transcoder_send_ari_str(eid: str, ari: str):
             if info.parsed_as != "pending":
                 break
             if retries <= 0:
-                raise HTTPException(status_code=504,
+                raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                                     detail={ "idinfo" : idinfo, "info" : info, "status" : "transcoder timeout" })
 
             retries -= 1
 
         if info.parsed_as == "ERROR":
-            raise HTTPException(status_code=500,
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                 detail={ "idinfo" : idinfo, "info" : info, "status" : 500 })
 
         # Publish
@@ -204,6 +208,7 @@ async def transcoder_send_ari_str(eid: str, ari: str):
         raise e
     except Exception as e:
         logger.exception(e)
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
