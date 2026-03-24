@@ -61,11 +61,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     ${PIP} install --upgrade 'pip~=24.0' 'pip-tools~=7.5'
 
 COPY deps/dtnma-ace /usr/src/dtnma-ace
-RUN \
+RUN --mount=type=cache,target=/root/.cache/pip \
     ${PIP} wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
 
 COPY deps/dtnma-camp /usr/src/dtnma-camp
-RUN \
+RUN --mount=type=cache,target=/root/.cache/pip \
     ${PIP} wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
 
 COPY deps/dtnma-adms /usr/src/dtnma-adms
@@ -244,13 +244,13 @@ ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
 COPY anms-core/pyproject.toml ${APP_WORK_DIR}/
-RUN \
+RUN --mount=type=cache,target=/root/.cache/pip \
     cd ${APP_WORK_DIR} && \
     pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml && \
     ${PIP} install  --ignore-installed  -r requirements.txt
 # Actual main package
 COPY anms-core/anms ${APP_WORK_DIR}/anms
-RUN \
+RUN --mount=type=cache,target=/root/.cache/pip \
     ${PIP} install ${APP_WORK_DIR}
 
 RUN mkdir -p /usr/local/share/ace && \
