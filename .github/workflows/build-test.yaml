@@ -55,8 +55,8 @@ jobs:
       - name: Start
         run: |
           # testenv started before
-          ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
+          BUILDAH_FORMAT=docker ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
+          BUILDAH_FORMAT=docker ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
       - name: Status
         if: always()
         run: |
