@@ -98,6 +98,23 @@ jobs:
               if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
               echo "ERROR: Timed out waiting for healthy containers"
               ${DOCKER_CMD} ps
+              
+              echo ""
+
+              echo "=== Failing container logs ==="
+
+              # Loop through failing containers and dump logs
+              echo "$UNHEALTHY" | while read -r line; do
+              NAME=$(echo "$line" | awk '{print $1}' | sed 's#^/##')
+
+              echo ""
+              echo "----- Logs for $NAME -----"
+              
+              # Try compose logs first (nicer formatting)
+              ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} logs --no-color "$NAME" || \
+              ${DOCKER_CMD} logs "$NAME" || \
+              echo "Unable to retrieve logs for $NAME"
+              done
               exit 1
               fi
               done
