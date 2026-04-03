@@ -22,8 +22,7 @@
 import time
 import asyncio
 
-from fastapi import APIRouter, Depends
-from fastapi import status
+from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 
@@ -144,7 +143,7 @@ async def transcoder_put_await_str(input_ari: str):
 def transcoder_incoming_str(input_ari: str):
     return _transcoder_put_str(input_ari)
 
-def _transcoder_put_str(input_ari: str):
+def transcoder_put_str(input_ari: str):
     input_ari = input_ari.strip()
     transcoder_log_id = None
     send_to_transcode = False
@@ -171,7 +170,11 @@ def _transcoder_put_str(input_ari: str):
 
 
 # PUT 	/ui/incoming_send/str 	Body is str ARI to send to transcoder
-@router.put("/ui/incoming_send/str", status_code=status.HTTP_200_OK)
+@router.put("/ui/incoming_send/str", status_code=status.HTTP_200_OK,
+            responses={
+                status.HTTP_500_INTERNAL_SERVER_ERROR: {"description" : "Error response from NM"},
+                status.HTTP_504_GATEWAY_TIMEOUT: {"description" : "Manager response timed out"}
+                       })
 async def transcoder_send_ari_str(eid: str, ari: str):
     try:
         # Perform translation (API wrapper)
@@ -188,18 +191,24 @@ async def transcoder_send_ari_str(eid: str, ari: str):
             if info.parsed_as != "pending":
                 break
             if retries <= 0:
-                return { "idinfo" : idinfo, "info" : info, "status" : 504 }
+                raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                                    detail={ "idinfo" : idinfo, "info" : info, "status" : "transcoder timeout" })
+
             retries -= 1
 
         if info.parsed_as == "ERROR":
-            return { "idinfo" : idinfo, "info" : info, "status" : 500 }
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                detail={ "idinfo" : idinfo, "info" : info, "status" : 500 })
 
         # Publish
         state = do_nm_put_hex_eid( eid, info.cbor )
-
         return { "idinfo" : idinfo, "info" : info, "status" : state }
+    except HTTPException as e:
+        e.detail = { "idinfo" : idinfo, "info" : info, "status" : e.status_code }
+        raise e
     except Exception as e:
         logger.exception(e)
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 

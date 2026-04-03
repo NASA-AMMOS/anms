@@ -176,6 +176,7 @@ RUN systemctl enable ion bpecho@4 refda-ion && \
     mkdir -p /var/run/ion
 
 # Runtime config for this container
+COPY deps/dtnma-tools/integration-test-ion/startup.uri /etc/refda/startup.uri
 COPY deps/test-ion-configs/agent-2.rc /etc/ion/node-2.rc
 COPY deps/test-ion-configs/agent-3.rc /etc/ion/node-3.rc
 
