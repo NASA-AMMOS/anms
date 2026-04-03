@@ -29,6 +29,7 @@ from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import LargeBinary
+from anms.shared.transmogrifier import TRANSMORGIFIER
 
 
 # class for vw_ctrl_definition used for build ari
@@ -47,7 +48,7 @@ class ExecutionSet(Model):
     def as_dict(self) -> Dict[str, Any]:
         dict_obj = {
                     'execution_set_id': getattr(self, 'execution_set_id'),
-                    'nonce_cbor': getattr(self, 'nonce_cbor'),        
+                    'nonce_cbor': TRANSMORGIFIER._ace_transcode_just_cbor("0x"+getattr(self, 'nonce_cbor').hex()),        
                     'use_desc': getattr(self, 'use_desc'),
                     'agent_id': getattr(self, 'agent_id'),
                     'num_entries': getattr(self, 'num_entries'),

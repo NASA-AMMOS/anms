@@ -8,21 +8,10 @@
     </div>
     <v-select 
         :options="rptts" 
-        label="exec_set"
+        label="ari"
         v-model="selected"
         @option:selected="onReportSelect()"></v-select>
-    <div v-for="(_, index) in tableItems" :key="index">
-      <b-table id="report-header" :items="tableHeaders[index]" thead-class="d-none"/>
-      <div class="scrollable-div">
-        <b-table 
-        bordered
-        striped
-        responsive
-        v-if="!loading && selected != -1"
-        id="report-table" :items="tableItems[index]" 
-        thead-class="d-none" />
-      </div>
-    </div>
+    <b-table striped responsive :items="reports"></b-table>
   </div>
 </template>
 
@@ -44,8 +33,11 @@ export default {
       tableHeaders: [],
       tableItems: [],
       title: "",
-      reports: {},
-      reportsHeader: {},
+      reports: [],
+      reportsHeader: [{ key: 'reference_time', label: 'Time', sortable: true },
+        { key: 'mgr_time', label: 'mgr_time', sortable: true },
+        { key: 'rpt_set_nonce', label: 'rpt_set_nonce' }
+      ],
       loading: true,
     }
   },
@@ -55,13 +47,12 @@ export default {
       this.tableHeaders = [];
       this.tableItems = [];
       this.loading = true;
-      let nonce_cbor = this.selected.nonce_cbor;
-    
-      await api.methods.apiEntriesForReport(this.registered_agents_id,encodeURIComponent(nonce_cbor))
+      let report_source = this.selected.cbor;
+      this.reports= [];
+      await api.methods.apiEntriesForReport(this.registered_agents_id,report_source)
         .then(res => {
-          this.processReport(res.data);
-          this.reports[this.selected] = this.tableItems;
-          this.reportsHeader[this.selected] = this.tableHeaders;
+          
+          this.reports = res.data;
         }).catch(error => {
           // handle error
           console.error("reports error", error);
@@ -70,49 +61,11 @@ export default {
     
       this.loading = false;
     },
-    processReport(report) {
-      let rpt = [];
-      if(this.selected.exec_set in report){
-        rpt = report[this.selected.exec_set];
-      }else{
-        rpt = report[this.selected.nonce_cbor];
-      }
-
-      let currTableItems = [];
-      // let holdHeader = rpt.shift();
-      
-      console.log(rpt);
-      
-      let holdHeader = Object.keys(rpt[0]);
-      console.log(holdHeader);
-      for (let item of rpt) {
-          let row = [];
-          for (let hI of holdHeader) {
-            row.push(item[hI]);
-          }
-          currTableItems.push(row.flat());
-          console.log(currTableItems);
-        }
-    
-      this.tableHeaders.push([holdHeader]);
-      this.tableItems.push(currTableItems);
-    }
   },
   computed: {
   },
   mounted() {
     this.loading = true;
-    this.rptts.forEach((rpt, index) => {
-      api.methods.apiEntriesForReport(this.registered_agents_id, rpt.nonce_cbor)
-        .then(res => {
-          this.reports[index] = res.data
-        }).catch(error => {
-          // handle error
-          console.error("reports error", error);
-          console.log("error obj:", error);
-
-        });
-    });
     this.loading = false;
   },
 }

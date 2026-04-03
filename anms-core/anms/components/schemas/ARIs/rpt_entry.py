@@ -32,12 +32,25 @@ class RptEntryBase(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    ari_rptset_id: Optional[str] = None
-    reference_time: Optional[datetime] = None
-    report_list: Optional[str] = None
+    ari_rptset_id: Optional[int] = None
+    reference_time: Optional[datetime] = None 
+    mgr_time: Optional[datetime] = None 
+    nonce_cbor: Optional[str] = None
+    time_offset: Optional[str] = None
+    report_source: Optional[str] = None
+    report_items: Optional[list] = None
+    
+# Shared properties
+class RptEntryFull(RptEntryBase):
+    class Config:
+        arbitrary_types_allowed = True
+        orm_mode = True
+
     agent_id: Optional[int] = None
-
-
+    ari_rptlist_id: Optional[int] = None
+    
+    
+    
 class RptEntryBaseInDBBase(RptEntryBase):
     class Config:
         orm_mode = True
