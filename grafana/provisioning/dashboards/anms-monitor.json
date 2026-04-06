@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -117,11 +117,12 @@
             "type": "postgres",
             "uid": "amp_core"
           },
+          "editorMode": "code",
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n   $__timeGroup(reference_time::timestamp,'1m') as time,\n  count(report_list) as value,\n  agent_endpoint_uri AS metric\nFROM ari_rptset join registered_agents on ari_rptset.agent_id = registered_agents.registered_agents_id\ngroup by 1, agent_endpoint_uri\norder by time asc",
+          "rawSql": "SELECT\n   $__timeGroup(reference_time::timestamp,'1m') as time,\n  count(report_items) as value,\n  agent_endpoint_uri AS metric\nFROM vw_ari_rpt_set join registered_agents on vw_ari_rpt_set.agent_id = registered_agents.registered_agents_id\ngroup by 1, agent_endpoint_uri\norder by time asc",
           "refId": "A",
           "select": [
             [
@@ -133,6 +134,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "timeColumn": "time",
           "where": [
             {
@@ -458,11 +476,12 @@
             "type": "postgres",
             "uid": "amp_core"
           },
+          "editorMode": "code",
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "-- all reports \nSELECT \n    reference_time,\n    agent_id, \n    report_list\nFROM\n    ari_rptset",
+          "rawSql": "-- all reports \nSELECT \n    reference_time,\n    mgr_time,\n    agent_id, \n    encode(time_offset,'hex') as time_offset,\n    encode(report_source,'hex') as report_source,\n    report_items\nFROM\n    vw_ari_rpt_set",
           "refId": "A",
           "select": [
             [
@@ -474,6 +493,23 @@
               }
             ]
           ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
           "timeColumn": "time",
           "where": [
             {
@@ -574,8 +610,7 @@
     },
     {
       "datasource": {
-        "type": "yesoreyeram-infinity-datasource",
-        "uid": "PA0935669E4DE7FB6"
+        "uid": "P1671BF01EA0D6F15"
       },
       "fieldConfig": {
         "defaults": {
@@ -583,7 +618,7 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
+            "axisBorderShow": true,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -601,12 +636,12 @@
             "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 1,
-            "pointSize": 5,
+            "pointSize": 3,
             "scaleDistribution": {
               "type": "linear"
             },
             "showPoints": "auto",
-            "showValues": false,
+            "showValues": true,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -616,6 +651,7 @@
               "mode": "off"
             }
           },
+          "fieldMinMax": true,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -642,10 +678,15 @@
       "id": 74,
       "options": {
         "legend": {
-          "calcs": [],
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "right",
-          "showLegend": true
+          "showLegend": true,
+          "sortBy": "First *",
+          "sortDesc": false
         },
         "tooltip": {
           "hideZeros": false,
@@ -657,55 +698,40 @@
       "targets": [
         {
           "columns": [],
-          "datasource": {
-            "type": "yesoreyeram-infinity-datasource",
-            "uid": "PA0935669E4DE7FB6"
-          },
+          "computed_columns": [],
           "filters": [],
           "format": "table",
           "global_query_id": "",
           "parser": "backend",
           "refId": "A",
-          "root_selector": "",
+          "root_selector": "$map(reports, function($v) {\n  $v.nestedArray.{\n    \"value\": \"col 0\"\n  }\n})\n",
           "source": "url",
           "type": "uql",
-          "uql": "parse-json\n    | scope \"b'\\\\x18{'\"\n    | extend  \"num_msg_rx\"=\"ari://ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/num-msg-rx).0\"\n    | extend \"num_msg_rx\"=split(\"num_msg_rx\",'/')\n    | extend \"num_msg_rx\"=\"num_msg_rx.2\"\n    | extend \"ipn_3_6\"=tonumber(\"num_msg_rx\")\n    | extend \"time\"=todatetime(\"time\")\n    | project \"time\", \"ipn_3_6\"\n    ",
-          "url": "1/b%27%5Cx18%7B%27",
+          "uql": "parse-json\n| mv-expand \"reports\"\n| mv-expand \"reports\"\n| extend \"reference_time\"=todatetime(\"reports.reference_time\")\n| extend \"num_msg_rx\"=\"reports.col 0\"\n| extend \"parts\"=split(\"num_msg_rx\",'/')\n| extend \"parts\"=\"parts[2]\"\n| extend \"num_msg_rx\"=toint(\"parts\") \n| extend \"time\"=\"reference_time\"\n| extend \"value\"=\"num_msg_rx\"\n| extend \"metric\"=\"agent\"\n| project   \"time\", \"value\", \"agent\"\n\n\n\n\n\n",
+          "url": "report/dictionary/search/eid/",
           "url_options": {
-            "data": "",
-            "method": "GET"
-          }
-        },
-        {
-          "columns": [],
-          "datasource": {
-            "type": "yesoreyeram-infinity-datasource",
-            "uid": "PA0935669E4DE7FB6"
-          },
-          "filters": [],
-          "format": "table",
-          "global_query_id": "",
-          "hide": false,
-          "parser": "backend",
-          "refId": "B",
-          "root_selector": "",
-          "source": "url",
-          "type": "uql",
-          "uql": "parse-json\n    | scope \"b'\\\\x18{'\"\n    | extend  \"num_msg_rx\"=\"ari://ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/num-msg-rx).0\"\n    | extend \"num_msg_rx\"=split(\"num_msg_rx\",'/')\n    | extend \"num_msg_rx\"=\"num_msg_rx.2\"\n    | extend \"ipn_2_6\"=tonumber(\"num_msg_rx\")\n    | extend \"time\"=todatetime(\"time\")\n    | project \"time\", \"ipn_2_6\"\n    ",
-          "url": "2/b%27%5Cx18%7B%27",
-          "url_options": {
-            "data": "",
-            "method": "GET"
+            "body_content_type": "application/json",
+            "body_type": "raw",
+            "data": "{\n  \"agent_eids\": [\n    \"ipn:2.6\",\"ipn:3.6\"\n  ],\n  \"source_cbors\": [\n    \"8564696574666b64746e6d612d6167656e742267696e7370656374818464696574666b64746e6d612d6167656e74236a6e756d2d6d73672d7278\"\n  ]\n}",
+            "method": "POST"
           }
         }
       ],
       "title": "ari://ietf/dtnma-agent/CTRL/inspect(//ietf/dtnma-agent/EDD/num-msg-rx)",
+      "transformations": [
+        {
+          "id": "prepareTimeSeries",
+          "options": {
+            "format": "multi"
+          }
+        }
+      ],
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "PA0935669E4DE7FB6"
+        "uid": "P1671BF01EA0D6F15"
       },
       "fieldConfig": {
         "defaults": {
@@ -719,9 +745,6 @@
             },
             "footer": {
               "reducers": []
-            },
-            "hideFrom": {
-              "viz": false
             },
             "inspect": false
           },
@@ -760,32 +783,25 @@
           "columns": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "PA0935669E4DE7FB6"
+            "uid": "P1671BF01EA0D6F15"
           },
           "filters": [],
-          "format": "table",
+          "format": "logs",
           "global_query_id": "",
           "parser": "backend",
           "refId": "A",
           "root_selector": "",
           "source": "url",
           "type": "uql",
-          "uql": "    parse-json\n    | scope \"ari://ietf/dtnma-agent/CONST/hello\"\n    | extend \"hello\"=array_to_map(\"ari://ietf/dtnma-agent/CONST/hello\",'sw_vendor','sw_version', 'capabilities')\n    | extend \"time\"=todatetime(\"time\")\n    | project \"time\", \"sw_vendor\"=\"hello.sw_vendor\", \"sw_version\"=\"hello.sw_version\", \"capabilities\"=\"hello.capabilities\"\n    | order by \"time\" desc\n",
-          "url": "http://anms-core:5555/report/entries/table/1/b%27%5Cxf6%27",
+          "uql": "    parse-json\n    ",
+          "url": "report/dictionary/eid/ipn%3A3.6/8401012100",
           "url_options": {
+            "body_content_type": "text/plain",
+            "body_type": "raw",
             "data": "",
             "headers": [],
             "method": "GET",
-            "params": [
-              {
-                "key": "agent_id",
-                "value": "1"
-              },
-              {
-                "key": "nonce_cbor",
-                "value": "b%27%5Cxf6%27"
-              }
-            ]
+            "params": []
           }
         }
       ],
@@ -801,12 +817,12 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Monitor Page",
-  "uid": "mwvijjmvk",
-  "version": 5
+  "uid": "mwvijjmvk2",
+  "version": 8
 }

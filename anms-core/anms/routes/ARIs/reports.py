@@ -227,16 +227,18 @@ async def reports_dictionary_by_name_and_report_source(agent_eid: str, source_cb
 async def reports_dictionary_by_search_idx(agent_idxs: list[int], source_cbors: list, start_time: datetime=None, end_time: datetime=None):
     reports = []
     for agent_idx in agent_idxs:
+        rpt_cur = []
         for source_cbor in source_cbors:
-            reports.append(await _report_from_id_source(agent_idx, source_cbor, start_time, end_time))
-    
+            rpt_cur.append(await _report_from_id_source(agent_idx, source_cbor, start_time, end_time))
+        reports.append({"agent": agent_idx, "reports": rpt_cur} )
     return reports 
 
 @router.post("/dictionary/search/eid/", status_code=status.HTTP_200_OK, response_model=list,
             tags=["REPORTS"])
 async def reports_dictionary_by_search_eid(agent_eids: list[str], source_cbors: list, start_time: datetime=None, end_time: datetime=None):
-    reports = [] 
+    reports = []
     for agent_eid in agent_eids:
+        rpt_cur = []
         agent_idx = None
         agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.agent_endpoint_uri == unquote(agent_eid))
         async with get_async_session() as session:
@@ -246,6 +248,6 @@ async def reports_dictionary_by_search_eid(agent_eids: list[str], source_cbors: 
             if(agent_idx):
                 agent_idx  = agent_idx.registered_agents_id
             for source_cbor in source_cbors:
-                reports.append(await _report_from_id_source(agent_idx, source_cbor, start_time, end_time))
-    
+                rpt_cur.append(await _report_from_id_source(agent_idx, source_cbor, start_time, end_time))
+        reports.append({"agent": agent_eid, "reports":rpt_cur} )
     return reports 
