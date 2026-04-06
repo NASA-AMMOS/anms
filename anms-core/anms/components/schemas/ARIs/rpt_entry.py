@@ -39,6 +39,7 @@ class RptEntryBase(BaseModel):
     time_offset: Optional[str] = None
     report_source: Optional[str] = None
     report_items: Optional[list] = None
+    report_item_indexes: Optional[list] = None
     
 # Shared properties
 class RptEntryFull(RptEntryBase):
