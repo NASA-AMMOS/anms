@@ -362,7 +362,7 @@ class TestPrimaryRoutes(BaseTest):
             req_headers={
                 'content-type': 'text/plain',
             },
-            req_data='ari:/EXECSET/n=1;(//ietf/dtnma-agent/CTRL/inspect)\r\n',
+            req_data='ari:/EXECSET/n=1;(ari://ietf/dtnma-agent/CTRL/inspect(ari://ietf/dtnma-agent/EDD/num-msg-rx))\r\n',
             resp_status=[200],
         )
 
