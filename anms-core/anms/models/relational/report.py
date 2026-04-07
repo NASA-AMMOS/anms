@@ -43,7 +43,7 @@ class Report(Model):
     agent_id	    = Column(Integer)
     ari_rptset_cbor	= Column(LargeBinary)
     ari_rptlist_id	= Column(Integer)
-    time_offset	    = Column(LargeBinary)
+    time_offset	    = Column(DateTime)
     report_source	= Column(LargeBinary)
     report_items	= Column(ARRAY(LargeBinary) )#bytea[] NULL	
     report_item_indexes	= Column(ARRAY(Integer))
@@ -51,7 +51,6 @@ class Report(Model):
     @orm.reconstructor
     def init_on_load(self):
         self.nonce_cbor =  TRANSMORGIFIER.transcode("0x"+getattr(self, 'nonce_cbor').hex())['uri']        
-        self.time_offset =  TRANSMORGIFIER.transcode("0x"+getattr(self, 'time_offset').hex())['uri']        
         self.report_source =  TRANSMORGIFIER.transcode("0x"+getattr(self, 'report_source').hex())['uri']
         self.report_items =  [TRANSMORGIFIER.transcode("0x"+x.hex())['uri'] for x in getattr(self, 'report_items')]
 
@@ -65,6 +64,7 @@ class Report(Model):
                     'nonce_cbor': getattr(self, 'nonce_cbor'),
                     'agent_id': getattr(self, 'agent_id'),       
                     'ari_rptlist_id': getattr(self, 'ari_rptlist_id'),
+                    'time_offset': getattr(self, 'time_offset'),
                     'report_source': getattr(self, 'report_source'),
                     'report_items': getattr(self, 'report_items'),
                     'report_item_indexes': getattr(self, 'report_item_indexes')

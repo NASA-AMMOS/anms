@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 0,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -481,7 +481,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "-- all reports \nSELECT \n    reference_time,\n    mgr_time,\n    agent_id, \n    encode(time_offset,'hex') as time_offset,\n    encode(report_source,'hex') as report_source,\n    report_items\nFROM\n    vw_ari_rpt_set",
+          "rawSql": "-- all reports \nSELECT \n    reference_time,\n    mgr_time,\n    agent_id, \n    time_offset,\n    encode(report_source,'hex') as report_source,\n    report_items\nFROM\n    vw_ari_rpt_set",
           "refId": "A",
           "select": [
             [
@@ -823,6 +823,6 @@
   "timepicker": {},
   "timezone": "",
   "title": "Monitor Page",
-  "uid": "mwvijjmvk2",
-  "version": 8
+  "uid": "mwvijjmvk",
+  "version": 2
 }

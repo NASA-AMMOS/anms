@@ -36,7 +36,7 @@ class RptEntryBase(BaseModel):
     reference_time: Optional[datetime] = None 
     mgr_time: Optional[datetime] = None 
     nonce_cbor: Optional[str] = None
-    time_offset: Optional[str] = None
+    time_offset: Optional[datetime] = None
     report_source: Optional[str] = None
     report_items: Optional[list] = None
     report_item_indexes: Optional[list] = None
