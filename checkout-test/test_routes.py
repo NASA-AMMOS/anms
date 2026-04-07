@@ -365,6 +365,7 @@ class TestPrimaryRoutes(BaseTest):
             req_data='ari:/EXECSET/n=1;(ari://ietf/dtnma-agent/CTRL/inspect(ari://ietf/dtnma-agent/EDD/num-msg-rx))',
             resp_status=[200],
         )
+        LOGGER.info(resp)
 
         # TODO this assumes any report is valid without filtering on nonce
         timer = Timer(5)
@@ -377,6 +378,7 @@ class TestPrimaryRoutes(BaseTest):
                 break
         self.assertEqual('text/uri-list', resp.headers.get('content-type'))
         text = resp.content.decode('utf8')
+        LOGGER.info(text)
         self.assertRegex(text, r'^ari:/RPTSET/n=1;.*')
 
 
