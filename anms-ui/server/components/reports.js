@@ -34,7 +34,7 @@
       // /entry/name/{agent_id}
       let obj_agent_id = req.params.obj_agent_id
       
-      const url = utils.generateAnmsCoreUrl(['report','entry','name', obj_agent_id]);
+      const url = utils.generateAnmsCoreUrl(['report','report_source','idx', obj_agent_id]);
       const aris = await axios.get(url);
       return res.status(200).json(aris.data);
     } catch (err) {
@@ -44,11 +44,10 @@
 
   exports.getReportEntriesByAgent = async function(req,res,next){
     try {
-      // /entry/values/{agent_id}/{ADM}/{report_name}
       let obj_agent_id = req.params.obj_agent_id
-      let correlator_nonce = encodeURIComponent(req.params.correlator_nonce)
+      let source_cbor = req.params.source_cbor
       
-      const url = utils.generateAnmsCoreUrl(['report','entries','table', obj_agent_id, correlator_nonce]);
+      const url = utils.generateAnmsCoreUrl(['report','dictionary','idx', obj_agent_id, source_cbor]);
       const name_entries = await axios.get(url);
       return res.status(200).json(name_entries.data);
     } catch (err) {
