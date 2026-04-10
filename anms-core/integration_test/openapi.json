@@ -2421,14 +2421,14 @@
                 }
             }
         },
-        "/report/all": {
+        "/report/page": {
             "get": {
                 "tags": [
                     "REPORTS",
                     "REPORTS"
                 ],
-                "summary": "Paged Report",
-                "operationId": "paged_report_report_all_get",
+                "summary": "Paged Reports",
+                "operationId": "paged_reports_report_page_get",
                 "parameters": [
                     {
                         "required": false,
@@ -2460,7 +2460,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Page_RptEntry_"
+                                    "$ref": "#/components/schemas/Page_RptEntryFull_"
                                 }
                             }
                         }
@@ -2478,24 +2478,24 @@
                 }
             }
         },
-        "/report/name/all": {
+        "/report/all": {
             "get": {
                 "tags": [
                     "REPORTS",
                     "REPORTS"
                 ],
-                "summary": "All Report Name",
-                "operationId": "all_report_name_report_name_all_get",
+                "summary": "All Reports",
+                "operationId": "all_reports_report_all_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "title": "Response All Report Name Report Name All Get",
+                                    "title": "Response All Reports Report All Get",
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/RptEntryBaseInDBBase"
+                                        "$ref": "#/components/schemas/RptEntryFull"
                                     }
                                 }
                             }
@@ -2504,22 +2504,22 @@
                 }
             }
         },
-        "/report/entry/name/{agent_id}": {
+        "/report/all/eid/{agent_eid}": {
             "get": {
                 "tags": [
                     "REPORTS",
                     "REPORTS"
                 ],
-                "summary": "Report Def By Id",
-                "operationId": "report_def_by_id_report_entry_name__agent_id__get",
+                "summary": "Reports Agent By Name",
+                "operationId": "reports_agent_by_name_report_all_eid__agent_eid__get",
                 "parameters": [
                     {
                         "required": true,
                         "schema": {
-                            "title": "Agent Id",
-                            "type": "integer"
+                            "title": "Agent Eid",
+                            "type": "string"
                         },
-                        "name": "agent_id",
+                        "name": "agent_eid",
                         "in": "path"
                     }
                 ],
@@ -2529,7 +2529,101 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "title": "Response Report Def By Id Report Entry Name  Agent Id  Get",
+                                    "title": "Response Reports Agent By Name Report All Eid  Agent Eid  Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/RptEntry"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/report/all/idx/{agent_idx}": {
+            "get": {
+                "tags": [
+                    "REPORTS",
+                    "REPORTS"
+                ],
+                "summary": "Reports Agent By Id",
+                "operationId": "reports_agent_by_id_report_all_idx__agent_idx__get",
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "title": "Agent Idx",
+                            "type": "integer"
+                        },
+                        "name": "agent_idx",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Reports Agent By Id Report All Idx  Agent Idx  Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/RptEntry"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/report/report_source/eid/{agent_eid}": {
+            "get": {
+                "tags": [
+                    "REPORTS",
+                    "REPORTS"
+                ],
+                "summary": "Reports Source Agent By Name",
+                "operationId": "reports_source_agent_by_name_report_report_source_eid__agent_eid__get",
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "title": "Agent Eid",
+                            "type": "string"
+                        },
+                        "name": "agent_eid",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Reports Source Agent By Name Report Report Source Eid  Agent Eid  Get",
                                     "type": "array",
                                     "items": {}
                                 }
@@ -2549,30 +2643,22 @@
                 }
             }
         },
-        "/report/entries/table/{agent_id}/{nonce_cbor}": {
+        "/report/report_source/idx/{agent_idx}/": {
             "get": {
                 "tags": [
+                    "REPORTS",
                     "REPORTS"
                 ],
-                "summary": "Report Ac",
-                "operationId": "report_ac_report_entries_table__agent_id___nonce_cbor__get",
+                "summary": "Reports Source Agent By Id",
+                "operationId": "reports_source_agent_by_id_report_report_source_idx__agent_idx___get",
                 "parameters": [
                     {
                         "required": true,
                         "schema": {
-                            "title": "Agent Id",
+                            "title": "Agent Idx",
                             "type": "integer"
                         },
-                        "name": "agent_id",
-                        "in": "path"
-                    },
-                    {
-                        "required": true,
-                        "schema": {
-                            "title": "Nonce Cbor",
-                            "type": "string"
-                        },
-                        "name": "nonce_cbor",
+                        "name": "agent_idx",
                         "in": "path"
                     }
                 ],
@@ -2581,7 +2667,251 @@
                         "description": "Successful Response",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "title": "Response Reports Source Agent By Id Report Report Source Idx  Agent Idx   Get",
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/report/dictionary/idx/{agent_idx}/{source_cbor}": {
+            "get": {
+                "tags": [
+                    "REPORTS",
+                    "REPORTS"
+                ],
+                "summary": "Reports Dictionary By Id And Report Source",
+                "operationId": "reports_dictionary_by_id_and_report_source_report_dictionary_idx__agent_idx___source_cbor__get",
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "title": "Agent Idx",
+                            "type": "integer"
+                        },
+                        "name": "agent_idx",
+                        "in": "path"
+                    },
+                    {
+                        "required": true,
+                        "schema": {
+                            "title": "Source Cbor",
+                            "type": "string"
+                        },
+                        "name": "source_cbor",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Reports Dictionary By Id And Report Source Report Dictionary Idx  Agent Idx   Source Cbor  Get",
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/report/dictionary/eid/{agent_eid}/{source_cbor}": {
+            "get": {
+                "tags": [
+                    "REPORTS",
+                    "REPORTS"
+                ],
+                "summary": "Reports Dictionary By Name And Report Source",
+                "operationId": "reports_dictionary_by_name_and_report_source_report_dictionary_eid__agent_eid___source_cbor__get",
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "title": "Agent Eid",
+                            "type": "string"
+                        },
+                        "name": "agent_eid",
+                        "in": "path"
+                    },
+                    {
+                        "required": true,
+                        "schema": {
+                            "title": "Source Cbor",
+                            "type": "string"
+                        },
+                        "name": "source_cbor",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Reports Dictionary By Name And Report Source Report Dictionary Eid  Agent Eid   Source Cbor  Get",
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/report/dictionary/search/idx/": {
+            "post": {
+                "tags": [
+                    "REPORTS",
+                    "REPORTS"
+                ],
+                "summary": "Reports Dictionary By Search Idx",
+                "operationId": "reports_dictionary_by_search_idx_report_dictionary_search_idx__post",
+                "parameters": [
+                    {
+                        "required": false,
+                        "schema": {
+                            "title": "Start Time",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "required": false,
+                        "schema": {
+                            "title": "End Time",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_reports_dictionary_by_search_idx_report_dictionary_search_idx__post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Reports Dictionary By Search Idx Report Dictionary Search Idx  Post",
+                                    "type": "array",
+                                    "items": {}
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/report/dictionary/search/eid/": {
+            "post": {
+                "tags": [
+                    "REPORTS",
+                    "REPORTS"
+                ],
+                "summary": "Reports Dictionary By Search Eid",
+                "operationId": "reports_dictionary_by_search_eid_report_dictionary_search_eid__post",
+                "parameters": [
+                    {
+                        "required": false,
+                        "schema": {
+                            "title": "Start Time",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "required": false,
+                        "schema": {
+                            "title": "End Time",
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_reports_dictionary_by_search_eid_report_dictionary_search_eid__post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Reports Dictionary By Search Eid Report Dictionary Search Eid  Post",
+                                    "type": "array",
+                                    "items": {}
+                                }
                             }
                         }
                     },
@@ -2957,6 +3287,12 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Error response from NM"
+                    },
+                    "504": {
+                        "description": "Manager response timed out"
+                    },
                     "422": {
                         "description": "Validation Error",
                         "content": {
@@ -3149,6 +3485,25 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/HTTPValidationError"
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/adms/load_default": {
+            "post": {
+                "tags": [
+                    "ADM"
+                ],
+                "summary": "Load Default Adm",
+                "operationId": "load_default_adm_adms_load_default_post",
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
                             }
                         }
                     }
@@ -3448,6 +3803,50 @@
                     "command_parameters": {
                         "title": "Command Parameters",
                         "type": "object"
+                    }
+                }
+            },
+            "Body_reports_dictionary_by_search_eid_report_dictionary_search_eid__post": {
+                "title": "Body_reports_dictionary_by_search_eid_report_dictionary_search_eid__post",
+                "required": [
+                    "agent_eids",
+                    "source_cbors"
+                ],
+                "type": "object",
+                "properties": {
+                    "agent_eids": {
+                        "title": "Agent Eids",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "source_cbors": {
+                        "title": "Source Cbors",
+                        "type": "array",
+                        "items": {}
+                    }
+                }
+            },
+            "Body_reports_dictionary_by_search_idx_report_dictionary_search_idx__post": {
+                "title": "Body_reports_dictionary_by_search_idx_report_dictionary_search_idx__post",
+                "required": [
+                    "agent_idxs",
+                    "source_cbors"
+                ],
+                "type": "object",
+                "properties": {
+                    "agent_idxs": {
+                        "title": "Agent Idxs",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "source_cbors": {
+                        "title": "Source Cbors",
+                        "type": "array",
+                        "items": {}
                     }
                 }
             },
@@ -4111,8 +4510,8 @@
                     }
                 }
             },
-            "Page_RptEntry_": {
-                "title": "Page[RptEntry]",
+            "Page_RptEntryFull_": {
+                "title": "Page[RptEntryFull]",
                 "required": [
                     "items",
                     "total",
@@ -4125,7 +4524,7 @@
                         "title": "Items",
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/RptEntry"
+                            "$ref": "#/components/schemas/RptEntryFull"
                         }
                     },
                     "total": {
@@ -4220,42 +4619,80 @@
                 "properties": {
                     "ari_rptset_id": {
                         "title": "Ari Rptset Id",
-                        "type": "string"
+                        "type": "integer"
                     },
                     "reference_time": {
                         "title": "Reference Time",
                         "type": "string",
                         "format": "date-time"
                     },
-                    "report_list": {
-                        "title": "Report List",
+                    "mgr_time": {
+                        "title": "Mgr Time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "nonce_cbor": {
+                        "title": "Nonce Cbor",
                         "type": "string"
                     },
-                    "agent_id": {
-                        "title": "Agent Id",
-                        "type": "integer"
+                    "time_offset": {
+                        "title": "Time Offset",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "report_source": {
+                        "title": "Report Source",
+                        "type": "string"
+                    },
+                    "report_items": {
+                        "title": "Report Items",
+                        "type": "array",
+                        "items": {}
                     }
                 }
             },
-            "RptEntryBaseInDBBase": {
-                "title": "RptEntryBaseInDBBase",
+            "RptEntryFull": {
+                "title": "RptEntryFull",
                 "type": "object",
                 "properties": {
                     "ari_rptset_id": {
                         "title": "Ari Rptset Id",
-                        "type": "string"
+                        "type": "integer"
                     },
                     "reference_time": {
                         "title": "Reference Time",
                         "type": "string",
                         "format": "date-time"
                     },
-                    "report_list": {
-                        "title": "Report List",
+                    "mgr_time": {
+                        "title": "Mgr Time",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "nonce_cbor": {
+                        "title": "Nonce Cbor",
                         "type": "string"
+                    },
+                    "time_offset": {
+                        "title": "Time Offset",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "report_source": {
+                        "title": "Report Source",
+                        "type": "string"
+                    },
+                    "report_items": {
+                        "title": "Report Items",
+                        "type": "array",
+                        "items": {}
                     },
                     "agent_id": {
                         "title": "Agent Id",
+                        "type": "integer"
+                    },
+                    "ari_rptlist_id": {
+                        "title": "Ari Rptlist Id",
                         "type": "integer"
                     }
                 }

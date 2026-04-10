@@ -46,7 +46,7 @@ class Report(Model):
     time_offset	    = Column(DateTime)
     report_source	= Column(LargeBinary)
     report_items	= Column(ARRAY(LargeBinary) )#bytea[] NULL	
-    report_item_indexes	= Column(ARRAY(Integer))
+
     # processing the raw cbor into an ari object
     @orm.reconstructor
     def init_on_load(self):
@@ -66,7 +66,6 @@ class Report(Model):
                     'ari_rptlist_id': getattr(self, 'ari_rptlist_id'),
                     'time_offset': getattr(self, 'time_offset'),
                     'report_source': getattr(self, 'report_source'),
-                    'report_items': getattr(self, 'report_items'),
-                    'report_item_indexes': getattr(self, 'report_item_indexes')
+                    'report_items': getattr(self, 'report_items')
                     }
         return dict_obj
