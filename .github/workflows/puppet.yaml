@@ -14,7 +14,7 @@ jobs:
     container: quay.io/centos/centos:stream9
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: false
       - name: Install dependencies
@@ -36,12 +36,12 @@ jobs:
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.192.0
+        uses: ruby/setup-ruby@v1.300.0
         with:
           ruby-version: 2.7
           bundler-cache: true
@@ -54,7 +54,7 @@ jobs:
 
       - name: Upload analysis results to GitHub
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: puppet-lint-results.sarif
           wait-for-processing: true

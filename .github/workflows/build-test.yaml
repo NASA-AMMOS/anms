@@ -25,7 +25,7 @@ jobs:
       AUTHNZ_HTTPS_PORT: 8443
     steps:
       - name: Start Container Service
-        if: ${{matrix.ctrmgr}} == 'podman'
+        if: ${{matrix.ctrmgr == 'podman'}}
         run: |
           systemctl --user start podman.socket
           systemctl --user enable podman.socket
@@ -35,7 +35,7 @@ jobs:
           ${DOCKER_CMD} -v
           ${DOCKER_CMD} compose -v
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Tag name env
