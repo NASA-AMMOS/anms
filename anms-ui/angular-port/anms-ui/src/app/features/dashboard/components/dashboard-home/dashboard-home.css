@@ -1,0 +1,18 @@
+.icon-with-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-dimensions {
+  width: 500px;
+  height: 230px;
+}
+
+details {
+  font-family: sans-serif;
+  width: 50%;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  margin: 0.5rem;
+}

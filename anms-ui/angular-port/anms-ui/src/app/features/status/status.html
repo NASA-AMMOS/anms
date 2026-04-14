@@ -1,0 +1,51 @@
+<div>
+  @if (serviceStatus.hasUpdateError()) {
+    <div class="d-flex justify-content-center mb-3">
+      <span class="badge bg-danger">{{ serviceStatus.updateError() }}</span>
+    </div>
+  }
+
+  @if (serviceStatus.hasData()) {
+    <table class="table table-striped table-hover table-bordered table-sm text-center">
+      <thead class="table-dark">
+      <tr>
+        <th class="text-info">Service Name</th>
+        <th class="text-info">Status</th>
+      </tr>
+      </thead>
+      <tbody>
+        @if (serviceStatus.errorServices()) {
+          @for (errorService of serviceStatus.errorServices() | keyvalue: utils.sortKeyValueRecords; track errorService.key) {
+            <tr>
+              <td>{{ errorService.key }}</td>
+              <td class="text-danger">{{ errorService.value }}</td>
+            </tr>
+          }
+        }
+
+        @for (normalService of serviceStatus.normalServices() | keyvalue: utils.sortKeyValueRecords; track normalService.key) {
+          <tr>
+            <td>{{ normalService.key }}</td>
+            <td class="text-success">{{ normalService.value }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (serviceStatus.loading()) {
+    <div class="d-flex justify-content-center mt-3">
+      <div class="spinner-grow text-info" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  <div class="d-flex justify-content-center mt-3">
+    <button
+      (click)="updateServiceStatus()"
+      class="btn btn-info btn-sm">
+      Check Service Status
+    </button>
+  </div>
+</div>

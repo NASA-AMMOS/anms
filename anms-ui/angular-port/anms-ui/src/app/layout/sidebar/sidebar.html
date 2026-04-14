@@ -1,0 +1,113 @@
+<div class="" [ngClass]="{'nav-bar-width': showNavTitle, 'nav-bar-width-collapsed': !showNavTitle}"
+     [style.height]="'90%'">
+  <mat-nav-list>
+    <a mat-list-item [activated]="RoutesEnum.HOME === dataShareService.breadcrumbs()" routerLink="home"
+       (click)="$event.preventDefault();"
+       [matTooltip]="!showNavTitle ? 'Dashboard home' : ''" [matTooltipPosition]="'right'">
+      <mat-icon matListItemIcon>dashboard</mat-icon>
+      @if (showNavTitle) {
+        <span class="fade-in" matListItemTitle>Dashboard</span>
+      }
+    </a>
+
+
+    <div class="ps-4" [matTooltip]="!showNavTitle ? 'Management' : ''" [matTooltipPosition]="'right'">
+      <details (click)="showNavTitle = true;">
+        <summary>
+          @if (showNavTitle) {
+            <span class="ps-3 list-item-title">Management</span>
+          }
+        </summary>
+        <div class="ps-4">
+          <a mat-list-item [activated]="RoutesEnum.AGENTS === dataShareService.breadcrumbs()" routerLink="agents"
+             (click)="$event.preventDefault();"
+             [matTooltip]="!showNavTitle ? 'Agents' : ''" [matTooltipPosition]="'right'">
+            <mat-icon matListItemIcon>engineering</mat-icon>
+            @if (showNavTitle) {
+              <span class="fade-in" matListItemTitle>Agents</span>
+            }
+          </a>
+
+          <a mat-list-item [activated]="RoutesEnum.BUILD === dataShareService.breadcrumbs()" routerLink="builder"
+             (click)="$event.preventDefault();"
+             [matTooltip]="!showNavTitle ? 'Build' : ''" [matTooltipPosition]="'right'">
+            <mat-icon matListItemIcon>build</mat-icon>
+            @if (showNavTitle) {
+              <span class="fade-in" matListItemTitle>Build</span>
+            }
+          </a>
+
+          <a mat-list-item [activated]="RoutesEnum.MONITOR === dataShareService.breadcrumbs()" routerLink="monitor"
+             (click)="$event.preventDefault();"
+             [matTooltip]="!showNavTitle ? 'Monitor' : ''" [matTooltipPosition]="'right'">
+            <mat-icon matListItemIcon>query_stats</mat-icon>
+            @if (showNavTitle) {
+              <span class="fade-in" matListItemTitle>Monitor</span>
+            }
+          </a>
+        </div>
+      </details>
+    </div>
+
+
+      <a mat-list-item [activated]="RoutesEnum.STATUS === dataShareService.breadcrumbs()" routerLink="status"
+       (click)="$event.preventDefault();"
+       [matTooltip]="!showNavTitle ? 'Status' : ''" [matTooltipPosition]="'right'">
+      <mat-icon matListItemIcon class="status-icon-indicator" [ngClass]="{
+      'text-bg-success': !serviceStatus.hasUpdateError(),
+      'text-bg-danger': serviceStatus.hasUpdateError(),
+      'spinner-grow spinner-grow-sm text-bg-dark': serviceStatus.loading()
+      }">
+        checklist
+      </mat-icon>
+      @if (showNavTitle) {
+        <span class="fade-in" matListItemTitle>Status</span>
+      }
+
+      <span [ngClass]="{'ps-2': showNavTitle}">
+      @if (!serviceStatus.loading()) {
+        @if (serviceStatus.hasUpdateError()) {
+          <span class="badge text-bg-danger">{{ serviceStatus.numberErrorServices() }}</span>
+        } @else {
+          <span class="badge text-bg-success">Good</span>
+        }
+      }
+      </span>
+
+
+    </a>
+
+    <a mat-list-item [activated]="RoutesEnum.ADMS === dataShareService.breadcrumbs()" routerLink="adms"
+       (click)="$event.preventDefault();"
+       [matTooltip]="!showNavTitle ? 'Application Data Models' : ''" [matTooltipPosition]="'right'">
+      <mat-icon matListItemIcon>schema</mat-icon>
+      @if (showNavTitle) {
+        <span class="fade-in" matListItemTitle>ADMs</span>
+      }
+    </a>
+
+    <a mat-list-item [activated]="RoutesEnum.HELP === dataShareService.breadcrumbs()" routerLink="help"
+       (click)="$event.preventDefault();"
+       [matTooltip]="!showNavTitle ? 'Help' : ''" [matTooltipPosition]="'right'">
+      <mat-icon matListItemIcon>help</mat-icon>
+      @if (showNavTitle) {
+        <span class="fade-in" matListItemTitle>Help</span>
+      }
+    </a>
+
+    <div class="pb-2 pt-2">
+      <mat-divider></mat-divider>
+    </div>
+
+    <a mat-list-item [activated]="false" href="#"
+       (click)="$event.preventDefault(); showNavTitle = !showNavTitle; (!showNavTitle ? this.managementDetails.open = false : '')"
+       [matTooltip]="showNavTitle ? 'Collapse navigation bar' : 'Expan navigation bar'">
+      @if (showNavTitle) {
+        <mat-icon matListItemIcon>navigate_before</mat-icon>
+      } @else {
+        <mat-icon matListItemIcon>navigate_next</mat-icon>
+      }
+    </a>
+  </mat-nav-list>
+
+</div>

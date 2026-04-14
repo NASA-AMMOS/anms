@@ -1,0 +1,73 @@
+<div>
+  <h5>Reports sent:</h5>
+
+  <!-- Loading spinner -->
+  @if (loading) {
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  }
+
+  <div class="select-max-width mb-3">
+    <select
+      class="form-select"
+      [(ngModel)]="selected"
+      (change)="onReportSelect()"
+      [ngModelOptions]="{ standalone: true }"
+    >
+      <option [ngValue]="undefined">Select a report</option>
+      @for (rpt of rptts; track rpt) {
+        <option [ngValue]="rpt">
+          {{ rpt.exec_set }}
+        </option>
+      }
+    </select>
+  </div>
+
+  <!-- Tables -->
+  @for (_ of tableItems; track _; let index = $index) {
+    <ng-container>
+      <!-- header table (Bootstrap 5 table) -->
+      <div class="spacing-table">
+        <table class="table table-bordered table-striped mb-0">
+          <thead class="d-none">
+          <tr>
+            @for (header of tableHeaders[index]; track header) {
+              <th>
+                {{ header }}
+              </th>
+            }
+          </tr>
+          </thead>
+        </table>
+      </div>
+
+      <div class="scrollable-div">
+        @if (!loading && selected) {
+          <table class="table table-bordered table-striped mb-0">
+            <thead class="d-none">
+              @for (header of tableHeaders[index]; track header) {
+                <tr>
+                  <th>
+                    {{ header }}
+                  </th>
+                </tr>
+              }
+            </thead>
+            <tbody>
+              @for (row of tableItems[index]; track row) {
+                <tr>
+                  @for (cell of row; track cell) {
+                    <td>
+                      {{ cell }}
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </ng-container>
+  }
+</div>
