@@ -131,7 +131,7 @@ export class ApiService {
   }
 
   public apiDeregister(nodeEID: any): Observable<any> {
-    return this.http.get('nm/agents', nodeEID);
+    return this.http.get('/api/nm/agents', nodeEID);
   }
 
   public apiEntriesForReport(obj_agent_id: any, correlator_nonce: any): Observable<any> {
@@ -139,36 +139,35 @@ export class ApiService {
   }
 
   public apiEntriesForReportTemplate(agentId: any): Observable<any> {
-    console.log("agentId: ", agentId);
     return this.http.get(`/api/report/entry/name/${agentId}`);
   }
 
   public apiEntriesForOperations(agentId: any): Observable<any> { // get the names of crude operations
-    return this.http.get(`agents/parameter/name/${agentId}`);
+    return this.http.get(`/api/agents/parameter/name/${agentId}`);
   }
 
   public apiPutCRUD(agentId: any, optId: any, params: any): Observable<any> {
-    return this.http.put(`agents/parameter/send/${agentId}/${optId}`, params);
+    return this.http.put(`/api/agents/parameter/send/${agentId}/${optId}`, params);
   }
 
   public apiBuildControl(nodeEID: any): Observable<any> {
-    return this.http.put('nm/agents', nodeEID, {headers: {},});
+    return this.http.put('/api/nm/agents', nodeEID, {headers: {},});
   }
 
   public apiSendRawCommand(nodeEID: any, command: any): Observable<any> {
-    return this.http.put('nm/agents/eid/' + nodeEID + '/hex', {"data": command});
+    return this.http.put('/api/nm/agents/eid/' + nodeEID + '/hex', {"data": command});
   }
 
   public apiPrintAgentReports(nodeEID: any): Observable<any> {
-    return this.http.get('nm/agents/eid/' + nodeEID + '/reports/json');
+    return this.http.get('/api/nm/agents/eid/' + nodeEID + '/reports/json');
   }
 
   public apiClearAgentReports(nodeEID: any): Observable<any> {
-    return this.http.put('nm/agents/eid/' + nodeEID + '/clear_reports', null);
+    return this.http.put('/api/nm/agents/eid/' + nodeEID + '/clear_reports', null);
   }
 
   public apiClearAgentTables(nodeEID: any): Observable<any> {
-    return this.http.put('nm/agents/eid/' + nodeEID + '/clear_tables', null);
+    return this.http.put('/api/nm/agents/eid/' + nodeEID + '/clear_tables', null);
   }
 
   public apiWriteAgentReportstofile(nodeEID: any): Observable<any> {

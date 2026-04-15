@@ -79,7 +79,6 @@ export class AgentsService {
       this.api.apiEntriesForReportTemplate(registered_agents_id).pipe(first()).subscribe({
         next: rres => {
           this.rptt.set(rres);
-          console.log("get agent rptt", this.rptt());
         },
         error: err => {
           console.error("get agent rptt error", err);

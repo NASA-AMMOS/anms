@@ -37,9 +37,6 @@ export class AgentModal implements OnInit {
 
   protected agentInfo: AgentInfo;
 
-  protected rptt: ReportOption[] = [];
-  protected operations: Operation[] = [];
-
   constructor(
     private dialogRef: MatDialogRef<AgentModal>,
     @Inject(MAT_DIALOG_DATA) public data: AgentInfo,
@@ -52,9 +49,6 @@ export class AgentModal implements OnInit {
       this.agentsService.setAgentId(this.agentInfo.registered_agents_id);
       this.agentsService.reloadAgent();
     }
-
-    this.rptt = this.agentsService.rptt();
-    this.operations = this.agentsService.operations();
   }
 
   close(): void {

@@ -45,19 +45,15 @@
       </div>
     </div>
 
-    RPTT: {{rptt}}
-
     <app-reports
       [agentName]="agentInfo.agent_endpoint_uri"
-      [rptts]="rptt"
+      [rptts]="this.agentsService.getRptt()"
       [registeredAgentsId]="agentInfo.registered_agents_id">
     </app-reports>
 
-    <!-- <crud :agentId="agentInfo.registered_agents_id"
-               :Operations="operations"/> -->
     <app-crud
       [agentId]="agentInfo.registered_agents_id"
-      [operations]="operations">
+      [operations]="this.agentsService.getOperations()">
     </app-crud>
   </mat-dialog-content>
 }

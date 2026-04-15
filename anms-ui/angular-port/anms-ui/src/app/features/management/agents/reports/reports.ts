@@ -32,11 +32,11 @@ export class Reports implements OnInit {
   reportsHeader: Record<string, any> = {};
   loading = true;
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
     this.loading = true;
-    console.log('rptts', this.rptts);
 
     // preload all reports like in mounted()
     const preloadPromises = this.rptts.map((rpt, index) =>
@@ -44,7 +44,6 @@ export class Reports implements OnInit {
         .apiEntriesForReport(this.registeredAgentsId, rpt.nonce_cbor)
         .subscribe({
           next: (res: any) => {
-            console.log('report', index, res);
             this.reports[index] = res;
           }, error: (error: any) => {
             console.error('reports error', error);
@@ -70,16 +69,16 @@ export class Reports implements OnInit {
     const nonce_cbor = this.selected.nonce_cbor;
 
     try {
-      const res: any = this.apiService.apiEntriesForReport(
+      this.apiService.apiEntriesForReport(
         this.registeredAgentsId,
         encodeURIComponent(nonce_cbor)
-      );
+      ).subscribe((res) => {
+        this.processReport(res);
 
-      this.processReport(res.data);
-
-      const key = JSON.stringify(this.selected);
-      this.reports[key] = this.tableItems;
-      this.reportsHeader[key] = this.tableHeaders;
+        const key = JSON.stringify(this.selected);
+        this.reports[key] = this.tableItems;
+        this.reportsHeader[key] = this.tableHeaders;
+      });
     } catch (error: any) {
       console.error('reports error', error);
       this.toastr.error('reports error: ' + error);

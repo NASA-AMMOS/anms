@@ -29,7 +29,6 @@ export class ApiAdmService {
   public apiUpdateAdm(file:  File): Observable<any> {
     const auth_headers = this.createAuthenticationHeader();
     const formData = new FormData();
-    console.log(file);
 
     formData.append('adm', file);
     const headers = {

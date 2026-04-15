@@ -35,7 +35,6 @@ export class Adms implements AfterViewInit {
     }
     else if (!_.isNil(this.admService.uploadStatus()) && this.admService.uploadStatus() !== '') {
       // toastr.success(this.uploadStatus);uploadStatus
-      console.log(this.admService.uploadStatus());
       this.admService.getAdms();
     }
   }
