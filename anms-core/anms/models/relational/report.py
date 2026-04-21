@@ -43,7 +43,7 @@ class Report(Model):
     agent_id	    = Column(Integer)
     ari_rptset_cbor	= Column(LargeBinary)
     ari_rptlist_id	= Column(Integer)
-    time_offset	    = Column(DateTime)
+    agent_time	    = Column("time_offset", DateTime)
     report_source	= Column(LargeBinary)
     report_items	= Column(ARRAY(LargeBinary) )#bytea[] NULL	
 
@@ -64,7 +64,7 @@ class Report(Model):
                     'nonce_cbor': getattr(self, 'nonce_cbor'),
                     'agent_id': getattr(self, 'agent_id'),       
                     'ari_rptlist_id': getattr(self, 'ari_rptlist_id'),
-                    'time_offset': getattr(self, 'time_offset'),
+                    'agent_time': getattr(self, 'agent_time'),
                     'report_source': getattr(self, 'report_source'),
                     'report_items': getattr(self, 'report_items')
                     }
