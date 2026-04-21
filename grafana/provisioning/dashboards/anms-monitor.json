@@ -251,25 +251,24 @@
     },
     {
       "datasource": {
-        "type": "postgres",
-        "uid": "amp_core"
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "P1671BF01EA0D6F15"
       },
       "description": "table for displaying all received reports ",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "align": "left",
+            "align": "auto",
             "cellOptions": {
               "type": "auto"
             },
             "footer": {
               "reducers": []
             },
-            "inspect": false,
-            "minWidth": 100
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -292,156 +291,91 @@
               "id": "byName",
               "options": "real64_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 50
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "real32_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 35
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "int_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 15
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "vast_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 33
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "obj_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 17
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "ac_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 29
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "tnvc_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 0
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "uvast_values"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 126
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "report_id"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 62
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "adm_name"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 100
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "obj_name"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 123
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "agent_id_string"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 114
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "time"
             },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 155
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
@@ -451,9 +385,16 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 160
+                "value": 189
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "items"
+            },
+            "properties": []
           }
         ]
       },
@@ -472,52 +413,58 @@
       "pluginVersion": "12.3.0",
       "targets": [
         {
-          "datasource": {
-            "type": "postgres",
-            "uid": "amp_core"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "group": [],
-          "metricColumn": "none",
-          "rawQuery": true,
-          "rawSql": "-- all reports \nSELECT \n    reference_time,\n    mgr_time,\n    agent_id, \n    time_offset,\n    encode(report_source,'hex') as report_source,\n    report_items\nFROM\n    vw_ari_rpt_set",
-          "refId": "A",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "column"
-              }
-            ]
-          ],
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          },
-          "timeColumn": "time",
-          "where": [
+          "columns": [
             {
-              "name": "$__timeFilter",
-              "params": [],
-              "type": "macro"
+              "selector": "agent_time",
+              "text": "",
+              "type": "string"
+            },
+            {
+              "selector": "agent_id",
+              "text": "",
+              "type": "string"
+            },
+            {
+              "selector": "nonce_cbor",
+              "text": "",
+              "type": "string"
+            },
+            {
+              "selector": "report_source",
+              "text": "",
+              "type": "string"
+            },
+            {
+              "selector": "report_items",
+              "text": "",
+              "type": "string"
             }
-          ]
+          ],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "P1671BF01EA0D6F15"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "pagination_mode": "none",
+          "pagination_param_page_field_name": "page",
+          "pagination_param_page_field_type": "body_data",
+          "pagination_param_page_value": 1,
+          "pagination_param_size_field_name": "size",
+          "pagination_param_size_field_type": "body_data",
+          "pagination_param_size_value": 5,
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "uql": "parse-json",
+          "url": "report/all",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
         }
       ],
       "title": "Recieved Reports",
@@ -824,5 +771,5 @@
   "timezone": "",
   "title": "Monitor Page",
   "uid": "mwvijjmvk",
-  "version": 2
+  "version": 1
 }

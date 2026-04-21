@@ -43,7 +43,7 @@ class Report(Model):
     agent_id	    = Column(Integer)
     ari_rptset_cbor	= Column(LargeBinary)
     ari_rptlist_id	= Column(Integer)
-    agent_time	    = Column("time_offset", DateTime)
+    agent_time	    = Column( DateTime)
     report_source	= Column(LargeBinary)
     report_items	= Column(ARRAY(LargeBinary) )#bytea[] NULL	
 
