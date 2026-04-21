@@ -66,18 +66,16 @@
         <tbody>
 
           @for (agent of agentsService.currentAgents(); track agent) {
-            <!--            <tr (click)="goToAgentDetails(agent)">-->
-            <tr (click)="goToAgentDetails(agent)">
+            <tr>
               <td class="text-center">
                 <input type="checkbox"
                        [checked]="agent.selected"
 
                 />
-                <!--            (click)="selectAgent($event, agent); $event.stopPropagation()"-->
               </td>
-              <td>{{ agent.agent_endpoint_uri }}</td>
-              <td>{{ agent.first_registered }}</td>
-              <td>{{ agent.last_registered }}</td>
+              <td (click)="goToAgentDetails(agent)">{{ agent.agent_endpoint_uri }}</td>
+              <td (click)="goToAgentDetails(agent)">{{ agent.first_registered }}</td>
+              <td (click)="goToAgentDetails(agent)">{{ agent.last_registered }}</td>
             </tr>
           }
         </tbody>

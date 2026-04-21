@@ -16,6 +16,7 @@ Environment setup is done with `src/environments` `environment.ts` for deploymen
 - Install all required dependency defined under `package.json` with `npm install`
   - Note that npm requires `node v22.12.0`
   - All modules are installed under `node_modules` directory
+  - Install `ng` globally with `npm install -g @angular/cli`
 - Run anms-ui with `ng serve`
   - Open web app in a browser `localhost:4200`
 
