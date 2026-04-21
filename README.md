@@ -53,6 +53,7 @@ If yes, do not rely on this README for operational guidance. Refer to the ANMS P
 **3. Are you a developer contributing to ANMS or setting up a development environment?**
 
 If yes, refer to both this README and the ANMS Wiki [Development Guide](https://github.com/NASA-AMMOS/anms/wiki/Development-Guide) for:
+
 * Local development environment configuration
 * Testing workflows
 * Contribution guidelines

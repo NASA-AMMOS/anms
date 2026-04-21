@@ -56,11 +56,73 @@ jobs:
         run: |
           # testenv started before
           ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 600
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate
+      - name: Wait for containers to become healthy
+        run: |
+              set -e
+
+              TIMEOUT=600
+              INTERVAL=5
+              ELAPSED=0
+
+              echo "Waiting for containers to become healthy (timeout: ${TIMEOUT}s)..."
+
+              while true; do
+              # Get all running container IDs
+              CONTAINERS=$(${DOCKER_CMD} ps -q)
+
+              if [ -z "$CONTAINERS" ]; then
+              echo "No running containers found yet..."
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+              continue
+              fi
+
+              # Check health status (ignore containers without healthchecks)
+              UNHEALTHY=$(${DOCKER_CMD} inspect \
+              --format '{{if .State.Health}}{{.Name}} {{.State.Health.Status}}{{end}}' \
+              $CONTAINERS | grep -v ' healthy' || true)
+
+              if [ -z "$UNHEALTHY" ]; then
+              echo "All containers are healthy ✅"
+              break
+              fi
+
+              echo "Still waiting on:"
+              echo "$UNHEALTHY"
+              echo "---"
+
+              sleep $INTERVAL
+              ELAPSED=$((ELAPSED + INTERVAL))
+
+              if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+              echo "ERROR: Timed out waiting for healthy containers"
+              ${DOCKER_CMD} ps
+              
+              echo ""
+
+              echo "=== Failing container logs ==="
+
+              # Loop through failing containers and dump logs
+              echo "$UNHEALTHY" | while read -r line; do
+              NAME=$(echo "$line" | awk '{print $1}' | sed 's#^/##')
+
+              echo ""
+              echo "----- Logs for $NAME -----"
+              
+              # Try compose logs first (nicer formatting)
+              ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} logs --no-color "$NAME" || \
+              ${DOCKER_CMD} logs "$NAME" || \
+              echo "Unable to retrieve logs for $NAME"
+              done
+              exit 1
+              fi
+              done
       - name: Status
         if: always()
         run: |
           ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps
+          ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} ps
           for BADSTATUS in stopped restarting; do
             ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} ps --services --filter status=${BADSTATUS} | tee -a /tmp/notgood
           done

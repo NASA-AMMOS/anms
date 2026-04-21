@@ -150,8 +150,9 @@ COPY --chown=${APP_USER}:${APP_USER} \
 CMD ["pm2-docker", "process.yml", "--env", "production"]
 EXPOSE 9030
 
-HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
-    CMD ["pm2", "pid", "anms"]
+# Disable healthcheck for CI debug experiment
+#HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
+#    CMD ["pm2", "pid", "anms"]
 
 
 # Local grafana configuration

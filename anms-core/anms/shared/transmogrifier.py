@@ -59,12 +59,14 @@ class Transmorgifier:
             LOGGER.info(f'Connecting to SQL DB at {db_uri}')
             self._dbeng = sqlalchemy.create_engine(db_uri)
             self.transcode = self._transcode_internal
+            self.transcode_direct = self._transcode_internal
             self.reload = self._reload_internal
             self._adm_reload(None)
         else:
             # setting up the MQTT server instead
             self.MQTT_CLIENT = anms.shared.mqtt_client.MQTT_CLIENT
             self.transcode = self._transcode_mqtt
+            self.transcode_direct = self._transcode_mqtt_direct
             self.reload = self._reload_mqtt 
     
     async def handle_adm(self, admset: ace.AdmSet, adm_file: ace.models.AdmModule, session, replace=True):
@@ -153,17 +155,31 @@ class Transmorgifier:
         LOGGER.info(f'PUBLISH to transcode/CoreFacing/Outgoing, msg = {msg}')
         self.MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
 
+    def _transcode_mqtt_direct(self, input):
+        msg = json.dumps({'uri': input})
+        LOGGER.info(f'PUBLISH to transcode/CoreFacing/Outgoing, msg = {msg}')
+        self.MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
+        return "pending"
+    
     def _transcode_internal(self, input):
-        self._ace_transcode(input)
-        
-        # picking up any stray items that didnt get translated
-        pending_uris = TranscoderLog.query.filter_by(parsed_as='pending').all()
-        for entrys in pending_uris:
-            try:
-                self._ace_transcode(entrys.input_string)
-            except Exception as err:
-                LOGGER.error('Failed to process pending entry: %s', err)
+        LOGGER.info(f"translating {input}")
+        ari = self._ace_transcode(input)
 
+        return ari
+
+    def _ace_transcode_just_cbor(self, input):
+        adms = ace.AdmSet()
+        dec = ace.ari_cbor.Decoder()
+        
+        in_text = input.strip()
+        in_bytes = ace.cborutil.from_hexstr(in_text)
+        ari = dec.decode(io.BytesIO(in_bytes))
+        enc = ace.ari_text.Encoder()
+        buf = io.StringIO()
+        enc.encode(ari, buf)
+        out_text = buf.getvalue()
+        return out_text
+    
     def _ace_transcode(self, input):
         # result object to fill in
         res_obj = {}
@@ -185,14 +201,15 @@ class Transmorgifier:
                 try:
                     in_bytes = ace.cborutil.from_hexstr(in_text)
                     dec = ace.ari_cbor.Decoder()
-                    ari = dec.decode(io.BytesIO(in_bytes))
-                    LOGGER.debug(f'decoded as ARI {ari}')
-                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari)
-                    
+                    ari_no_nn = dec.decode(io.BytesIO(in_bytes))
+                    LOGGER.debug(f'decoded as ARI {ari_no_nn}')
+                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
                 except Exception as err:
-                    raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
+                    LOGGER.error(f"Error decoding from `{in_text}`: {err}")
+                    ari = ari_no_nn
+
                 res_obj['cbor'] = in_text
-                res_obj['ari'] = f"{ari}"
+                res_obj['ari'] = ari
 
                 try:
                     enc = ace.ari_text.Encoder()
@@ -204,7 +221,8 @@ class Transmorgifier:
                         out_text = 'ari:' + out_text
                     LOGGER.debug(f'encoded as text {out_text}')
                 except Exception as err:
-                    raise RuntimeError(f"Error encoding from {ari}: {err}") from err
+                    LOGGER.error(f"Error encoding from {ari}: {err}")
+
                 res_obj['uri'] = out_text
 
             else:
@@ -213,11 +231,12 @@ class Transmorgifier:
                 
                 try:
                     dec = ace.ari_text.Decoder()
-                    ari = dec.decode(io.StringIO(in_text))
-                    LOGGER.debug(f'decoded as ARI {ari}')
-                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari)
+                    ari_no_nn = dec.decode(io.StringIO(in_text))
+                    LOGGER.debug(f'decoded as ARI {ari_no_nn}')
+                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
                 except Exception as err:
-                    raise RuntimeError(f"Error decoding from `{in_text}`: {err}") from err
+                    LOGGER.error(f"Error decoding from `{in_text}`: {err}")
+                    ari = ari_no_nn
                 
                 # rencoding ari to ensure using non nicknames
                 try:
@@ -230,10 +249,11 @@ class Transmorgifier:
                         out_text = 'ari:' + out_text
                     LOGGER.debug(f'encoded as text {out_text}')
                 except Exception as err:
-                    raise RuntimeError(f"Error encoding from {ari}: {err}") from err
+                    LOGGER.error(f"Error encoding from {ari}: {err}")
+                    
               
                 res_obj['uri'] = out_text
-                res_obj['ari'] = f"{ari}"
+                res_obj['ari'] = ari
 
                 try:
                     enc = ace.ari_cbor.Encoder()
@@ -243,7 +263,8 @@ class Transmorgifier:
                     hex_str = ace.cborutil.to_hexstr(buf.getvalue())
                     LOGGER.info(f'encoded as binary {hex_str}')
                 except Exception as err:
-                    raise RuntimeError(f"Error encoding from {ari}: {err}") from err
+                    LOGGER.error(f"Error encoding from {ari}: {err}")
+                    
                 res_obj['cbor'] = hex_str
         except Exception as err:
             res_obj['ari'] = f'Failed to process: {err}'
@@ -255,15 +276,14 @@ class Transmorgifier:
         with get_session() as session:
                 session.query(TranscoderLog).filter(TranscoderLog.input_string == input).update({
                     'parsed_as': res_obj['parsedAs'],
-                    'ari': json.dumps(res_obj['ari']),
+                    'ari': json.dumps(f"{res_obj['ari']}"),
                     'cbor': res_obj['cbor'],
                     'uri':  res_obj['uri']
                 })
                 session.commit()
         LOGGER.info(f'Response {res_obj}')
         
-        # client.publish('transcode/CodexFacing/Outgoing', json.dumps(res_obj))
-        # just  log it back into the database
+        return res_obj
 
        
 

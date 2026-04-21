@@ -196,11 +196,12 @@ services:
     ports:
       - "${ANMS_UI_HTTP_PORT:-9030}:9030"
       - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+# EXPERIMENTAL: Does anms-ui still show in list of pending containers without dependencies?
+#    depends_on:
+#      redis:
+#        condition: service_healthy
+#      postgres:
+#        condition: service_healthy
     environment:
       ENV_UI_VERSION: ${ANMS_VERSION}
       NET_BIND_INTERFACE: "0.0.0.0"
