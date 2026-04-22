@@ -23,7 +23,6 @@
 
 from camp.generators import (create_sql)
 from anms.shared.config import ConfigBuilder
-import asyncio
 import anms.shared.mqtt_client
 from anms.shared.opensearch_logger import OpenSearchLogger
 from anms.models.relational import get_session
@@ -34,7 +33,6 @@ from anms.routes.adms.adm_compare import (AdmCompare)
 
 import traceback
 import ace
-import io
 import io
 import json
 import sqlalchemy
@@ -48,10 +46,8 @@ LOGGER = OpenSearchLogger(__name__, log_console=True).logger
 class Transmorgifier:
 
     ''' The Transmogifier that can be configured to use an external or internal translator. '''
-    # args = config 
     def __init__(self, args):
         # if the transcoding in internal to core
-        LOGGER.info(config.Transcoder)
         self.adm_data = adm_data.AdmData
         self.data_model = data_model_view.DataModel
         if config.Transcoder == "Internal":
@@ -168,7 +164,6 @@ class Transmorgifier:
         return ari
 
     def _ace_transcode_just_cbor(self, input):
-        adms = ace.AdmSet()
         dec = ace.ari_cbor.Decoder()
         
         in_text = input.strip()
@@ -211,6 +206,7 @@ class Transmorgifier:
                 res_obj['cbor'] = in_text
                 res_obj['ari'] = ari
 
+                
                 try:
                     enc = ace.ari_text.Encoder()
                     buf = io.StringIO()
@@ -221,6 +217,7 @@ class Transmorgifier:
                         out_text = 'ari:' + out_text
                     LOGGER.debug(f'encoded as text {out_text}')
                 except Exception as err:
+                    out_text = "ERROR"
                     LOGGER.error(f"Error encoding from {ari}: {err}")
 
                 res_obj['uri'] = out_text
@@ -249,6 +246,7 @@ class Transmorgifier:
                         out_text = 'ari:' + out_text
                     LOGGER.debug(f'encoded as text {out_text}')
                 except Exception as err:
+                    out_text = "ERROR"
                     LOGGER.error(f"Error encoding from {ari}: {err}")
                     
               
@@ -263,6 +261,7 @@ class Transmorgifier:
                     hex_str = ace.cborutil.to_hexstr(buf.getvalue())
                     LOGGER.info(f'encoded as binary {hex_str}')
                 except Exception as err:
+                    hex_str = "ERROR"
                     LOGGER.error(f"Error encoding from {ari}: {err}")
                     
                 res_obj['cbor'] = hex_str
