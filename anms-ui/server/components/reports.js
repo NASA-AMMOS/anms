@@ -46,7 +46,6 @@ const { response } = require('express');
 
   exports.getReportEntriesByAgent = async function(req,res,next){
     try {
-      console.log(req.body);
       let obj_agent_id = req.params.obj_agent_id
       let source_cbors = req.body.data
       let body = {"agent_idxs": [obj_agent_id],"source_cbors": source_cbors}
