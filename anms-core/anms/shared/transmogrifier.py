@@ -205,7 +205,7 @@ class Transmorgifier:
                     LOGGER.debug(f'decoded as ARI {ari_no_nn}')
                     ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
                 except Exception as err:
-                    LOGGER.error(f"Error decoding from `{in_text}`: {err}")
+                    LOGGER.warning(f"Error decoding from `{in_text}`: {err} using no NN")
                     ari = ari_no_nn
 
                 res_obj['cbor'] = in_text
@@ -235,7 +235,7 @@ class Transmorgifier:
                     LOGGER.debug(f'decoded as ARI {ari_no_nn}')
                     ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
                 except Exception as err:
-                    LOGGER.error(f"Error decoding from `{in_text}`: {err}")
+                    LOGGER.warning(f"Error decoding from `{in_text}`: {err} using no NN")
                     ari = ari_no_nn
                 
                 # rencoding ari to ensure using non nicknames

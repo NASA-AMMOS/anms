@@ -25,19 +25,12 @@
 # for handling report set and exec set
 import ace
 
-import ast
-import asyncio
-
-from cachetools import LFUCache
 
 from fastapi import APIRouter, Depends
 from fastapi import status
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
-from fastapi.responses import JSONResponse
 from anms.shared.transmogrifier import TRANSMORGIFIER
-
-import io
 
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
@@ -143,7 +136,7 @@ async def _report_from_id_source(
                 if isinstance(report_source_ari["ari"].ident, ace.ari.LiteralARI):
                     if isinstance(report_source_ari["ari"].ident.value, list):
                         report_source_columns = []
-                        for val in report_source_ari.value:
+                        for val in report_source_ari["ari"].ident.value:
                             report_source_columns.append(val.ident.obj_id)
 
     # data_value
@@ -165,6 +158,7 @@ async def _report_from_id_source(
 
 async def _source_from_id(agent_idx: int):
     res = []
+    hold = {}
     if agent_idx:
         stmt = (
             select(Report.report_source).distinct().where(Report.agent_id == agent_idx)
@@ -172,12 +166,19 @@ async def _source_from_id(agent_idx: int):
         async with get_async_session() as session:
             result: Result = await session.scalars(stmt)
             for x in result.all():
-                res.append(
+                # compiling same ARR that have been stored using with or without NN 
+                curr_uri = TRANSMORGIFIER.transcode("0x" + x.hex())
+                hold.setdefault(curr_uri["uri"], []).append(x.hex())
+                # hold[curr_uri["uri"]] =  hold.get(curr_uri["uri"], []).append()
+        
+        for ari,cbor in hold.items():
+            res.append(
                     {
-                        "ari": TRANSMORGIFIER.transcode("0x" + x.hex())["uri"],
-                        "cbor": x.hex(),
+                        "ari": ari,
+                        "cbor": cbor,
                     }
                 )
+
     return res
 
 

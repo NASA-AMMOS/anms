@@ -20,6 +20,8 @@
  * subcontract 1658085.
  */
 
+const { response } = require('express');
+
 
  (function () {
   'use strict';
@@ -44,12 +46,14 @@
 
   exports.getReportEntriesByAgent = async function(req,res,next){
     try {
+      console.log(req.body);
       let obj_agent_id = req.params.obj_agent_id
-      let source_cbor = req.params.source_cbor
-      
-      const url = utils.generateAnmsCoreUrl(['report','dictionary','idx', obj_agent_id, source_cbor]);
-      const name_entries = await axios.get(url);
-      return res.status(200).json(name_entries.data);
+      let source_cbors = req.body.data
+      let body = {"agent_idxs": [obj_agent_id],"source_cbors": source_cbors}
+      // report/dictionary/search/eid/
+      const url = utils.generateAnmsCoreUrl(['report','dictionary', 'search', 'idx']); 
+        // obj_agent_id, source_cbor]);
+      await axios.post(url, body).then(response => {return res.status(200).json(response.data)});
     } catch (err) {
       return next(Boom.badGateway('Error Getting reports', err));
     }
