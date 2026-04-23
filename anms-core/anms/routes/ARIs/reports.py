@@ -166,10 +166,9 @@ async def _source_from_id(agent_idx: int):
         async with get_async_session() as session:
             result: Result = await session.scalars(stmt)
             for x in result.all():
-                # compiling same ARR that have been stored using with or without NN 
+                # compiling same URI that have been stored with or without NN
                 curr_uri = TRANSMORGIFIER.transcode("0x" + x.hex())
                 hold.setdefault(curr_uri["uri"], []).append(x.hex())
-                # hold[curr_uri["uri"]] =  hold.get(curr_uri["uri"], []).append()
         
         for ari,cbor in hold.items():
             res.append(

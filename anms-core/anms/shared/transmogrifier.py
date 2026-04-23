@@ -23,7 +23,6 @@
 
 from camp.generators import (create_sql)
 from anms.shared.config import ConfigBuilder
-import asyncio
 import anms.shared.mqtt_client
 from anms.shared.opensearch_logger import OpenSearchLogger
 from anms.models.relational import get_session
@@ -34,7 +33,6 @@ from anms.routes.adms.adm_compare import (AdmCompare)
 
 import traceback
 import ace
-import io
 import io
 import json
 import sqlalchemy
@@ -168,7 +166,6 @@ class Transmorgifier:
         return ari
 
     def _ace_transcode_just_cbor(self, input):
-        adms = ace.AdmSet()
         dec = ace.ari_cbor.Decoder()
         
         in_text = input.strip()
@@ -290,7 +287,6 @@ class Transmorgifier:
     def _reload_mqtt(self,adm_name=None):
         config = ConfigBuilder.get_config()
         host = config.get('MQTT_HOST')
-        port = config.get('MQTT_PORT')
 
         LOGGER.info('Connecting to MQTT broker %s to notify aricodec' % host)
         
