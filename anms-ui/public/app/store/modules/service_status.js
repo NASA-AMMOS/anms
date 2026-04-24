@@ -121,7 +121,7 @@ export default {
     async setAlert({ state, commit}, index ){
       let alert_id = state.alerts[index]["id"]
       api.methods.apiAcknowledgeAlerts(alert_id);
-      state.alerts[index]["id"]["visible"]=false;
+      state.alerts[index]["visible"]=false;
     },
   },
   mutations: {

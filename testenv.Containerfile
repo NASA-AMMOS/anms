@@ -129,6 +129,7 @@ RUN dnf -y install container-tools
 RUN systemctl disable dnf-makecache.timer
 
 COPY --chmod=755 deps/dtnma-tools/systemd/service_is_running.sh /usr/local/bin/service_is_running
+COPY deps/dtnma-tools/integration-test-ion/startup.uri /etc/refda/startup.uri
 
 # Image for the test environment manager transport with ION node and the
 # ion-app-proxy daemon
