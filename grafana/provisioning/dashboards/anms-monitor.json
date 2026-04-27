@@ -680,6 +680,7 @@
         "type": "yesoreyeram-infinity-datasource",
         "uid": "P1671BF01EA0D6F15"
       },
+      "description": "Using `report/dictionary/search/eid/` to display `hello` reports",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -740,19 +741,19 @@
           "root_selector": "",
           "source": "url",
           "type": "uql",
-          "uql": "    parse-json\n    ",
-          "url": "report/dictionary/eid/ipn%3A3.6/8401012100",
+          "uql": "parse-json\n| mv-expand \"reports\"\n| mv-expand \"reports\"\n| extend \"agent_time\"=\"reports.agent_time\"\n| extend \"sw-vendor\"=\"reports.sw-vendor\"\n| extend \"sw-version\"=\"reports.sw-version\"\n| extend \"capability\"=\"reports.capability\"\n| project \"agent\", \"agent_time\", \"sw-vendor\", \"sw-version\", \"capability\"\n\n",
+          "url": "report/dictionary/search/eid/",
           "url_options": {
-            "body_content_type": "text/plain",
+            "body_content_type": "application/json",
             "body_type": "raw",
-            "data": "",
+            "data": "{\n  \"agent_eids\": [\n    \"ipn:3.6\", \"ipn:2.6\"\n  ],\n  \"source_cbors\": [\n    \"8401012100\",\n    \"8464696574666b64746e6d612d6167656e74216568656c6c6f\"\n  ]\n}",
             "headers": [],
-            "method": "GET",
+            "method": "POST",
             "params": []
           }
         }
       ],
-      "title": "Hello_rpt_agent_1",
+      "title": "Hello_rpt_agent_dictionary_search",
       "type": "table"
     }
   ],
@@ -771,5 +772,5 @@
   "timezone": "",
   "title": "Monitor Page",
   "uid": "mwvijjmvk",
-  "version": 1
+  "version": 2
 }

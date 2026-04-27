@@ -11,7 +11,7 @@
         label="ari"
         v-model="selected"
         @option:selected="onReportSelect()"></v-select>
-    <b-table striped responsive :items="reports"></b-table>
+    <b-table striped responsive sticky-header :items="reports"></b-table>
   </div>
 </template>
 
@@ -51,8 +51,7 @@ export default {
       this.reports= [];
       await api.methods.apiEntriesForReport(this.registered_agents_id,report_source)
         .then(res => {
-          
-          this.reports = res.data;
+          this.reports = res.data[0].reports.flat();
         }).catch(error => {
           // handle error
           console.error("reports error", error);

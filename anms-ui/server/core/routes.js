@@ -150,7 +150,7 @@
       // --Reports Routes -- //
       const reports = require('../components/reports')
       router.get('/report/entry/name/:obj_agent_id', reports.getReportNameByAgent);
-      router.get('/report/entries/table/:obj_agent_id/:source_cbor', reports.getReportEntriesByAgent);
+      router.post('/report/entries/table/:obj_agent_id', reports.getReportEntriesByAgent);
 
       //------------- Unknown API Routes -------------//
       router.all('/*', function (req, res, next) {

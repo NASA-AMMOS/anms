@@ -163,7 +163,6 @@ async def transcoder_put_await_str(input_ari: str):
 def transcoder_incoming_str(input_ari: str):
     return _transcoder_put_str(input_ari)
 
-
 def _transcoder_put_str(input_ari: str):
     input_ari = input_ari.strip()
     transcoder_log_id = None

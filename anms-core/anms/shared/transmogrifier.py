@@ -200,8 +200,11 @@ class Transmorgifier:
                     LOGGER.debug(f'decoded as ARI {ari_no_nn}')
                     ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
                 except Exception as err:
-                    LOGGER.error(f"Error decoding from `{in_text}`: {err}")
+                    LOGGER.warning(f"Error decoding from `{in_text}`: {err} using no NN")
                     ari = ari_no_nn
+
+                res_obj['cbor'] = in_text
+                res_obj['ari'] = ari
 
                 res_obj['cbor'] = in_text
                 res_obj['ari'] = ari
@@ -217,7 +220,6 @@ class Transmorgifier:
                         out_text = 'ari:' + out_text
                     LOGGER.debug(f'encoded as text {out_text}')
                 except Exception as err:
-                    out_text = "ERROR"
                     LOGGER.error(f"Error encoding from {ari}: {err}")
 
                 res_obj['uri'] = out_text
@@ -232,7 +234,7 @@ class Transmorgifier:
                     LOGGER.debug(f'decoded as ARI {ari_no_nn}')
                     ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
                 except Exception as err:
-                    LOGGER.error(f"Error decoding from `{in_text}`: {err}")
+                    LOGGER.warning(f"Error decoding from `{in_text}`: {err} using no NN")
                     ari = ari_no_nn
                 
                 # rencoding ari to ensure using non nicknames
@@ -246,7 +248,6 @@ class Transmorgifier:
                         out_text = 'ari:' + out_text
                     LOGGER.debug(f'encoded as text {out_text}')
                 except Exception as err:
-                    out_text = "ERROR"
                     LOGGER.error(f"Error encoding from {ari}: {err}")
                     
               
@@ -289,7 +290,6 @@ class Transmorgifier:
     def _reload_mqtt(self,adm_name=None):
         config = ConfigBuilder.get_config()
         host = config.get('MQTT_HOST')
-        port = config.get('MQTT_PORT')
 
         LOGGER.info('Connecting to MQTT broker %s to notify aricodec' % host)
         
