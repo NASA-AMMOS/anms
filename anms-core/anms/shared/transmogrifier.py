@@ -21,15 +21,15 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 
-from camp.generators import (create_sql)
+from camp.generators import create_sql
 from anms.shared.config import ConfigBuilder
 import anms.shared.mqtt_client
 from anms.shared.opensearch_logger import OpenSearchLogger
 from anms.models.relational import get_session
 from anms.models.relational import get_async_session
 from anms.models.relational.transcoder_log import TranscoderLog
-from anms.models.relational.adms import (adm_data, data_model_view)
-from anms.routes.adms.adm_compare import (AdmCompare)
+from anms.models.relational.adms import adm_data, data_model_view
+from anms.routes.adms.adm_compare import AdmCompare
 
 import traceback
 import ace
@@ -41,18 +41,18 @@ config = ConfigBuilder.get_config()
 LOGGER = OpenSearchLogger(__name__, log_console=True).logger
 
 
-# depending on what the config is for core will either use a MQTT server to send off commands or 
-# use an ACE internally to translate 
+# depending on what the config is for core will either use a MQTT server to send off commands or
+# use an ACE internally to translate
 class Transmorgifier:
+    """The Transmogifier that can be configured to use an external or internal translator."""
 
-    ''' The Transmogifier that can be configured to use an external or internal translator. '''
     def __init__(self, args):
         # if the transcoding in internal to core
         self.adm_data = adm_data.AdmData
         self.data_model = data_model_view.DataModel
         if config.Transcoder == "Internal":
             db_uri = f"postgresql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}/{config.DB_CHROOT}"
-            LOGGER.info(f'Connecting to SQL DB at {db_uri}')
+            LOGGER.info(f"Connecting to SQL DB at {db_uri}")
             self._dbeng = sqlalchemy.create_engine(db_uri)
             self.transcode = self._transcode_internal
             self.transcode_direct = self._transcode_internal
@@ -63,28 +63,36 @@ class Transmorgifier:
             self.MQTT_CLIENT = anms.shared.mqtt_client.MQTT_CLIENT
             self.transcode = self._transcode_mqtt
             self.transcode_direct = self._transcode_mqtt_direct
-            self.reload = self._reload_mqtt 
-    
-    async def handle_adm(self, admset: ace.AdmSet, adm_file: ace.models.AdmModule, session, replace=True):
-        ''' Process a received and decoded ADM into the ANMS DB.
+            self.reload = self._reload_mqtt
+
+    async def handle_adm(
+        self, admset: ace.AdmSet, adm_file: ace.models.AdmModule, session, replace=True
+    ):
+        """Process a received and decoded ADM into the ANMS DB.
 
         :param replace: If true and the ADM exists it will be checked and replaced.
         :return: A list of issues with the ADM, which is empty if successful.
-        '''
+        """
         LOGGER.info("Adm name: %s", adm_file.norm_name)
-        data_model_view = await self.data_model.get(adm_file.ns_model_enum,adm_file.ns_org_name )
+        data_model_view = await self.data_model.get(
+            adm_file.ns_model_enum, adm_file.ns_org_name
+        )
         if data_model_view:
             if not replace:
-                LOGGER.info('Not replacing existing ADM name %s', adm_file.norm_name)
+                LOGGER.info("Not replacing existing ADM name %s", adm_file.norm_name)
                 return []
             data_rec = None
             async with get_async_session() as session:
-                data_rec,_ = await self.adm_data.get(data_model_view.data_model_id,session)
+                data_rec, _ = await self.adm_data.get(
+                    data_model_view.data_model_id, session
+                )
 
             if data_rec:
                 # Compare old and new contents
                 LOGGER.info("Checking existing ADM name %s", adm_file.norm_name)
-                old_adm = admset.load_from_data(io.BytesIO(data_rec.data), del_dupe=False)
+                old_adm = admset.load_from_data(
+                    io.BytesIO(data_rec.data), del_dupe=False
+                )
                 comp = AdmCompare(admset)
                 if not comp.compare_adms(old_adm, adm_file):
                     issues = comp.get_errors()
@@ -96,7 +104,7 @@ class Transmorgifier:
 
         # Use CAmPython to generate sql
         out_path = ""  # This is empty string since we don't need to write the generated sql to a file
-        sql_dialect = 'pgsql'
+        sql_dialect = "pgsql"
         writer = create_sql.Writer(admset, adm_file, out_path, sql_dialect)
         string_buffer = io.StringIO()
         writer.write(string_buffer)
@@ -108,55 +116,57 @@ class Transmorgifier:
             await session.commit()
         except Exception as err:
             LOGGER.error(f"{sql_dialect} execution error: {err.args}")
-            LOGGER.debug('%s', traceback.format_exc())
+            LOGGER.debug("%s", traceback.format_exc())
             raise
 
         # Save the adm file of the new adm
         buf = io.StringIO()
         ace.adm_yang.Encoder().encode(adm_file, buf)
-        ret_dm = await self.data_model.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
-        
+        ret_dm = await self.data_model.get(
+            adm_file.ns_model_enum, adm_file.ns_org_name, session
+        )
+
         # Write the encoded string data to the BytesIO object
         bytes_io = io.BytesIO()
-        bytes_io.write(buf.getvalue().encode('utf-8'))
+        bytes_io.write(buf.getvalue().encode("utf-8"))
         # Reset the pointer to the beginning
         bytes_io.seek(0)
-        data = {"enumeration":ret_dm.data_model_id, "data": bytes_io.getvalue()}
+        data = {"enumeration": ret_dm.data_model_id, "data": bytes_io.getvalue()}
         await self.adm_data.add_data(data, session)
 
         return []
-            
+
     async def load_default_adms(self):
         admset = ace.AdmSet(cache_dir=False)
         admset.load_default_dirs()
         issues = ace.Checker(admset.db_session()).check()
         for iss in issues:
-            LOGGER.error('ADM issue %s', iss)
+            LOGGER.error("ADM issue %s", iss)
 
         for adm_file in admset:
             try:
-                LOGGER.info('ADM %s handling started', adm_file.norm_name)
+                LOGGER.info("ADM %s handling started", adm_file.norm_name)
                 async with get_async_session() as db_sess:
                     await self.handle_adm(admset, adm_file, db_sess, replace=False)
-                LOGGER.info('ADM %s handling finished', adm_file.norm_name)
+                LOGGER.info("ADM %s handling finished", adm_file.norm_name)
             except Exception as err:
                 # The function already logged any SQL issue at error severity
-                LOGGER.error('ADM %s handling failed: %s', adm_file.norm_name, err)
-                LOGGER.debug('%s', traceback.format_exc())
+                LOGGER.error("ADM %s handling failed: %s", adm_file.norm_name, err)
+                LOGGER.debug("%s", traceback.format_exc())
 
         self.reload()
 
     def _transcode_mqtt(self, input):
-        msg = json.dumps({'uri': input})
-        LOGGER.info(f'PUBLISH to transcode/CoreFacing/Outgoing, msg = {msg}')
+        msg = json.dumps({"uri": input})
+        LOGGER.info(f"PUBLISH to transcode/CoreFacing/Outgoing, msg = {msg}")
         self.MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
 
     def _transcode_mqtt_direct(self, input):
-        msg = json.dumps({'uri': input})
-        LOGGER.info(f'PUBLISH to transcode/CoreFacing/Outgoing, msg = {msg}')
+        msg = json.dumps({"uri": input})
+        LOGGER.info(f"PUBLISH to transcode/CoreFacing/Outgoing, msg = {msg}")
         self.MQTT_CLIENT.publish("transcode/CoreFacing/Outgoing", msg)
         return "pending"
-    
+
     def _transcode_internal(self, input):
         LOGGER.info(f"translating {input}")
         ari = self._ace_transcode(input)
@@ -165,7 +175,7 @@ class Transmorgifier:
 
     def _ace_transcode_just_cbor(self, input):
         dec = ace.ari_cbor.Decoder()
-        
+
         in_text = input.strip()
         in_bytes = ace.cborutil.from_hexstr(in_text)
         ari = dec.decode(io.BytesIO(in_bytes))
@@ -174,171 +184,162 @@ class Transmorgifier:
         enc.encode(ari, buf)
         out_text = buf.getvalue()
         return out_text
-    
+
     def _ace_transcode(self, input):
         # result object to fill in
         res_obj = {}
-        res_obj['uri'] = ""
-        res_obj['cbor'] = ""
+        res_obj["uri"] = ""
+        res_obj["cbor"] = ""
         adms = ace.AdmSet()
         try:
-            LOGGER.info(f'Request {input}')
+            LOGGER.info(f"Request {input}")
             in_text = input.strip()
-            res_obj['inputString'] = in_text
+            res_obj["inputString"] = in_text
             in_lower = in_text.casefold()
-            if in_lower.startswith('ari:0x') or in_lower.startswith('0x'):
+            if in_lower.startswith("ari:0x") or in_lower.startswith("0x"):
                 # Binary-to-text mode
-                res_obj['parsedAs'] = 'CBOR'
-    
-                if in_lower.startswith('ari:'):
-                    in_text = in_text[4:]
+                res_obj["parsedAs"] = "CBOR"
 
+                if in_lower.startswith("ari:"):
+                    in_text = in_text[4:]
+                # using ACE to create ARI object from CBOR
                 try:
                     in_bytes = ace.cborutil.from_hexstr(in_text)
                     dec = ace.ari_cbor.Decoder()
                     ari_no_nn = dec.decode(io.BytesIO(in_bytes))
-                    LOGGER.debug(f'decoded as ARI {ari_no_nn}')
-                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
-                except Exception as err:
-                    LOGGER.warning(f"Error decoding from `{in_text}`: {err} using no NN")
+                    LOGGER.debug(f"decoded as ARI {ari_no_nn}")
+                    ari = ace.nickname.Converter(
+                        ace.nickname.Mode.FROM_NN, adms.db_session(), False
+                    )(ari_no_nn)
+                except (RuntimeError, TypeError) as err:
+                    LOGGER.warning(
+                        f"Error decoding from `{in_text}`: {err} using no NN"
+                    )
                     ari = ari_no_nn
 
-                res_obj['cbor'] = in_text
-                res_obj['ari'] = ari
-                try:
-                    enc = ace.ari_text.Encoder()
-                    buf = io.StringIO()
-                    enc.encode(ari, buf)
-
-                    out_text = buf.getvalue()
-                    if not out_text.startswith('ari:'):
-                        out_text = 'ari:' + out_text
-                    LOGGER.debug(f'encoded as text {out_text}')
-                except Exception as err:
-                    LOGGER.error(f"Error encoding from {ari}: {err}")
-
-                res_obj['uri'] = out_text
+                # using ARI object to generate a string URI
+                res_obj["cbor"] = in_text
+                res_obj["ari"] = ari
 
             else:
                 # Text-to-binary mode
-                res_obj['parsedAs'] = 'URI'
-                
+                res_obj["parsedAs"] = "URI"
+
+                # Using ACE to generate an ARI object
                 try:
                     dec = ace.ari_text.Decoder()
                     ari_no_nn = dec.decode(io.StringIO(in_text))
-                    LOGGER.debug(f'decoded as ARI {ari_no_nn}')
-                    ari = ace.nickname.Converter(ace.nickname.Mode.FROM_NN, adms.db_session(), False)(ari_no_nn)
-                except Exception as err:
-                    LOGGER.warning(f"Error decoding from `{in_text}`: {err} using no NN")
+                    LOGGER.debug(f"decoded as ARI {ari_no_nn}")
+
+                    ari = ace.nickname.Converter(
+                        ace.nickname.Mode.FROM_NN, adms.db_session(), False
+                    )(ari_no_nn)
+                except (RuntimeError, TypeError) as err:
+                    LOGGER.warning(
+                        f"Error decoding from `{in_text}`: {err} using no NN"
+                    )
                     ari = ari_no_nn
-                
-                # rencoding ari to ensure using non nicknames
-                try:
-                    enc = ace.ari_text.Encoder()
-                    buf = io.StringIO()
-                    enc.encode(ari, buf)
+                res_obj["ari"] = ari
 
-                    out_text = buf.getvalue()
-                    if not out_text.startswith('ari:'):
-                        out_text = 'ari:' + out_text
-                    LOGGER.debug(f'encoded as text {out_text}')
-                except Exception as err:
-                    LOGGER.error(f"Error encoding from {ari}: {err}")
-                    
-              
-                res_obj['uri'] = out_text
-                res_obj['ari'] = ari
+                # Using ACE to generate CBOR from ARI object
+                enc = ace.ari_cbor.Encoder()
+                buf = io.BytesIO()
+                enc.encode(ari, buf)
+                hex_str = ace.cborutil.to_hexstr(buf.getvalue())
+                LOGGER.info(f"encoded as binary {hex_str}")
+                res_obj["cbor"] = hex_str
 
-                try:
-                    enc = ace.ari_cbor.Encoder()
-                    buf = io.BytesIO()
-                    enc.encode(ari, buf)
-
-                    hex_str = ace.cborutil.to_hexstr(buf.getvalue())
-                    LOGGER.info(f'encoded as binary {hex_str}')
-                except Exception as err:
-                    hex_str = "ERROR"
-                    LOGGER.error(f"Error encoding from {ari}: {err}")
-                    
-                res_obj['cbor'] = hex_str
+            # USING ACE to generate URI doing even if URI was orignaly
+            # used to reencode to not use nicknames
+            enc = ace.ari_text.Encoder()
+            buf = io.StringIO()
+            enc.encode(ari, buf)
+            out_text = buf.getvalue()
+            if not out_text.startswith("ari:"):
+                out_text = "ari:" + out_text
+            LOGGER.debug(f"encoded as text {out_text}")
+            res_obj["uri"] = out_text
         except Exception as err:
-            res_obj['ari'] = f'Failed to process: {err}'
-            res_obj['parsedAs'] = 'ERROR'
-            LOGGER.error(f'Failed to process: {err}')
-            LOGGER.info(f'Traceback:\n{traceback.format_exc()}')
-            
+            res_obj["ari"] = {"value":f"Failed to process: {err}"}
+            res_obj["parsedAs"] = "ERROR"
+            LOGGER.error(f"Failed to process: {err}")
+            LOGGER.info(f"Traceback:\n{traceback.format_exc()}")
+
         # store in transcoder database
         with get_session() as session:
-                session.query(TranscoderLog).filter(TranscoderLog.input_string == input).update({
-                    'parsed_as': res_obj['parsedAs'],
-                    'ari': json.dumps(f"{res_obj['ari']}"),
-                    'cbor': res_obj['cbor'],
-                    'uri':  res_obj['uri']
-                })
-                session.commit()
-        LOGGER.info(f'Response {res_obj}')
-        
+            session.query(TranscoderLog).filter(
+                TranscoderLog.input_string == input
+            ).update(
+                {
+                    "parsed_as": res_obj["parsedAs"],
+                    "ari": json.dumps(f"{res_obj['ari']}"),
+                    "cbor": res_obj["cbor"],
+                    "uri": res_obj["uri"],
+                }
+            )
+            session.commit()
+        LOGGER.info(f"Response {res_obj}")
+
         return res_obj
 
-       
-
-    def _reload_mqtt(self,adm_name=None):
+    def _reload_mqtt(self, adm_name=None):
         config = ConfigBuilder.get_config()
-        host = config.get('MQTT_HOST')
+        host = config.get("MQTT_HOST")
 
-        LOGGER.info('Connecting to MQTT broker %s to notify aricodec' % host)
-        
-        msg = self.MQTT_CLIENT.publish('aricodec/reload', b'')
+        LOGGER.info("Connecting to MQTT broker %s to notify aricodec" % host)
+
+        msg = self.MQTT_CLIENT.publish("aricodec/reload", b"")
         if adm_name:
-            msg = self.MQTT_CLIENT.publish('aricodec/reload', f'{adm_name}')
+            msg = self.MQTT_CLIENT.publish("aricodec/reload", f"{adm_name}")
         msg.wait_for_publish()
-        
+
         return
-    
+
     def _reload_internal(self, adm_name=None):
         try:
             self._adm_reload(adm_name)
         except Exception as err:
-            LOGGER.error('Failed to process reload: %s', err)
-            LOGGER.info('Traceback:\n%s', traceback.format_exc())
+            LOGGER.error("Failed to process reload: %s", err)
+            LOGGER.info("Traceback:\n%s", traceback.format_exc())
 
     def _adm_reload(self, adm_name):
         with self._dbeng.connect() as db_conn:
             if adm_name:
-                LOGGER.info('Reloading one ADM: %s', adm_name)
-                curs = db_conn.execute('''\
+                LOGGER.info("Reloading one ADM: %s", adm_name)
+                curs = db_conn.execute(
+                    """\
 SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
     INNER JOIN data_model ON adm_data.enumeration = data_model..data_model_id
 WHERE adm_name = ?
-''', [adm_name])
+""",
+                    [adm_name],
+                )
                 for row in curs.all():
                     self._handle_adm(*row)
 
             else:
-                LOGGER.info('Reloading all ADMS...')
+                LOGGER.info("Reloading all ADMS...")
 
-                curs = db_conn.execute('''\
+                curs = db_conn.execute("""\
 SELECT data_model.name, adm_data.updated_at, adm_data.data
 FROM adm_data 
     INNER JOIN data_model ON adm_data.enumeration = data_model.data_model_id
-''')
+""")
                 for row in curs.all():
                     self._handle_adm(*row)
 
-        
-                    
-    def _handle_adm(self, adm_name, timestamp, data): 
-        LOGGER.info(f'Handling ADM:{adm_name}')
+    def _handle_adm(self, adm_name, timestamp, data):
+        LOGGER.info(f"Handling ADM:{adm_name}")
         LOGGER.info(type(data))
         # LOGGER.info(data.tos())
 
-        io_buffer = io.StringIO(data.tobytes().decode('utf-8'))
+        io_buffer = io.StringIO(data.tobytes().decode("utf-8"))
         adms = ace.AdmSet()
         adms.load_from_data(io_buffer)
-        LOGGER.info('Handling finished')
-        LOGGER.info('ADMS present for: %s', adms.names())
+        LOGGER.info("Handling finished")
+        LOGGER.info("ADMS present for: %s", adms.names())
 
-    
+
 # SIGNALTON transmorgifier
 TRANSMORGIFIER = Transmorgifier(config)
