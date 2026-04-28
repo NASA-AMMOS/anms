@@ -205,11 +205,6 @@ class Transmorgifier:
 
                 res_obj['cbor'] = in_text
                 res_obj['ari'] = ari
-
-                res_obj['cbor'] = in_text
-                res_obj['ari'] = ari
-
-                
                 try:
                     enc = ace.ari_text.Encoder()
                     buf = io.StringIO()

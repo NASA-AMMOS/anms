@@ -25,6 +25,7 @@ import asyncio
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
+from typing import Annotated
 
 from sqlalchemy import select, or_, desc
 from anms.models.relational import get_session
@@ -42,7 +43,7 @@ logger = OpenSearchLogger(__name__, log_console=True)
 
 
 @router.get("/db/all", status_code=status.HTTP_200_OK, response_model=Page[TL])
-async def paged_transcoder_log(params: Params = Depends()):
+async def paged_transcoder_log(params: Annotated[Params, Depends()]):
     async with get_async_session() as session:
         return await paginate(
             session,
@@ -54,7 +55,7 @@ async def paged_transcoder_log(params: Params = Depends()):
 @router.get(
     "/db/search/{query:path}", status_code=status.HTTP_200_OK, response_model=Page[TL]
 )
-async def paged_transcoder_log_query(query: str, params: Params = Depends()):
+async def paged_transcoder_log_query(query: str, params: Annotated[Params, Depends()] ):
     async with get_async_session() as session:
         filters = []
         filters.append(TranscoderLog.input_string.ilike(f"%{query}%"))
