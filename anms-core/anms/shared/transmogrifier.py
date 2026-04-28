@@ -211,7 +211,7 @@ class Transmorgifier:
                     ari = ace.nickname.Converter(
                         ace.nickname.Mode.FROM_NN, adms.db_session(), False
                     )(ari_no_nn)
-                except (RuntimeError, TypeError) as err:
+                except ( TypeError) as err:
                     LOGGER.warning(
                         f"Error decoding from `{in_text}`: {err} using no NN"
                     )
@@ -234,7 +234,7 @@ class Transmorgifier:
                     ari = ace.nickname.Converter(
                         ace.nickname.Mode.FROM_NN, adms.db_session(), False
                     )(ari_no_nn)
-                except (RuntimeError, TypeError) as err:
+                except ( TypeError) as err:
                     LOGGER.warning(
                         f"Error decoding from `{in_text}`: {err} using no NN"
                     )

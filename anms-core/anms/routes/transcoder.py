@@ -96,9 +96,11 @@ async def transcoder_put_cbor_await(cbor: str):
         ).first()
         if curr_uri.parsed_as != "pending":
             if curr_uri.parsed_as == "ERROR":
-                curr_uri = "ARI://BADARI"
-            else:
-                curr_uri = curr_uri.uri
+                raise HTTPException(
+                   status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail={"idinfo": transcoder_log_id, "info": curr_uri.as_dict(), "status": 500},
+                    )
+            curr_uri = curr_uri.uri
             break
         time.sleep(1)
 
@@ -148,9 +150,11 @@ async def transcoder_put_await_str(input_ari: str):
         ).first()
         if curr_uri.parsed_as != "pending":
             if curr_uri.parsed_as == "ERROR":
-                curr_uri = "ARI://BADARI"
-            else:
-                curr_uri = curr_uri.uri
+                raise HTTPException(
+                   status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail={"idinfo": transcoder_log_id, "info": curr_uri.as_dict(), "status": 500},
+                    )
+            curr_uri = curr_uri.uri
             break
         time.sleep(1)
 
