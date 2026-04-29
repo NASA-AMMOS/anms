@@ -49,9 +49,7 @@ const { response } = require('express');
       let obj_agent_id = req.params.obj_agent_id
       let source_cbors = req.body.data
       let body = {"agent_idxs": [obj_agent_id],"source_cbors": source_cbors}
-      // report/dictionary/search/eid/
       const url = utils.generateAnmsCoreUrl(['report','dictionary', 'search', 'idx']); 
-        // obj_agent_id, source_cbor]);
       await axios.post(url, body).then(response => {return res.status(200).json(response.data)});
     } catch (err) {
       return next(Boom.badGateway('Error Getting reports', err));
