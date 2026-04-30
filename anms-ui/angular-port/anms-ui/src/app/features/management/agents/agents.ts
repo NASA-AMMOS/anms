@@ -1,14 +1,15 @@
 import {AfterViewInit, Component, inject} from '@angular/core';
 import {AgentsService} from '../../../store/modules/agents.service';
 import {ApiService} from '../../../shared/api.service';
+import {NotificationService } from '../../../shared/notification.service';
 import {FormsModule} from '@angular/forms';
-import * as toastr from 'toastr';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MatDialog} from '@angular/material/dialog';
 import {AgentInfo, AgentModal} from './agent-modal/agent-modal';
 
 @Component({
   selector: 'app-agents',
+  standalone: true,
   imports: [
     FormsModule,
     MatPaginator
@@ -19,6 +20,7 @@ import {AgentInfo, AgentModal} from './agent-modal/agent-modal';
 export class Agents implements AfterViewInit {
   protected agentsService = inject(AgentsService);
   protected apiService = inject(ApiService);
+  protected notificationService = inject(NotificationService);
   protected dialog = inject(MatDialog);
 
   protected info: string = '';
@@ -81,11 +83,11 @@ export class Agents implements AfterViewInit {
         .apiPostAgent(node.trim())
         .subscribe({next: (response) => {
           const results = response.status + " " + response.statusText;
-          toastr.success(results);
+          this.notificationService.success(results);
         },
           error: (err: any) => {
             console.error(err);
-            toastr.error("Failed to add agent to node: " + node);
+            this.notificationService.error("Failed to add agent to node: "+node);
           }
         });
     });
