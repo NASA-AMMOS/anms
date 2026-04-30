@@ -40,7 +40,7 @@
         <div class="col">
           <button type="button"
                   class="btn btn-outline-success float-end mb-2"
-                  [disabled]="selectedAgents().length === 0"
+                  [disabled]="selection.isEmpty()"
           >
             Manage
           </button>
@@ -52,10 +52,10 @@
         <thead>
         <tr>
           <th style="text-align: center;">
-            <input type="checkbox"
-                   [(ngModel)]="selectAll"
-                   (change)="toggleSelectAll()"
-            />
+            <mat-checkbox
+              (change)="toggleAll()"
+              [checked]="isAllSelected()">
+            </mat-checkbox>
             Select All
           </th>
           <th>Agent Endpoint URI</th>
@@ -68,10 +68,10 @@
           @for (agent of agentsService.currentAgents(); track agent) {
             <tr>
               <td class="text-center">
-                <input type="checkbox"
-                       [checked]="agent.selected"
-
-                />
+                <mat-checkbox
+                  [checked]="selection.isSelected(agent)"
+                  (change)="toggleAgent(agent)">
+                </mat-checkbox>
               </td>
               <td (click)="goToAgentDetails(agent)">{{ agent.agent_endpoint_uri }}</td>
               <td (click)="goToAgentDetails(agent)">{{ agent.first_registered }}</td>

@@ -5,14 +5,21 @@ import {NotificationService } from '../../../shared/notification.service';
 import {FormsModule} from '@angular/forms';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MatDialog} from '@angular/material/dialog';
+import { MatTableModule} from '@angular/material/table';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import {AgentInfo, AgentModal} from './agent-modal/agent-modal';
+import {SelectionModel} from '@angular/cdk/collections';
 
 @Component({
   selector: 'app-agents',
   standalone: true,
   imports: [
     FormsModule,
-    MatPaginator
+    MatPaginator,
+    MatTableModule,
+    MatCheckboxModule,
+    MatPaginatorModule
   ],
   templateUrl: './agents.html',
   styleUrl: './agents.css',
@@ -27,6 +34,7 @@ export class Agents implements AfterViewInit {
   protected selectAll: boolean = false;
   protected node: any;
   protected pageSizes = [10, 20, 50, 100];
+  protected selection = new SelectionModel<any>(true, []); // true = multi-select
 
 
   ngAfterViewInit(): void {
@@ -61,17 +69,35 @@ export class Agents implements AfterViewInit {
     this.agentsService.reloadAgents();
   }
 
+  // TODO: deprecated, remove once confirmed safe to do so
   protected toggleSelectAll() {
     this.agentsService.currentAgents().forEach((agent) => {
       this.selectAgent(this.selectAll, agent);
     });
   }
 
-  protected selectAgent(event: any, agent: any) {
-    if (agent && event != agent.selected) {
+  protected toggleAgent(agent: any) {
+    this.selection.toggle(agent);
+  }
+
+  protected isAllSelected() {
+    return this.selection.selected.length === this.agentsService.currentAgents().length;
+  }
+
+  protected toggleAll() {
+    if (this.isAllSelected()) {
+      this.selection.clear();
+    } else {
+      this.selection.select(...this.agentsService.currentAgents());
+    }
+  }
+
+  // TODO: deprecated, remove once confirmed safe to do so
+  protected selectAgent(isSelected: boolean, agent: any) {
+    if (agent && isSelected != agent.selected) {
       let agentUpdated = {...agent};
       let agentIndex = this.getAgentIndexById(agentUpdated.registered_agents_id);
-      agentUpdated.selected = event;
+      agentUpdated.selected = isSelected;
       this.agentsService.updateAgent(agentIndex, agentUpdated);
     }
   }
