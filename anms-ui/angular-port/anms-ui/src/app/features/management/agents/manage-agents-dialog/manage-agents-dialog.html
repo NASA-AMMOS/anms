@@ -1,0 +1,40 @@
+<div class="d-flex justify-content-between">
+  <div>
+    <h2 mat-dialog-title>Manage Agents</h2>
+  </div>
+  <div class="pe-3 pt-3">
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="modal"
+      aria-label="Close"
+      (click)="close()"
+    ></button>
+  </div>
+</div>
+<div mat-dialog-content>
+
+  <section class="selected-agents-section">
+    <div class="selected-agents-header">
+      {{ data.length }} selected agent{{ data.length === 1 ? '' : 's' }}
+    </div>
+
+    <div class="selected-agents-chip-container">
+      <mat-chip-set aria-label="Selected agents">
+        @for (agent of data; track agent.registered_agents_id) {
+          <mat-chip>
+            {{ agent.agent_endpoint_uri }}
+          </mat-chip>
+        }
+      </mat-chip-set>
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <mat-dialog-actions align="end">
+    <button mat-flat-button color="primary" (click)="close()">
+      OK
+    </button>
+  </mat-dialog-actions>
+</div>

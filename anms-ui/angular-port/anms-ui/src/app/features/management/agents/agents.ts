@@ -10,6 +10,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import {AgentInfo, AgentModal} from './agent-modal/agent-modal';
 import {SelectionModel} from '@angular/cdk/collections';
+import {ManageAgentsDialog} from './manage-agents-dialog/manage-agents-dialog';
 
 @Component({
   selector: 'app-agents',
@@ -119,6 +120,7 @@ export class Agents implements AfterViewInit {
     });
   }
 
+  // TODO: deprecated, remove once confirmed safe to do so
   protected selectedAgents() {
     return this.agentsService.currentAgents().filter((agent) => {
       return agent.selected == true;
@@ -132,8 +134,20 @@ export class Agents implements AfterViewInit {
       data: agentInfo
     });
 
-    dialogRef.afterClosed().subscribe(() => {
+    // dialogRef.afterClosed().subscribe(() => { // TODO: add automatic table refresh on close here?
+    // });
+  }
+
+  protected goToManageDialog() {
+    const selectedAgents: AgentInfo[] = this.selection.selected;
+    const dialogRef = this.dialog.open(ManageAgentsDialog, {
+      width: '80vw',
+      maxWidth: '1000px',
+      data: selectedAgents
     });
+
+    // dialogRef.afterClosed().subscribe(() => { // TODO: add automatic table refresh on close here?
+    // });
   }
 
   protected goToManageModal() {

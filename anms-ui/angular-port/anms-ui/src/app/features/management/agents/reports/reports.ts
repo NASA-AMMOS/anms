@@ -12,6 +12,7 @@ export interface ReportOption {
   selector: 'app-reports',
   templateUrl: './reports.html',
   styleUrls: ['./reports.css'],
+  standalone: true,
   imports: [
     FormsModule
   ]

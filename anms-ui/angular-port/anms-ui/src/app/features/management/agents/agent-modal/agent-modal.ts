@@ -30,6 +30,7 @@ export interface AgentInfo {
     Reports,
     Crud,
   ],
+  standalone: true,
   styleUrls: ['agent-modal.css']
 })
 export class AgentModal implements OnInit {

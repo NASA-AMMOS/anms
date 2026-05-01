@@ -22,12 +22,13 @@ interface ParamModel {
   ],
   templateUrl: './crud.html',
   styleUrl: './crud.css',
+  standalone: true
 })
 export class Crud {
   @Input() agentId!: number | string;
   @Input() operations: Operation[] = [];
   private apiService = inject(ApiService);
-  private toastr = inject(ToastrService)
+  private toastr = inject(ToastrService) // FIXME update to notificationService
 
   selected: Operation | -1 = -1;
   params: ParamModel[] = [];
