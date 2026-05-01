@@ -39,7 +39,7 @@ from anms.models.relational.formal_parameter import FormalParameter
 
 
 from anms.shared.opensearch_logger import OpenSearchLogger
-from cachetools import Cache
+from cachetools import LFUCache
 
 logger = OpenSearchLogger(__name__, log_console=True)
 
@@ -125,7 +125,7 @@ async def _generate_aris(ari_id):
         return None
 
 # for chaching the display names of ari
-class ResourceCache(Cache):
+class ResourceCache(LFUCache):
     def __missing__(self, key):
         resource = asyncio.create_task(_generate_aris(key))
         self[key] = resource
