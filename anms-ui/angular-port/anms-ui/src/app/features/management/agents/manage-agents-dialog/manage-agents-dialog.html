@@ -1,0 +1,103 @@
+<div class="d-flex justify-content-between">
+  <div>
+    <h2 mat-dialog-title>Manage Agents</h2>
+  </div>
+  <div class="pe-3 pt-3">
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="modal"
+      aria-label="Close"
+      (click)="close()"
+    ></button>
+  </div>
+</div>
+<div mat-dialog-content>
+
+  <section class="selected-agents-section">
+    <div class="selected-agents-header">
+      {{ data.length }} selected agent{{ data.length === 1 ? '' : 's' }}
+    </div>
+
+    <div class="selected-agents-chip-container">
+      <mat-chip-set aria-label="Selected agents">
+        @for (agent of data; track agent.registered_agents_id) {
+          <mat-chip>
+            {{ agent.agent_endpoint_uri }}
+          </mat-chip>
+        }
+      </mat-chip-set>
+    </div>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <section class="ari-section">
+    <h3>ARI Builder</h3>
+
+    <mat-button-toggle-group
+      class="ari-mode-toggle"
+      [(ngModel)]="ariMode"
+      aria-label="ARI input mode"
+    >
+      <mat-button-toggle value="builder">ARI Builder</mat-button-toggle>
+      <mat-button-toggle value="text">Text Input</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (ariMode === 'builder') {
+      <div class="ari-builder-content">
+        <mat-checkbox [(ngModel)]="executionSet">
+          Execution Set?
+        </mat-checkbox>
+
+        <mat-form-field appearance="outline" class="ari-dropdown">
+          <mat-label>Search ARI</mat-label>
+          <input
+            type="text"
+            matInput
+            placeholder="Search..."
+            [(ngModel)]="selectedAriText"
+          />
+        </mat-form-field>
+      </div>
+    }
+
+    @if (ariMode === 'text') {
+      <div class="text-input-content">
+        <div class="text-input-label">Enter Text to Translate</div>
+
+        <div class="text-input-row">
+          <mat-form-field appearance="outline" class="hex-input">
+            <span matTextPrefix>0x&nbsp;</span>
+            <input
+              matInput
+              [(ngModel)]="hexInput"
+              placeholder="ABC123"
+            />
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="submitTextInput()"
+          >
+            SUBMIT
+          </button>
+        </div>
+      </div>
+    }
+
+    <div class="ari-output">
+      <label>ARI Text:</label>
+      <span>{{ ariText || 'None selected' }}</span>
+    </div>
+
+    <button
+      type="button"
+      class="btn btn-outline-success float-end mb-2"
+    >
+      SEND
+    </button>
+  </section>
+</div>

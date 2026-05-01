@@ -1,0 +1,12 @@
+.spacing-table {
+  margin: 16px 0;
+}
+
+.select-max-width {
+  max-width: 600px;
+}
+
+.scrollable-div {
+  max-height: 500px;
+  overflow-y: auto;
+}

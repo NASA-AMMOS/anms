@@ -1,0 +1,135 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-8 offset-2">
+
+      <div class="input-group mb-3">
+        <input type="text"
+               class="form-control"
+               placeholder="Search by ID String, First Registered, or Last Registered"
+               (change)="handleSearchStringChange($event)"
+               (keyup.enter)="handlePageEvent({
+               length: 0,
+               previousPageIndex: 0,
+               pageIndex: 0,
+               pageSize: paginator.pageSize
+               }, paginator); paginator.firstPage()"
+        />
+
+
+        <div class="input-group-append">
+          <div class="d-grid gap-2 col-6 mx-auto">
+            <button class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="handlePageEvent({
+               length: 0,
+               previousPageIndex: 0,
+               pageIndex: 0,
+               pageSize: paginator.pageSize
+               }, paginator); paginator.firstPage()"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-2">
+        <div class="col">
+          <p>Select Agent to view</p>
+        </div>
+        <div class="col">
+          <button type="button"
+                  class="btn btn-outline-success float-end mb-2"
+                  [disabled]="selection.isEmpty()"
+                  (click)="goToManageDialog()"
+          >
+            Manage
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <table class="table table-bordered table-hover">
+        <thead>
+        <tr>
+          <th style="text-align: center;">
+            <mat-checkbox
+              (change)="toggleAll()"
+              [checked]="isAllSelected()">
+            </mat-checkbox>
+            Select All
+          </th>
+          <th>Agent Endpoint URI</th>
+          <th>First Registered</th>
+          <th>Last Registered</th>
+        </tr>
+        </thead>
+        <tbody>
+
+          @for (agent of agentsService.currentAgents(); track agent) {
+            <tr>
+              <td class="text-center">
+                <mat-checkbox
+                  [checked]="selection.isSelected(agent)"
+                  (change)="toggleAgent(agent)">
+                </mat-checkbox>
+              </td>
+              <td (click)="goToAgentDetails(agent)">{{ agent.agent_endpoint_uri }}</td>
+              <td (click)="goToAgentDetails(agent)">{{ agent.first_registered }}</td>
+              <td (click)="goToAgentDetails(agent)">{{ agent.last_registered }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Add Agent Address -->
+      <div class="row">
+        <div class="col">
+          <div class="input-group">
+            <span class="input-group-text">Agent Address</span>
+            <input type="text"
+                   class="form-control"
+                   placeholder="Add by address"
+                   [(ngModel)]="node"
+            />
+
+            <button class="btn btn-outline-success"
+                    type="button"
+                    (click)="onClick(node?.trim())"
+            >Add
+            </button>
+          </div>
+        </div>
+        <div class="col d-flex justify-content-end align-items-center">
+          <div class="me-3">
+          </div>
+
+          <mat-paginator #paginator
+                         class="paginator"
+                         (page)="handlePageEvent($event, paginator)"
+                         [pageSize]="agentsService.pageSize()"
+                         [showFirstLastButtons]="true"
+                         [pageSizeOptions]="pageSizes"
+                         [length]="agentsService.count()"
+          >
+          </mat-paginator>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <!--  <app-agents-manage-modal-->
+  <!--    *ngIf="showManageModal()"-->
+  <!--    [showModal]="showManageModal()"-->
+  <!--    [agents]="selectedAgents()"-->
+  <!--    [cbor]="cbor"-->
+  <!--    [cbors]="cbors"-->
+  <!--    (close)="showManageModal.set(false)">-->
+  <!--  </app-agents-manage-modal>-->
+
+  <div class="footer mt-4 text-secondary">
+    <p>Amp Version: {{ info }}</p>
+  </div>
+</div>
