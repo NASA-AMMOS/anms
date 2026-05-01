@@ -17,6 +17,10 @@ body, html {
   padding: 0
 }
 
+:root {
+  --app-background: #212529
+}
+
 .material-icons {
   font-family: 'Material Icons', serif;
   font-weight: normal;
@@ -35,4 +39,8 @@ body, html {
 
 .font-weight-normal {
   font-weight: normal !important;
+}
+
+.custom-dialog .mat-mdc-dialog-surface {
+  background-color: var(--app-background, #f5f5f5);
 }

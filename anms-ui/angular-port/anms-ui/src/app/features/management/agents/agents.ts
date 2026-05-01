@@ -143,15 +143,12 @@ export class Agents implements AfterViewInit {
     const dialogRef = this.dialog.open(ManageAgentsDialog, {
       width: '80vw',
       maxWidth: '1000px',
-      data: selectedAgents
+      data: selectedAgents,
+      panelClass: 'custom-dialog'
     });
 
     // dialogRef.afterClosed().subscribe(() => { // TODO: add automatic table refresh on close here?
     // });
-  }
-
-  protected goToManageModal() {
-    // this.showManageModal = true;
   }
 
   private getAgentIndexById(agentId: any) {
