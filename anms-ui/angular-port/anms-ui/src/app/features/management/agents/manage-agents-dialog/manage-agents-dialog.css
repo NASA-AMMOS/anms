@@ -81,3 +81,24 @@
 .send-button {
   margin-top: 0.75rem;
 }
+
+.ari-builder-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.ari-param-panel {
+  border-left: 1px solid #d8dde3;
+  padding-left: 1rem;
+}
+
+.param-dropdown {
+  width: 100%;
+}
+
+.empty-param-panel {
+  color: #777;
+  font-style: italic;
+  padding-top: 0.5rem;
+}

@@ -32,72 +32,123 @@
 
   <mat-divider></mat-divider>
 
-  <section class="ari-section">
-    <h3>ARI Builder</h3>
+  <div class="ari-builder-layout">
+    <section class="ari-section">
+      <h3>ARI Builder</h3>
 
-    <mat-button-toggle-group
-      class="ari-mode-toggle"
-      [(ngModel)]="ariMode"
-      aria-label="ARI input mode"
-    >
-      <mat-button-toggle value="builder">ARI Builder</mat-button-toggle>
-      <mat-button-toggle value="text">Text Input</mat-button-toggle>
-    </mat-button-toggle-group>
+      <mat-button-toggle-group
+        class="ari-mode-toggle"
+        [(ngModel)]="ariMode"
+        aria-label="ARI input mode"
+      >
+        <mat-button-toggle value="builder">ARI Builder</mat-button-toggle>
+        <mat-button-toggle value="text">Text Input</mat-button-toggle>
+      </mat-button-toggle-group>
 
-    @if (ariMode === 'builder') {
-      <div class="ari-builder-content">
-        <mat-checkbox [(ngModel)]="executionSet">
-          Execution Set?
-        </mat-checkbox>
+      @if (ariMode === 'builder') {
+        <div class="ari-builder-content">
+          <mat-checkbox [(ngModel)]="executionSet">
+            Execution Set?
+          </mat-checkbox>
 
-        <mat-form-field appearance="outline" class="ari-dropdown">
-          <mat-label>Search ARI</mat-label>
-          <input
-            type="text"
-            matInput
-            placeholder="Search..."
-            [(ngModel)]="selectedAriText"
-          />
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="ari-dropdown">
+            <mat-label>Select ARI</mat-label>
+            <input
+              type="text"
+              matInput
+              [(ngModel)]="selectedAri"
+              (ngModelChange)="filterAris($event)"
+              [matAutocomplete]="auto"
+              placeholder="Search ARIs..."
+            />
+            <mat-autocomplete #auto="matAutocomplete"
+                              [displayWith]="displayAri"
+                              (optionSelected)="onAriSelected($event.option.value)">
+              @for (ari of filteredAris; track ari.obj_id) {
+                <mat-option
+                  [value]="ari"
+                >
+                  {{ ari.display }}
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+      }
+
+      @if (ariMode === 'text') {
+        <div class="text-input-content">
+          <div class="text-input-label">Enter Text to Translate</div>
+
+          <div class="text-input-row">
+            <mat-form-field appearance="outline" class="hex-input">
+              <span matTextPrefix>0x&nbsp;</span>
+              <input
+                matInput
+                [(ngModel)]="hexInput"
+                placeholder="ABC123"
+              />
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              (click)="submitTextInput()"
+            >
+              SUBMIT
+            </button>
+          </div>
+        </div>
+      }
+
+      <div class="ari-output">
+        <label>ARI Text:</label>
+        <span>{{ ariText || 'None selected' }}</span>
       </div>
-    }
 
-    @if (ariMode === 'text') {
-      <div class="text-input-content">
-        <div class="text-input-label">Enter Text to Translate</div>
+      <button
+        type="button"
+        class="btn btn-outline-success float-end mb-2"
+      >
+        SEND
+      </button>
+    </section>
 
-        <div class="text-input-row">
-          <mat-form-field appearance="outline" class="hex-input">
-            <span matTextPrefix>0x&nbsp;</span>
+    <section class="ari-param-panel">
+      @if (selectedAri && ariParams.length > 0) {
+        <h4>ARI Parameters</h4>
+
+        @for (param of ariParams; track param.name; let i = $index) {
+          <mat-form-field appearance="outline" class="param-dropdown">
+            <mat-label>{{ param.name }} {{ param.type ? '(' + param.type + ')' : '' }}</mat-label>
+
             <input
               matInput
-              [(ngModel)]="hexInput"
-              placeholder="ABC123"
+              [(ngModel)]="param.searchText"
+              (ngModelChange)="filterParamAris(i)"
+              [matAutocomplete]="paramAuto"
+              placeholder="Select ARI..."
             />
+
+            <mat-autocomplete
+              #paramAuto="matAutocomplete"
+              [displayWith]="displayAri"
+              (optionSelected)="onParamAriSelected(i, $event.option.value)"
+            >
+              @for (ari of param.filteredAris; track ari.obj_id) {
+                <mat-option [value]="ari">
+                  {{ ari.name }}
+                </mat-option>
+              }
+            </mat-autocomplete>
           </mat-form-field>
-
-          <button
-            mat-raised-button
-            color="primary"
-            type="button"
-            (click)="submitTextInput()"
-          >
-            SUBMIT
-          </button>
+        }
+      } @else {
+        <div class="empty-param-panel">
+          Select an ARI with parameters to configure inputs.
         </div>
-      </div>
-    }
-
-    <div class="ari-output">
-      <label>ARI Text:</label>
-      <span>{{ ariText || 'None selected' }}</span>
+      }
+    </section>
     </div>
-
-    <button
-      type="button"
-      class="btn btn-outline-success float-end mb-2"
-    >
-      SEND
-    </button>
-  </section>
 </div>
