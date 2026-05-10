@@ -39,7 +39,7 @@ If yes, then use this README for:
 * Basic configuration
 * High-level overview
 
-For detailed operational guidance after installation, refer to the ANMS User Guide, found here: www.nasa-ammos.github.io/anms-docs/.
+For detailed operational guidance after installation, refer to the ANMS User Guide, found [here](https://nasa-ammos.github.io/anms-docs/).
 
 **2. Are you an AMMOS user or operating an already-installed ANMS instance (not from source)?**
 
