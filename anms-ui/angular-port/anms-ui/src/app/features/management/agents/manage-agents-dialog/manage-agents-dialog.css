@@ -102,3 +102,42 @@
   font-style: italic;
   padding-top: 0.5rem;
 }
+
+.param-block {
+  margin-bottom: 1rem;
+}
+
+.selected-param-aris {
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.selected-param-header {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.selected-param-ari-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid #4b5563;
+}
+
+.selected-param-ari-row:first-of-type {
+  border-top: none;
+}
+
+.selected-param-ari-row span {
+  overflow-wrap: anywhere;
+}
+
+.nonce-input {
+  width: 100%;
+  max-width: 300px;
+  margin-top: 0.75rem;
+}

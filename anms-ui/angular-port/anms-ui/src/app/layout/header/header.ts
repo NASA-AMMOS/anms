@@ -16,5 +16,6 @@ import {RouterLink} from '@angular/router';
   ],
   templateUrl: './header.html',
   styleUrl: './header.css',
+  standalone: true
 })
 export class Header {}

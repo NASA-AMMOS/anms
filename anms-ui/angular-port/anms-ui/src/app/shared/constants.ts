@@ -5,7 +5,7 @@ export const Constants = {
   status_refresh_rate: environment.VUE_APP_STATUS_REFRESH_RATE, //ms -the rate of updating services' status
   service_info: environment.SERVICE_INFO,
   // FIXME: see index.html on how these are initialized
-  BASE_API_URL: 'http://anms-test:8040',
+  BASE_API_URL: environment.BASE_API_URL,
   USER_DETAILS: {
     token: ''
   }

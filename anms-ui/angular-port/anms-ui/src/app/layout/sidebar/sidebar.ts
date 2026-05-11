@@ -22,6 +22,7 @@ import {ServiceStatusService} from '../../store/modules/service-status.service';
   ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
+  standalone: true
 })
 export class Sidebar implements AfterViewInit {
   protected showNavTitle = false;

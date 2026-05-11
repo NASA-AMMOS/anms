@@ -199,15 +199,15 @@ export class ApiService {
   }
 
   public apiPutTranscodedHex(cbor: string): Observable<any> {
-    return this.http.put('transcoder/ui/incoming/' + cbor + '/hex', null);
+    return this.http.put('/api/transcoder/ui/incoming/' + cbor + '/hex', null);
   }
 
   public apiPutTranscodedString(ari: string): Observable<any> {
-    return this.http.put('transcoder/ui/incoming/str', {"ari": ari});
+    return this.http.put('/api/transcoder/ui/incoming/str', {"ari": ari});
   }
 
   public apiGetTranscoderLogById(id: any): Observable<any> {
-    return this.http.get(`transcoder/ui/log/id/${id}`);
+    return this.http.get(`/api/transcoder/ui/log/id/${id}`);
   }
 
   public apiQueryForTranscoderLog(payload: any): Observable<any> {
@@ -219,10 +219,10 @@ export class ApiService {
       params['size'] = encodeURIComponent(payload.size);
     }
     if (payload.searchString === '') {
-      return this.http.get('transcoder/ui/log', {params: params});
+      return this.http.get('/api/transcoder/ui/log', {params: params});
     } else {
       const searchString = encodeURIComponent(payload.searchString);
-      return this.http.get(`transcoder/ui/log/search/${searchString}`, {params: params});
+      return this.http.get(`/api/transcoder/ui/log/search/${searchString}`, {params: params});
     }
   }
 }

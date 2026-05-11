@@ -1,6 +1,9 @@
 export const environment = {
   VUE_APP_UI_VERSION: "VUE_APP_UI_VERSION_TEMPLATE",
   VUE_APP_STATUS_REFRESH_RATE: 60000, // milliseconds
+
+  BASE_API_URL: 'http://anms-test:8080',
+
   SERVICE_INFO: {
     names: [
       "adminer","anms-core","authnz","amp-manager",
