@@ -4,6 +4,7 @@ import {MatIcon} from '@angular/material/icon';
 import {MatIconButton} from '@angular/material/button';
 import {MatTooltip} from '@angular/material/tooltip';
 import {RouterLink} from '@angular/router';
+import {Constants} from '../../shared/constants';
 
 @Component({
   selector: 'app-header',
@@ -18,4 +19,6 @@ import {RouterLink} from '@angular/router';
   styleUrl: './header.css',
   standalone: true
 })
-export class Header {}
+export class Header {
+  protected uiVersion = Constants.uiversion;
+}
