@@ -2,6 +2,7 @@ import {AfterViewInit, Component, inject} from '@angular/core';
 import {AdmService} from '../../store/modules/adm-service';
 import * as _ from 'lodash';
 import {FormsModule} from '@angular/forms';
+import {NotificationService} from '../../shared/notification.service';
 
 @Component({
   selector: 'app-adms',
@@ -10,10 +11,12 @@ import {FormsModule} from '@angular/forms';
   ],
   templateUrl: './adms.html',
   styleUrl: './adms.css',
+  standalone: true,
 })
 export class Adms implements AfterViewInit {
   protected admService = inject(AdmService);
   protected file: any = null;
+  protected notificationService = inject(NotificationService);
 
   ngAfterViewInit(): void {
     if(!this.admService.hasAdms()) {
@@ -26,16 +29,30 @@ export class Adms implements AfterViewInit {
   }
 
   protected async uploadFile() {
-    let yang_file: File = this.file;
+    if (!this.file) {
+      this.notificationService.error('No .yang file selected');
+      return;
+    }
+
+    const yangFile = this.file;
     this.file = null;
-    await this.admService.uploadAdm(yang_file);
-    if (!_.isNil(this.admService.requestError()) && this.admService.requestError() !== '') {
-      // toastr.error(this.requestError);
-      console.log(this.admService.requestError());
-    }
-    else if (!_.isNil(this.admService.uploadStatus()) && this.admService.uploadStatus() !== '') {
-      // toastr.success(this.uploadStatus);uploadStatus
-      this.admService.getAdms();
-    }
+
+    this.admService.uploadAdm(yangFile).subscribe({
+      next: (message) => {
+        this.notificationService.success(message);
+        this.admService.getAdms();
+      },
+      error: () => {
+        this.notificationService.error(this.admService.requestError());
+      },
+    });
+  }
+
+  protected downloadFile(adm: any): void {
+    this.admService.downloadAdm(adm).subscribe({
+      error: () => {
+        this.notificationService.error(this.admService.requestError());
+      }
+    });
   }
 }

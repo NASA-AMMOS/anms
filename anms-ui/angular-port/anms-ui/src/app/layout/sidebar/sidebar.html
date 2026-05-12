@@ -101,7 +101,7 @@
 
     <a mat-list-item [activated]="false" href="#"
        (click)="$event.preventDefault(); showNavTitle = !showNavTitle; (!showNavTitle ? this.managementDetails.open = false : '')"
-       [matTooltip]="showNavTitle ? 'Collapse navigation bar' : 'Expan navigation bar'">
+       [matTooltip]="showNavTitle ? 'Collapse navigation bar' : 'Expand navigation bar'">
       @if (showNavTitle) {
         <mat-icon matListItemIcon>navigate_before</mat-icon>
       } @else {

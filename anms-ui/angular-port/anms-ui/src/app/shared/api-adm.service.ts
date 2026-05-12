@@ -9,7 +9,7 @@ import {Observable} from 'rxjs';
 export class ApiAdmService {
   private http = inject(HttpClient);
   // FIXME: URL
-  // private adm_url = Constants.BASE_API_URL + '';
+  // private adm_url = Constants.BASE_API_URL + '/api/core/adms';
   private adm_url = '/api/core/adms';
 
   private createAuthenticationHeader(){
@@ -38,6 +38,6 @@ export class ApiAdmService {
     // FIXME: upload URL
     // FIXME: unable to test upload CORS error - might be something to do with CAM login session token, etc.
     // return this.http.post(this.adm_url, formData, {headers});
-    return this.http.post('/core/adms', formData, {headers});
+    return this.http.post(this.adm_url, formData, {headers});
   }
 }

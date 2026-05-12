@@ -1,7 +1,7 @@
 import {Injectable, signal, computed, inject} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {catchError, tap, delay} from 'rxjs/operators';
-import {of, throwError} from 'rxjs';
+import {catchError, tap, delay, map} from 'rxjs/operators';
+import {Observable, of, throwError} from 'rxjs';
 import {ApiAdmService} from '../../shared/api-adm.service';
 
 export interface Adm {
@@ -89,38 +89,71 @@ export class AdmService {
    * Upload an ADM file
    * @param admFile - The file to upload
    */
-  public uploadAdm(admFile: File) {
+  public uploadAdm(admFile: File): Observable<string> {
     this.requestErrorSignal.set('');
     this.uploadErrorsSignal.set([]);
+    this.uploadStatusSignal.set('');
 
-    try {
-      this.apiAdm.apiUpdateAdm(admFile)
-        .pipe(
-          tap((res) => {
-            if (!res) {
-              throw new Error('Receiving no data from request');
-            }
-          }),
-          catchError((error: HttpErrorResponse) => {
-            return throwError(() => error);
-          })
-        ).subscribe((response) => {
+    return this.apiAdm.apiUpdateAdm(admFile).pipe(
+      tap((res) => {
+        if (!res) {
+          throw new Error('Receiving no data from request');
+        }
+      }),
+
+      map((response: UploadResponse) => {
         const message =
           response?.data?.message ||
           response?.message ||
           'Update success';
 
         this.uploadStatusSignal.set(message);
-      });
-    } catch (error: any) {
-      const response = error?.error as ErrorResponse;
-      const status = error?.status || 500;
-      const message = response?.message || 'Internal server error';
-      const errors = response?.error_details || [];
+        return message;
+      }),
 
-      this.requestErrorSignal.set(`${status}: ${message}`);
-      this.uploadErrorsSignal.set(errors);
-    }
+      catchError((error: HttpErrorResponse) => {
+        const response = error?.error as ErrorResponse;
+        const status = error?.status || 500;
+        const message = response?.message || error?.message || 'Internal server error';
+        const errors = response?.error_details || [];
+
+        this.requestErrorSignal.set(`${status}: ${message}`);
+        this.uploadErrorsSignal.set(errors);
+
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  downloadAdm(adm: any) {
+    this.requestErrorSignal.set('');
+
+    return this.apiAdm.apiGetAdm(adm.enumeration, adm.namespace).pipe(
+      tap((yangText) => {
+        if (!yangText) {
+          throw new Error('Receiving no ADM file contents from request');
+        }
+
+        this.downloadTextAsFile(yangText, `${adm.name}.yang`);
+      }),
+      map(() => void 0),
+      catchError((error: HttpErrorResponse) => {
+        this.requestErrorSignal.set('No ADM to download');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  private downloadTextAsFile(contents: string, filename: string): void {
+    const blob = new Blob([contents], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    URL.revokeObjectURL(url);
   }
 
   /**

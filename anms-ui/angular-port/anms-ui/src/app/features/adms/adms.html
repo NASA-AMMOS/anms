@@ -15,11 +15,12 @@
         <tbody>
 
           @for (adm of admService.adms(); track adm) {
-            <tr>
+            <tr
+              class="downloadable-row"
+              (click)="downloadFile(adm)">
               <td>{{ adm.enumeration }}</td>
-              <!--            FIXME: (click)="download(adm)"-->
               <td
-                [title]="'Download ADM YANG'"
+                [title]="'Click Row to Download ADM YANG'"
 
                 style="cursor: pointer;">
                 <b>{{ adm.name }}</b>
