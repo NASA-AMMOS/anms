@@ -1,0 +1,158 @@
+<div class="ari-builder-layout">
+  <section class="ari-section">
+    <h3>ARI Builder</h3>
+
+    <mat-button-toggle-group
+      class="ari-mode-toggle"
+      [(ngModel)]="ariMode"
+      aria-label="ARI input mode"
+    >
+      <mat-button-toggle value="builder">ARI Builder</mat-button-toggle>
+      <mat-button-toggle value="text">Text Input</mat-button-toggle>
+      <mat-button-toggle value="cbor">ARI CBOR</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (ariMode === 'builder') {
+      <div class="ari-builder-content">
+        <mat-checkbox
+          [(ngModel)]="executionSet"
+          (ngModelChange)="updateAriText()"
+        >
+          Execution Set?
+        </mat-checkbox>
+        @if (executionSet) {
+          <mat-form-field appearance="outline" class="nonce-input">
+            <mat-label>Execution Set Number</mat-label>
+            <input
+              matInput
+              [(ngModel)]="correlatorNonce"
+              (ngModelChange)="updateAriText()"
+            />
+          </mat-form-field>
+        }
+
+        <mat-form-field appearance="outline" class="ari-dropdown">
+          <mat-label>Select ARI</mat-label>
+          <input
+            type="text"
+            matInput
+            [(ngModel)]="ariSearchText"
+            (ngModelChange)="filterAris($event)"
+            [matAutocomplete]="auto"
+            placeholder="Search ARIs..."
+          />
+          <mat-autocomplete #auto="matAutocomplete"
+                            [displayWith]="displayAri"
+                            (optionSelected)="onAriSelected($event.option.value)">
+            @for (ari of filteredAris; track ari.obj_metadata_id) {
+              <mat-option
+                [value]="ari"
+              >
+                {{ ari.display }}
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
+    }
+
+    @if (ariMode === 'text') {
+      <mat-form-field appearance="outline" class="manual-input">
+        <mat-label>Enter ARI Text</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="manualAriText"
+          rows="3"
+          placeholder="ari://...">
+          </textarea>
+      </mat-form-field>
+    }
+
+    @if (ariMode === 'cbor') {
+      <mat-form-field appearance="outline" class="hex-input">
+        <mat-label>Enter CBOR Hex</mat-label>
+        <span matTextPrefix>0x&nbsp;</span>
+        <input
+          matInput
+          [(ngModel)]="manualCborHex"
+          placeholder="ABC123"
+        />
+      </mat-form-field>
+    }
+
+    <div class="command-preview-row">
+      <div class="command-preview">
+        <label>{{ getPreviewLabel() }}</label>
+        <span>{{ getPreviewText() }}</span>
+      </div>
+    </div>
+
+    <button
+      mat-stroked-button
+      class="send-button"
+      type="button"
+      (click)="send()"
+    >
+      SEND
+    </button>
+  </section>
+
+  <section class="ari-param-panel">
+    @if (selectedAri && ariParams.length > 0) {
+      <h4>ARI Parameters</h4>
+
+      @for (param of ariParams; track param.name; let i = $index) {
+        <div class="param-block">
+          <mat-form-field appearance="outline" class="param-dropdown">
+            <mat-label>{{ param.name }} {{ param.type ? '(' + param.type + ')' : '' }}</mat-label>
+
+            <input
+              matInput
+              [(ngModel)]="param.searchText"
+              (ngModelChange)="filterParamAris(i)"
+              [matAutocomplete]="paramAuto"
+              placeholder="Search ARIs..."
+            />
+
+            <mat-autocomplete
+              #paramAuto="matAutocomplete"
+              [displayWith]="displayAri"
+              (optionSelected)="onParamAriSelected(i, $event.option.value)"
+            >
+              @for (ari of param.filteredAris; track ari.obj_metadata_id) {
+                <mat-option [value]="ari">
+                  {{ ari.display }}
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          @if (param.selectedAris.length > 0) {
+            <div class="selected-param-aris">
+              <div class="selected-param-header">Selected ARIs:</div>
+
+              @for (ari of param.selectedAris; track ari.obj_metadata_id) {
+                <div class="selected-param-ari-row">
+                  <span>{{ ari.display }}</span>
+
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Remove selected ARI"
+                    (click)="removeParamAri(i, ari)"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    } @else {
+      <div class="empty-param-panel">
+        Select an ARI with parameters to configure inputs.
+      </div>
+    }
+  </section>
+</div>
