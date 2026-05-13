@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Inject, inject, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Inject, inject, Input, OnInit, Output} from '@angular/core';
 import { ApiService } from '../../../../shared/api.service';
 import {Ari} from '../../agents/model/ari.model';
 import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle';
@@ -28,7 +28,7 @@ interface AriParamState {
   textValue: string;
 
   selectedAris: Ari[];
-  searchText: string;
+  searchText: '';
   filteredAris: Ari[];
 }
 
@@ -71,15 +71,23 @@ export class AriCommandBuilder implements OnInit {
   protected selectedAri: Ari | null = null; // used for single select in main input dropdown
   protected ariParams: AriParamState[] = [];
 
-@Output()
-commandReady = new EventEmitter<AriCommandOutput>();
+  @Output()
+  commandReady = new EventEmitter<AriCommandOutput>();
 
+  @Input() initialMode: AriCommandMode = 'builder';
+  @Input() initialCborCommands: string[] = [];
 
   constructor(
     private api: ApiService,
   ) {}
 
   ngOnInit(): void {
+    this.ariMode = this.initialMode;
+
+    if (this.initialCborCommands.length > 0) {
+      this.manualCborHex = this.initialCborCommands.join(',');
+    }
+
     this.api.apiQueryForARIs().subscribe({
       next: (data: Ari[]) => {
         this.aris = data;
@@ -134,6 +142,7 @@ commandReady = new EventEmitter<AriCommandOutput>();
   protected onAriSelected(ari: Ari): void {
     this.selectedAri = ari;
     this.ariParams = this.buildParamState(ari);
+    this.ariSearchText = ari.display;
     this.updateAriText();
   }
 

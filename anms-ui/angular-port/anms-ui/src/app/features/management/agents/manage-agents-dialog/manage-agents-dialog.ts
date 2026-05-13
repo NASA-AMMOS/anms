@@ -10,6 +10,10 @@ import {NotificationService} from '../../../../shared/notification.service';
 import {forkJoin, switchMap} from 'rxjs';
 import {AriCommandBuilder, AriCommandOutput} from '../../shared/ari-command-builder/ari-command-builder';
 
+interface ManageAgentsDialogData {
+  agents: AgentInfo[];
+  cborCommands?: string[];
+}
 
 @Component({
   selector: 'app-manage-agents-dialog',
@@ -35,10 +39,10 @@ export class ManageAgentsDialog implements OnInit {
 
   constructor(
     private dialogRef: MatDialogRef<ManageAgentsDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: AgentInfo[],
+    @Inject(MAT_DIALOG_DATA) public data: ManageAgentsDialogData,
     private api: ApiService,
   ) {
-    this.agentsInfo = data;
+    this.agentsInfo = data.agents;
   }
 
   ngOnInit(): void {
@@ -56,7 +60,7 @@ export class ManageAgentsDialog implements OnInit {
   }
 
   protected handleCommand(command: AriCommandOutput): void {
-    if (!this.data.length) {
+    if (!this.data.agents.length) {
       this.notificationService.error('No agents selected');
       return;
     }
@@ -102,20 +106,40 @@ export class ManageAgentsDialog implements OnInit {
   }
 
   private sendRawCbor(cborHex: string): void {
-    if (!cborHex) {
+    if (!cborHex?.trim()) {
       this.notificationService.error('No CBOR hex to send');
       return;
     }
 
-    this.sendRawCborRequest(cborHex).subscribe({
-      next: () => this.notificationService.success('CBOR sent to selected agents'),
-      error: (err) => this.notificationService.error(err, 'Error sending CBOR'),
+    const cborCommands = cborHex
+      .split(',')
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+
+    if (cborCommands.length === 0) {
+      this.notificationService.error('No valid CBOR commands found');
+      return;
+    }
+
+    this.sendRawCborRequest(cborCommands).subscribe({
+      next: () =>
+        this.notificationService.success(
+          `${cborCommands.length} CBOR command(s) sent to ${this.agentsInfo.length} agent(s)`
+        ),
+
+      error: (err) =>
+        this.notificationService.error(err, 'Error sending CBOR'),
     });
   }
 
-  private sendRawCborRequest(cborHex: string) {
-    const requests = this.agentsInfo.map((agent) =>
-      this.api.apiSendRawCommand(agent.agent_endpoint_uri, cborHex)
+  private sendRawCborRequest(cborCommands: string[]) {
+    const requests = this.agentsInfo.flatMap((agent) =>
+      cborCommands.map((cbor) =>
+        this.api.apiSendRawCommand(
+          agent.agent_endpoint_uri,
+          cbor
+        )
+      )
     );
 
     return forkJoin(requests);

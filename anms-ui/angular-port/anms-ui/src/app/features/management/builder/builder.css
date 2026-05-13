@@ -2,7 +2,7 @@
   padding: 1.5rem 2rem;
 }
 
-.builder-shell {
+.ari-builder-section {
   padding: 0 20%;
   margin-bottom: 1.5rem;
 }
@@ -54,6 +54,8 @@
 
 .send-to-agents-button {
   white-space: nowrap;
+  padding: 0 10%;
+  margin-left: 1rem;
 }
 
 @media (max-width: 1200px) {

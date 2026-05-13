@@ -19,6 +19,8 @@ import {MatFormField, MatInput} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {MatDivider} from '@angular/material/divider';
 import {MatLabel} from '@angular/material/form-field';
+import { CommandHandoffService } from '../../../shared/command-handoff.service';
+import {Router} from '@angular/router';
 
 export interface TranscoderLogEntry {
   transcoder_log_id: number;
@@ -66,6 +68,8 @@ export interface TranscoderLogResponse {
 export class Builder implements OnInit {
   private api = inject(ApiService);
   private notificationService = inject(NotificationService);
+  private commandHandoffService = inject(CommandHandoffService);
+  private router = inject(Router);
 
   @ViewChild(MatPaginator)
   paginator!: MatPaginator;
@@ -164,6 +168,16 @@ export class Builder implements OnInit {
   }
 
   protected sendToAgents(): void {
-    console.log('Selected logs:', this.selection.selected);
+    const cborCommands = this.selection.selected
+      .map((log) => log.cbor)
+      .filter((cbor): cbor is string => !!cbor);
+
+    if (cborCommands.length != this.selection.selected.length) {
+      this.notificationService.error('Not all selected entries contain valid CBOR', 'Erroneous Entries Selected'); // FIXME: toastr messages appear at top of page which might not be visible if window is scrolled down to table
+      return;
+    }
+
+    this.commandHandoffService.setCborCommands(cborCommands);
+    this.router.navigate(['/dashboard/agents']);
   }
 }

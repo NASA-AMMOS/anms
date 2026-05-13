@@ -34,20 +34,19 @@
         <mat-form-field appearance="outline" class="ari-dropdown">
           <mat-label>Select ARI</mat-label>
           <input
-            type="text"
             matInput
             [(ngModel)]="ariSearchText"
             (ngModelChange)="filterAris($event)"
-            [matAutocomplete]="auto"
+            [matAutocomplete]="mainAriAuto"
             placeholder="Search ARIs..."
           />
-          <mat-autocomplete #auto="matAutocomplete"
-                            [displayWith]="displayAri"
-                            (optionSelected)="onAriSelected($event.option.value)">
+
+          <mat-autocomplete
+            #mainAriAuto="matAutocomplete"
+            (optionSelected)="onAriSelected($event.option.value)"
+          >
             @for (ari of filteredAris; track ari.obj_metadata_id) {
-              <mat-option
-                [value]="ari"
-              >
+              <mat-option [value]="ari">
                 {{ ari.display }}
               </mat-option>
             }
@@ -109,7 +108,7 @@
             <input
               matInput
               [(ngModel)]="param.searchText"
-              (ngModelChange)="filterParamAris(i)"
+              (ngModelChange)="filterParamAris(param.index)"
               [matAutocomplete]="paramAuto"
               placeholder="Search ARIs..."
             />

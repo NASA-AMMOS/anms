@@ -9,7 +9,7 @@
   <mat-divider class="section-divider"></mat-divider>
 
   <section class="transcoder-log-section">
-    <h2>Transcoder Logs</h2>
+    <p>Select CBOR(s) to send to Agents display</p>
 
     <div class="log-toolbar">
       <mat-form-field appearance="outline" class="search-field">
@@ -87,7 +87,8 @@
         <button
           mat-stroked-button
           class="send-to-agents-button"
-          [disabled]="selection.isEmpty()">
+          [disabled]="selection.isEmpty()"
+        (click)="sendToAgents()">
           Send to agents
         </button>
 

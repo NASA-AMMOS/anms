@@ -11,6 +11,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import {AgentInfo, AgentModal} from './agent-modal/agent-modal';
 import {SelectionModel} from '@angular/cdk/collections';
 import {ManageAgentsDialog} from './manage-agents-dialog/manage-agents-dialog';
+import {CommandHandoffService} from '../../../shared/command-handoff.service';
 
 @Component({
   selector: 'app-agents',
@@ -30,9 +31,9 @@ export class Agents implements AfterViewInit {
   protected apiService = inject(ApiService);
   protected notificationService = inject(NotificationService);
   protected dialog = inject(MatDialog);
+  private commandHandoffService = inject(CommandHandoffService);
 
   protected info: string = '';
-  protected selectAll: boolean = false;
   protected node: any;
   protected pageSizes = [10, 20, 50, 100];
   protected selection = new SelectionModel<any>(true, []); // true = multi-select
@@ -49,7 +50,7 @@ export class Agents implements AfterViewInit {
         },
         error: (err: any) => {
           console.error(err);
-          this.info = "failed to reach manager";
+          this.notificationService.error("failed to reach manager");
         }
       });
   }
@@ -70,12 +71,6 @@ export class Agents implements AfterViewInit {
     this.agentsService.reloadAgents();
   }
 
-  // TODO: deprecated, remove once confirmed safe to do so
-  protected toggleSelectAll() {
-    this.agentsService.currentAgents().forEach((agent) => {
-      this.selectAgent(this.selectAll, agent);
-    });
-  }
 
   protected toggleAgent(agent: any) {
     this.selection.toggle(agent);
@@ -90,16 +85,6 @@ export class Agents implements AfterViewInit {
       this.selection.clear();
     } else {
       this.selection.select(...this.agentsService.currentAgents());
-    }
-  }
-
-  // TODO: deprecated, remove once confirmed safe to do so
-  protected selectAgent(isSelected: boolean, agent: any) {
-    if (agent && isSelected != agent.selected) {
-      let agentUpdated = {...agent};
-      let agentIndex = this.getAgentIndexById(agentUpdated.registered_agents_id);
-      agentUpdated.selected = isSelected;
-      this.agentsService.updateAgent(agentIndex, agentUpdated);
     }
   }
 
@@ -120,12 +105,6 @@ export class Agents implements AfterViewInit {
     });
   }
 
-  // TODO: deprecated, remove once confirmed safe to do so
-  protected selectedAgents() {
-    return this.agentsService.currentAgents().filter((agent) => {
-      return agent.selected == true;
-    });
-  }
 
   protected goToAgentDetails(agentInfo: AgentInfo) {
     const dialogRef = this.dialog.open(AgentModal, {
@@ -133,9 +112,6 @@ export class Agents implements AfterViewInit {
       maxWidth: '1000px',
       data: agentInfo
     });
-
-    // dialogRef.afterClosed().subscribe(() => { // TODO: add automatic table refresh on close here?
-    // });
   }
 
   protected goToManageDialog() {
@@ -143,12 +119,13 @@ export class Agents implements AfterViewInit {
     const dialogRef = this.dialog.open(ManageAgentsDialog, {
       width: '80vw',
       maxWidth: '1000px',
-      data: selectedAgents,
+      data: {
+        agents: selectedAgents,
+        cborCommands: this.commandHandoffService.cborCommands(),
+      },
       panelClass: 'custom-dialog'
     });
 
-    // dialogRef.afterClosed().subscribe(() => { // TODO: add automatic table refresh on close here?
-    // });
   }
 
   private getAgentIndexById(agentId: any) {
