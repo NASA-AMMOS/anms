@@ -28,31 +28,31 @@ from anms.models.relational import Model
 from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
-from sqlalchemy import LargeBinary
-from anms.shared.transmogrifier import TRANSMORGIFIER
-
 
 # class for vw_ctrl_definition used for build ari
-class ExecutionSet(Model):
-    __tablename__ = 'vw_execution_set'
-    execution_set_id = Column(Integer, primary_key=True)
-    nonce_cbor = Column(LargeBinary)
-    use_desc = Column(String)
-    agent_id = Column(String)
-    num_entries = Column(Integer)
-    entries	 = Column(LargeBinary)
+class Const(Model):
+    __tablename__ = 'vw_const_actual'
+    obj_actual_definition_id        = Column(Integer,  primary_key=True)
+    data_type	 = Column(String)
+    data_value	 = Column(String)
+    use_desc	 = Column(String)
+    obj_metadata_id        = Column(Integer)
+    data_model_name = Column(String)
+    namespace = Column(String)
+    data_type_id        = Column(Integer)
+    name	 = Column(String)
+    data_model_id        = Column(Integer)
+    object_enumeration        = Column(Integer)
+    status	 = Column(String)
+    reference	 = Column(String)
+    description = Column(String)
 
     def __repr__(self) -> str:
         return self.as_dict().__repr__()
 
     def as_dict(self) -> Dict[str, Any]:
         dict_obj = {
-                    'execution_set_id': getattr(self, 'execution_set_id'),
-                    'nonce_cbor': TRANSMORGIFIER._ace_transcode_just_cbor("0x"+getattr(self, 'nonce_cbor').hex()),        
-                    'use_desc': getattr(self, 'use_desc'),
-                    'agent_id': getattr(self, 'agent_id'),
-                    'num_entries': getattr(self, 'num_entries'),
-                    'entries': getattr(self, 'entries')       
-                    }
+            c.name: getattr(self, c.name) for c in self.__table__.columns
+        }
 
         return dict_obj

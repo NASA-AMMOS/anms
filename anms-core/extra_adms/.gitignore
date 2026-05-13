@@ -1,0 +1,3 @@
+#ignoring any added ADMs to this file to avoid uploading test or unwanted ADMs  
+*
+!.gitignore

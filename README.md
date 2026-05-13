@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2023 The Johns Hopkins University Applied Physics
+Copyright (c) 2022-2026 The Johns Hopkins University Applied Physics
 Laboratory LLC.
 
 This file is part of the Asynchronous Network Management System (ANMS).
@@ -21,13 +21,42 @@ subcontract 1658085.
 -->
 #  AMMOS ANMS
 
-This is a detailed developer-focused documentation for the AMMOS Asynchronous Network Management System (ANMS).
+This is the quickstart documentation for the AMMOS Asynchronous Network Management System (ANMS).
 
 ### Copyright
 
-Copyright (C) 2022-2025 The Johns Hopkins University Applied Physics Laboratory LLC.
+Copyright (C) 2022-2026 The Johns Hopkins University Applied Physics Laboratory LLC.
 
-[[_TOC_]]
+# Start Here: Which Documentation Should You Use?
+
+ANMS supports multiple types of users. The appropriate documentation depends on how you are interacting with the system.
+
+**1. Are you installing ANMS from this source repository?**
+
+If yes, then use this README for:
+* Quickstart instructions
+* Installation steps
+* Basic configuration
+* High-level overview
+
+For detailed operational guidance after installation, refer to the ANMS User Guide, found here: www.nasa-ammos.github.io/anms-docs/.
+
+**2. Are you an AMMOS user or operating an already-installed ANMS instance (not from source)?**
+
+If yes, do not rely on this README for operational guidance. Refer to the ANMS Product Guide and ANMS User Guide for:
+* System usage
+* Operational workflows
+* Configuration details
+
+**NOTE:** These guides apply to *all* users once ANMS is installed.
+
+**3. Are you a developer contributing to ANMS or setting up a development environment?**
+
+If yes, refer to both this README and the ANMS Wiki [Development Guide](https://github.com/NASA-AMMOS/anms/wiki/Development-Guide) for:
+* Local development environment configuration
+* Testing workflows
+* Contribution guidelines
+* Additional troubleshooting guidance
 
 # Quick Start
 
@@ -37,19 +66,20 @@ This section details prerequisites to installing the ANMS from source on a devel
 
 ### Software and OS Versions
 
-The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9  and Ubuntu 20.04.
-To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and podman can generally be used interchangeably.
+The setup of ANMS and demos listed in this README have been tested on macOS 11.6.4 (Big Sur), RHEL 9 and Ubuntu 20.04.
+To run the ANMS tool, you must also install Docker Engine version 20.10.10 or newer or Podman 5.2.2+.  You will also need either Docker Compose version 1.29.2+ or podman-compose.  Docker and Podman can generally be used interchangeably. 
 
-The ANMS UI capability has been tested on Firefox version 96.0.1.
-There is no capability that should preclude operation on other modern browsers. 
+**NOTE:** `docker-compose` can be used with `podman`, and `docker-compose` is generally recommended for improved reliability over `podman-compose`, with some platforms (e.g. Mac) failing to start up correctly with Podman.  In all cases, recent versions of the installed compose tool are invoked with `podman compose` or `docker compose` as appropriate. 
+
+The ANMS UI should work on all modern browsers.
 
 ### Network Setup
 
 If your computer is behind a network proxy, this may cause issues related to using self-signed certificates when pulling dependencies to build Docker images.
-Though ANMS can be run behind a proxy; building the ANMS Docker images from behind a network proxy may result in errors.
+Though ANMS can be run behind a proxy, building the ANMS Docker images from behind a network proxy may result in errors.
 
-The first steps in each of the container image `Dockerfile` is to attempt to download an APLNIS root CA to validate the APLNIS HTTPS proxy.
-When building images outside of the APLNIS, this download will gracefully fail and the image will not be able to run within the APLNIS.  The URL for this certificate can be changed for users requiring equivalent functionality on their own networks.
+The first steps in each of the container image `Dockerfile` is to attempt to download the appropriate root CA to validate your HTTPS proxy.
+When building images outside of the internal network, it is possible that this download will gracefully fail and the image will not be able to run within the internal network.  The URL for this certificate can be changed for users requiring equivalent functionality on their own networks.
 
 ### Special Notes on Podman
 
@@ -62,7 +92,8 @@ Note: If running on a system where **SELinux** is enabled, the system will not s
 
 ### Upgrading ANMS
 
-If upgrading from an earlier version, a few steps are necessary to clear out earlier state.
+If upgrading from an earlier version, a few steps are necessary to clear out the earlier state. **NOTE:** please see the `UPGRADING.md` file in this repo for specific changes when one wishes to preserve data. 
+
 The following command sequence uses standard Docker commands to stop all containers and remove all "dangling" images, networks, and volumes.
 
 :warning: The last command in this sequence removes volumes, **which include DB state**.
@@ -81,16 +112,16 @@ docker stop $(docker ps -q); docker rm $(docker ps --all -q); docker system prun
 
 The quickstart script will configure, pull, and start the ANMS system for the first time.  See comments in the script for additional details, including optional ENV variables to override default behavior.
 
-NOTICE: By default, quick start will pull pre-built containers from the github registry (ghcr.io). To force a rebuild, run it as `FORCE_REBULD=y ./quickstart.sh`. See the script header for details.
+NOTICE: By default, quick start will pull pre-built containers from the github registry (ghcr.io). To force a rebuild, run it as `FORCE_REBUILD=y ./quickstart.sh`. See the script header for details.
 
-To stop the system use `podman compose -f testenv-compose.yml -f docker-compose.yml down`.
+To stop the system, use `podman compose -f testenv-compose.yml -f docker-compose.yml down`.
 
-To start the system in the future use `podman compose -f testenv-compose.yml up` and `podman compose up`.
+To start the system in the future, use `podman compose -f testenv-compose.yml up` and `podman compose up`.
 
 ## Manual Startup
-Choose the appropriate docker, podman or podman-compose commands in the directions below as appropriate for your system.
+Choose the appropriate docker, podman, or podman-compose commands in the directions below as appropriate for your system.
 
-- Edit `.env` file as appropriately
+- Edit `.env` file as appropriate.
   - Select appropriate profile(s) as desired. 
     - Core ANMS services are always started.
     - The 'full' profile starts up all UI and related services.
@@ -111,8 +142,8 @@ Choose the appropriate docker, podman or podman-compose commands in the directio
   - `docker compose -f docker-compose.yml build`
   - `podman compose -f docker-compose.yml build`
   - `podman-compose --podman-build-args='--format docker' -f docker-compose.yml build`
-    - Note: The docker format argument here enables suppoort for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
-- Build test environemnt images using one of the following:
+    - Note: The docker format argument here enables support for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
+- Build test environment images using one of the following:
   - `docker compose -f testenv-compose.yml build`
   - `podman compose -f testenv-compose.yml build`
   - `podman-compose --podman-build-args='--format docker' -f testenv-compose.yml build`
@@ -162,7 +193,7 @@ point. With ANMS running, go to `localhost:8080` and log in to the database with
 
 ### ADM and Agent Updates
 
-Changes to ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI.
+By default after building the system, ANMS starts with the ADMs defined in `deps/dtnma-adms` and ADMs added to `anms-core/extra_adms`. Changes to and adding new ADMs are handled on the Manager by uploading a new version of the ADM via the Web UI or the REST POST endpoint `http://localhost:5555/adms/`.
 The manager will then be able to use the new ADM.
 
 Changes to a test Agent are more complicated, and require auto-generated C sources built into the ION source tree.
