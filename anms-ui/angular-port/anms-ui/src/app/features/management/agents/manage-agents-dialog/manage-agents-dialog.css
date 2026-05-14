@@ -8,7 +8,7 @@
 }
 
 .selected-agents-chip-container {
-  background-color: #f3f5f7;
+  background-color: rgba(243, 245, 247, 0.39);
   border: 1px solid #d8dde3;
   border-radius: 8px;
   padding: 0.75rem;

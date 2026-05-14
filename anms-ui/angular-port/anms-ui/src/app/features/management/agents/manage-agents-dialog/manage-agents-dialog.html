@@ -16,12 +16,12 @@
 
   <section class="selected-agents-section">
     <div class="selected-agents-header">
-      {{ data.length }} selected agent{{ data.length === 1 ? '' : 's' }}
+      {{ data.agents.length }} selected agent{{ data.agents.length === 1 ? '' : 's' }}
     </div>
 
     <div class="selected-agents-chip-container">
       <mat-chip-set aria-label="Selected agents">
-        @for (agent of data; track agent.registered_agents_id) {
+        @for (agent of data.agents; track agent.registered_agents_id) {
           <mat-chip>
             {{ agent.agent_endpoint_uri }}
           </mat-chip>
@@ -34,6 +34,8 @@
 
   <section class="command-builder-section">
     <app-ari-command-builder
+      [initialMode]="data.cborCommands?.length ? 'cbor' : 'builder'"
+      [initialCborCommands]="data.cborCommands ?? []"
       (commandReady)="handleCommand($event)">
     </app-ari-command-builder>
   </section>

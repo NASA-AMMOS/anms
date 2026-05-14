@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Inject, inject, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Inject, inject, Input, OnInit, Output} from '@angular/core';
 import { ApiService } from '../../../../shared/api.service';
 import {Ari} from '../../agents/model/ari.model';
 import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle';
@@ -9,10 +9,6 @@ import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from '@angular/mater
 import {MatIcon} from '@angular/material/icon';
 import {MatInput} from '@angular/material/input';
 import {MatButton, MatIconButton} from '@angular/material/button';
-import {AgentInfo} from '../../agents/agent-modal/agent-modal';
-import {NotificationService} from '../../../../shared/notification.service';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {forkJoin} from 'rxjs';
 
 export type AriCommandMode = 'builder' | 'text' | 'cbor';
 
@@ -32,7 +28,7 @@ interface AriParamState {
   textValue: string;
 
   selectedAris: Ari[];
-  searchText: string;
+  searchText: '';
   filteredAris: Ari[];
 }
 
@@ -59,15 +55,11 @@ interface AriParamState {
   standalone: true
 })
 export class AriCommandBuilder implements OnInit {
-  protected agentsInfo: AgentInfo[];
-
   protected ariMode: 'builder' | 'text' | 'cbor' = 'builder';
   protected executionSet = false;
 
   protected correlatorNonce = '';
 
-  protected selectedAriText = '';
-  protected hexInput = '';
   protected ariText = '';
   protected manualAriText = '';
   protected manualCborHex = '';
@@ -77,22 +69,25 @@ export class AriCommandBuilder implements OnInit {
   protected ariSearchText = '';
 
   protected selectedAri: Ari | null = null; // used for single select in main input dropdown
-  protected selectedAris: Ari[] | null = null; // used for parameter ari multi-select input dropdowns
   protected ariParams: AriParamState[] = [];
-  protected notificationService = inject(NotificationService);
 
-@Output()
-commandReady = new EventEmitter<AriCommandOutput>();
+  @Output()
+  commandReady = new EventEmitter<AriCommandOutput>();
 
+  @Input() initialMode: AriCommandMode = 'builder';
+  @Input() initialCborCommands: string[] = [];
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: AgentInfo[],
     private api: ApiService,
-  ) {
-    this.agentsInfo = data;
-  }
+  ) {}
 
   ngOnInit(): void {
+    this.ariMode = this.initialMode;
+
+    if (this.initialCborCommands.length > 0) {
+      this.manualCborHex = this.initialCborCommands.join(',');
+    }
+
     this.api.apiQueryForARIs().subscribe({
       next: (data: Ari[]) => {
         this.aris = data;
@@ -100,11 +95,6 @@ commandReady = new EventEmitter<AriCommandOutput>();
       },
       error: (err) => console.error('Failed to load ARIs', err),
     });
-  }
-
-
-  protected submitTextInput(): void { // currently just sets ariText. should this do validation in the future?
-    this.ariText = `0x${this.hexInput}`;
   }
 
   protected filterAris(value: string | Ari | null): void {
@@ -152,6 +142,7 @@ commandReady = new EventEmitter<AriCommandOutput>();
   protected onAriSelected(ari: Ari): void {
     this.selectedAri = ari;
     this.ariParams = this.buildParamState(ari);
+    this.ariSearchText = ari.display;
     this.updateAriText();
   }
   protected onParamAriSelectedPrim(paramIndex: number, ari: string): void {
