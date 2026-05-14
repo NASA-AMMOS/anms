@@ -135,7 +135,6 @@ export class ApiService {
   }
 
   public apiEntriesForReport(obj_agent_id: any, cbor: any): Observable<any> {
-    console.log(cbor);
     return this.http.post(`/api/report/entries/table/${obj_agent_id}`, {'data':cbor});
   }
 
