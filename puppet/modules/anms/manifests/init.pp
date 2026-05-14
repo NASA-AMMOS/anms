@@ -5,6 +5,10 @@ class anms(
   String $ctr_image_tag,
   String $version = '',
   String $gw_fqdn = $facts['networking']['fqdn'],
+  String $amp_db_user = 'root',
+  String $amp_db_password = 'root'
+  String $opensearch_admin_password = 'admin',
+  String $grafana_db_password = 'grafana',
   Optional[String] $ctr_registry_user = undef,
   Optional[String] $ctr_registry_pass = undef,
   String $cam_server_url = '',

@@ -145,7 +145,32 @@ export class AriCommandBuilder implements OnInit {
     this.ariSearchText = ari.display;
     this.updateAriText();
   }
+  protected onParamAriSelectedPrim(paramIndex: number, ari: string): void {
+    const param = this.ariParams[paramIndex];
+    const newAri :Ari ={
+      obj_metadata_id: 0,
+      obj_id: 0,
+      name: ari,
+      namespace: './',
+      data_model_name: '',
+      type_name: '',
+      data_model_id: 0,
+      parm_id: null,
+      actual: true,
+      display: ari,
+      param_names: [],
+      param_types: []
+    };
 
+    
+    param.selectedAris = [...param.selectedAris, newAri];
+  
+
+    param.searchText = '';
+    param.filteredAris = this.aris;
+
+    this.updateAriText();
+  }
   protected onParamAriSelected(paramIndex: number, ari: Ari): void {
     const param = this.ariParams[paramIndex];
 

@@ -21,7 +21,7 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, HTTPException
 import requests
 from pydantic import BaseModel
 
@@ -51,7 +51,7 @@ async def nm_get_version():
     try:
         request = requests.get(url=url)
     except Exception:
-        return {}
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="ConnectTimeout")
     return request.json()
 
 
@@ -63,7 +63,7 @@ def nm_get_agents():
     try:
         request = requests.get(url=url)
     except Exception:
-        return -1
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="ConnectTimeout")
     return request.json()
 
 
@@ -90,20 +90,20 @@ def do_nm_put_hex_eid(eid: str, ari: str):
     url = nm_url + "/agents/eid/{}/send?form=hex".format(_prepare_url(eid))
     logger.info('post to nm manager %s  with eid %s and data %s' % (url, eid, ari))
     
-    try:        
+    try:
         request = requests.post(url=url,
                                 data=ari,
                                 headers={'Content-Type': 'text/plain'},
                                 timeout=(2.0, 8.0) # 2s for manager to connect, 8s for it to respond
                                 )
     except requests.exceptions.ConnectTimeout:
-        return status.HTTP_504_GATEWAY_TIMEOUT
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="ConnectTimeout")
     except requests.exceptions.ReadTimeout:
-        return status.HTTP_504_GATEWAY_TIMEOUT
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="ReadTimeout")
     except requests.exceptions.Timeout:
-        return status.HTTP_504_GATEWAY_TIMEOUT
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="Timeout")
     except Exception:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     return request.status_code
 
 

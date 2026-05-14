@@ -4,8 +4,8 @@ import {ApiService} from '../../../../shared/api.service';
 import {FormsModule} from '@angular/forms';
 
 export interface ReportOption {
-  exec_set: string;
-  nonce_cbor: string;
+  ari: string;
+  cbor: Array<any>;
 }
 
 @Component({
@@ -42,10 +42,11 @@ export class Reports implements OnInit {
     // preload all reports like in mounted()
     const preloadPromises = this.rptts.map((rpt, index) =>
       this.apiService
-        .apiEntriesForReport(this.registeredAgentsId, rpt.nonce_cbor)
+        .apiEntriesForReport(this.registeredAgentsId, rpt.cbor)
         .subscribe({
           next: (res: any) => {
             this.reports[index] = res;
+            
           }, error: (error: any) => {
             console.error('reports error', error);
           }
@@ -67,12 +68,12 @@ export class Reports implements OnInit {
     this.tableHeaders = [];
     this.tableItems = [];
 
-    const nonce_cbor = this.selected.nonce_cbor;
+    const nonce_cbor = this.selected.cbor;
 
     try {
       this.apiService.apiEntriesForReport(
         this.registeredAgentsId,
-        encodeURIComponent(nonce_cbor)
+        nonce_cbor
       ).subscribe((res) => {
         this.processReport(res);
 
@@ -90,31 +91,9 @@ export class Reports implements OnInit {
 
   private processReport(report: any): void {
     let rpt: any[] = [];
-
-    if (this.selected && this.selected.exec_set in report) {
-      rpt = report[this.selected.exec_set];
-    } else if (this.selected) {
-      rpt = report[this.selected.nonce_cbor];
+    if(report.length >0 ){
+      this.tableItems.push(report[0].reports.flat().map((obj: { [s: string]: unknown; } | ArrayLike<unknown>) => Object.values(obj)));
     }
-
-    if (!rpt || rpt.length === 0) {
-      return;
-    }
-
-    // header from first item keys
-    const holdHeader: string[] = Object.keys(rpt[0]);
-
-    const currTableItems: any[][] = [];
-
-    for (const item of rpt) {
-      const row: any[] = [];
-      for (const h of holdHeader) {
-        row.push(item[h]);
-      }
-      currTableItems.push(row.flat());
-    }
-
-    this.tableHeaders.push(holdHeader);
-    this.tableItems.push(currTableItems);
+    this.tableHeaders.push(Object.keys(report[0].reports.flat()[0]));
   }
 }

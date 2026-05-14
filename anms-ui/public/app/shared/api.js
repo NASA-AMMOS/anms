@@ -154,8 +154,8 @@ export default {
       return axios.get(Constants.BASE_API_URL+'nm/agents', nodeEID)
     },
 
-    apiEntriesForReport(obj_agent_id, correlator_nonce) {
-      return axios.get(Constants.BASE_API_URL+`report/entries/table/${obj_agent_id}/${correlator_nonce}`)
+    apiEntriesForReport(obj_agent_id, source_cbor) {
+      return axios.post(Constants.BASE_API_URL+`report/entries/table/${obj_agent_id}`, {'data':source_cbor})
     },
 
     apiEntriesForReportTemplate(agentId){

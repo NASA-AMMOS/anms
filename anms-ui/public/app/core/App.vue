@@ -109,7 +109,6 @@
         console.log("Calling schedule ARI refresh in App");
         this.reloadARIs();
       }, status_refresh_rate);
-      console.log(this.alerts);
     },
     beforeDestroy() {
       console.log("Clearing interval with id:", this.statusWorkerId);
