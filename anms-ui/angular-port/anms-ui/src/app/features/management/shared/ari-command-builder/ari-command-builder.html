@@ -112,12 +112,13 @@
               (ngModelChange)="filterParamAris(i)"
               [matAutocomplete]="paramAuto"
               placeholder="Search ARIs..."
+              (keyup.enter)="onParamAriSelectedPrim(i, $event.target.value)"
             />
-
             <mat-autocomplete
               #paramAuto="matAutocomplete"
               [displayWith]="displayAri"
               (optionSelected)="onParamAriSelected(i, $event.option.value)"
+              ()
             >
               @for (ari of param.filteredAris; track ari.obj_metadata_id) {
                 <mat-option [value]="ari">
