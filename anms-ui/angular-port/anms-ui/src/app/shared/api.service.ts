@@ -134,8 +134,9 @@ export class ApiService {
     return this.http.get('/api/nm/agents', nodeEID);
   }
 
-  public apiEntriesForReport(obj_agent_id: any, correlator_nonce: any): Observable<any> {
-    return this.http.get(`/api/report/entries/table/${obj_agent_id}/${correlator_nonce}`);
+  public apiEntriesForReport(obj_agent_id: any, cbor: any): Observable<any> {
+    console.log(cbor);
+    return this.http.post(`/api/report/entries/table/${obj_agent_id}`, {'data':cbor});
   }
 
   public apiEntriesForReportTemplate(agentId: any): Observable<any> {
