@@ -21,4 +21,8 @@ import {Constants} from '../../shared/constants';
 })
 export class Header {
   protected uiVersion = Constants.uiversion;
+
+  protected logout(): void {
+    window.location.href = '/authn/dologout.html';
+  }
 }
