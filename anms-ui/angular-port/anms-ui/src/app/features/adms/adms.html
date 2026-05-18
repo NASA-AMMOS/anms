@@ -65,7 +65,7 @@
         id="adm"
         name="adm"
         accept=".yang"
-        [(ngModel)]="file"
+        (change)="onFileChange($event)"
       >
     </div>
     <button

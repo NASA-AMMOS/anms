@@ -28,12 +28,15 @@ export class Adms implements AfterViewInit {
     return (!_.isNull(this.file) );
   }
 
+  protected onFileChange(event: any){
+    this.file = event.target.files[0];
+  }
+
   protected async uploadFile() {
     if (!this.file) {
       this.notificationService.error('No .yang file selected');
       return;
     }
-
     const yangFile = this.file;
     this.file = null;
 

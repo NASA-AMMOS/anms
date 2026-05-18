@@ -29,15 +29,10 @@ export class ApiAdmService {
   public apiUpdateAdm(file:  File): Observable<any> {
     const auth_headers = this.createAuthenticationHeader();
     const formData = new FormData();
-
-    formData.append('adm', file);
+    formData.append('adm', file, file.name);
     const headers = {
       ...auth_headers,
-      'Content-Type': 'multipart/form-data'
     };
-    // FIXME: upload URL
-    // FIXME: unable to test upload CORS error - might be something to do with CAM login session token, etc.
-    // return this.http.post(this.adm_url, formData, {headers});
     return this.http.post(this.adm_url, formData, {headers});
   }
 }
