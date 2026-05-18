@@ -80,6 +80,7 @@ export class Builder implements OnInit {
     'inputString',
     'parsedAs',
     'cbor',
+    'ari',
   ];
 
   protected dataSource = new MatTableDataSource<TranscoderLogEntry>([]);
