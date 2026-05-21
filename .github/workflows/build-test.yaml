@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Install Podman
         if: ${{matrix.ctrmgr == 'podman'}}
-        uses: redhat-actions/podman-install@main
+        uses: redhat-actions/podman-install@5bc2ecc87c737059124c295845be51ee7297fb89
       - name: Start Container Service
         if: ${{matrix.ctrmgr == 'podman'}}
         run: systemctl --user start podman.socket
