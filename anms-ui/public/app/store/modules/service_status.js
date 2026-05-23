@@ -62,19 +62,18 @@ export default {
         commit('updateAlerts',res.data)
         
         // TODO rethink tracking alerts for multiple accounts 
-        // _.forEach(res.data, (alert) => {
-        //   if( !state.alertIds.includes(alert.id)){
-        //   commit('updateAlerts',alert)
-        //   commit('updateAlertIds',alert.id)
-        //  } 
-        // });
+        _.forEach(res.data, (alert) => {
+          if( !state.alertIds.includes(alert.id)){
+          commit('updateAlertIds',alert.id)
+         } 
+        });
       });
 
       api.methods.apiGetServiceStatus().then(res => {
         console.log("updateStatus response", res.data);
         let jsonStatus = {};
-        try{
-          jsonStatus = JSON.parse(res.data); //?Asomehow axios does not parse the Json response
+          try {
+              jsonStatus = (typeof jsonStatus === 'object') ? res.data : JSON.parse(res.data);
         } catch (e){
           console.error(e)
           jsonStatus = {};
@@ -119,9 +118,10 @@ export default {
        
       });
     },
-    setAlert({ state, commit}, index ){
-      api.methods.apiAcknowledgeAlerts(index);
-      // commit('removeAlert', index);
+    async setAlert({ state, commit}, index ){
+      let alert_id = state.alerts[index]["id"]
+      api.methods.apiAcknowledgeAlerts(alert_id);
+      state.alerts[index]["visible"]=false;
     },
   },
   mutations: {

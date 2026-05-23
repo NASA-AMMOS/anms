@@ -38,7 +38,6 @@ const uiversion = anms_env_config.VUE_APP_UI_VERSION;
 // const status_refresh_rate = anms_env_config.VUE_APP_STATUS_REFRESH_RATE; //ms -the rate of updating services' status
 const status_refresh_rate = 60000; //ms -the rate of updating services' status
 
-console.log(status_refresh_rate)
 const service_info = anms_env_config.SERVICE_INFO;
 
 export default Constants;

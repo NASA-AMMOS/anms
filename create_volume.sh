@@ -27,6 +27,7 @@ if [ -n "$DOCKER_CMD" ]; then
 elif command -v podman &> /dev/null; then
     echo "Podman is installed"
     DOCKER_CMD="podman"
+    EXTRA_FLAGS="--ignore"
 elif command -v docker &> /dev/null; then
     echo "Docker is installed"
     DOCKER_CMD="docker"
@@ -36,7 +37,7 @@ else
 fi
 
 
-${DOCKER_CMD} volume create ${VOLNAME}
+${DOCKER_CMD} volume create ${EXTRA_FLAGS} ${VOLNAME}
 
 # Delete our created volume if there is an error to prevent issues on retry
 trap '${DOCKER_CMD} volume rm ${VOLNAME}' ERR
@@ -56,4 +57,4 @@ do
 done
 
 # creating socket volume 
-${DOCKER_CMD} volume create sockdir    
+${DOCKER_CMD} volume create ${EXTRA_FLAGS} sockdir    

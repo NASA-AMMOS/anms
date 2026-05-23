@@ -23,26 +23,23 @@
 #
 
 # External modules
-from fastapi import APIRouter, status, Request
+from fastapi import APIRouter, status, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi import UploadFile
 from pydantic import BaseModel
 import io
 import traceback
-from typing import TextIO
 
 # Internal modules
-from sqlalchemy import delete, select, and_
-from sqlalchemy.engine import Result
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete,  and_
 
 from anms.models.relational.adms import (adm_data, data_model_view)
-from anms.models.relational.adms.data_model_view import DataModel as ADM
 
 from anms.routes.adms.adm_compare import (AdmCompare)
 from anms.shared.opensearch_logger import OpenSearchLogger
-from anms.shared.mqtt_client import MQTT_CLIENT
-from anms.models.relational import get_async_session, get_session
+
+from anms.shared.transmogrifier import TRANSMORGIFIER
+from anms.models.relational import get_async_session
 from anms.components.schemas.adm import DataModelSchema
 import ace
 from camp.generators import (create_sql)
@@ -88,9 +85,16 @@ async def getall():
 async def get_adm(enumeration: int,namespace: str):
     async with get_async_session() as session:
         result_dm =  await DataModel.get(enumeration, namespace, session)
-        result, _ =  await AdmData.get(result_dm.data_model_id, session)
-        if result:
-            return result.data
+        if result_dm:
+            result, _ =  await AdmData.get(result_dm.data_model_id, session)
+            if result:
+                return result.data
+            else:
+                logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+                raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+        else:
+            logger.error(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known DataModel")
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known DataModel")
 
 
 
@@ -112,81 +116,21 @@ async def remove_adm(enumeration: int, namespace:str):
     async with get_async_session() as session:
         nm_row = await DataModel.get(enumeration, namespace, session)
         if nm_row:
-            logger.info(f"Removing {nm_row.data_model_name} ADM")
+            logger.info(f"Removing {nm_row.name} ADM")
             stmt_2 = delete(AdmData).where(AdmData.enumeration == nm_row.data_model_id)
             await session.execute(stmt_1)
             await session.execute(stmt_2)
             await session.commit()
             return status.HTTP_200_OK
         else:
-            logger.debug(f"ADM ENUM:{enumeration} not a know ADM")
-            return status.HTTP_400_BAD_REQUEST
+            logger.debug(f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
+            raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail = f"ADM ENUM:{enumeration} in NAMESPACE {namespace} not a known ADM")
 
-
-
-async def handle_adm(admset: ace.AdmSet, adm_file: ace.models.AdmModule, session, replace=True):
-    ''' Process a received and decoded ADM into the ANMS DB.
-
-    :param replace: If true and the ADM exists it will be checked and replaced.
-    :return: A list of issues with the ADM, which is empty if successful.
-    '''
-    logger.info("Adm name: %s", adm_file.norm_name)
-    data_model_view = await DataModel.get(adm_file.ns_model_enum,adm_file.ns_org_name )
-    if data_model_view:
-        if not replace:
-            logger.info('Not replacing existing ADM name %s', adm_file.norm_name)
-            return []
-        data_rec = None
-        async with get_async_session() as session:
-            data_rec,_ = await AdmData.get(data_model_view.data_model_id,session)
-
-        if data_rec:
-            # Compare old and new contents
-            logger.info("Checking existing ADM name %s", adm_file.norm_name)
-            old_adm = admset.load_from_data(io.BytesIO(data_rec.data), del_dupe=False)
-            comp = AdmCompare(admset)
-            if not comp.compare_adms(old_adm, adm_file):
-                issues = comp.get_errors()
-            else:
-                issues = [f"Updating existing adm is not allowed yet"]
-            return issues
-
-    logger.info("Inserting ADM name %s", adm_file.norm_name)
-
-    # Use CAmPython to generate sql
-    out_path = ""  # This is empty string since we don't need to write the generated sql to a file
-    sql_dialect = 'pgsql'
-    writer = create_sql.Writer(admset, adm_file, out_path, sql_dialect)
-    string_buffer = io.StringIO()
-    writer.write(string_buffer)
-
-    # execute generated Sql
-    queries = string_buffer.getvalue()
-    try:
-        await session.execute(queries)
-        await session.commit()
-    except Exception as err:
-        logger.error(f"{sql_dialect} execution error: {err.args}")
-        logger.debug('%s', traceback.format_exc())
-        raise
-
-    # Save the adm file of the new adm
-    
-
-    buf = io.StringIO()
-    ace.adm_yang.Encoder().encode(adm_file, buf)
-    ret_dm = await DataModel.get(adm_file.ns_model_enum,  adm_file.ns_org_name, session)
-    
-    # Write the encoded string data to the BytesIO object
-    bytes_io = io.BytesIO()
-    bytes_io.write(buf.getvalue().encode('utf-8'))
-    # Reset the pointer to the beginning
-    bytes_io.seek(0)
-    data = {"enumeration":ret_dm.data_model_id, "data": bytes_io.getvalue()}
-    await AdmData.add_data(data, session)
-
-    return []
-
+@router.post("/load_default", status_code=status.HTTP_201_CREATED)
+async def load_default_adm():
+    await TRANSMORGIFIER.load_default_adms()
+    response = JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Initilized default ADMs", "error_details": ""})
+    return response
 
 @router.post("/", status_code=status.HTTP_201_CREATED,
              responses={400: {"model": RequestError}, 405: {"model": UpdateAdmError}, 500: {"model": RequestError}})
@@ -289,7 +233,7 @@ async def update_adm(file: UploadFile, request: Request):
                 if error_message:
                     raise Exception(error_message)
                 # Notify the transcoder
-                MQTT_CLIENT.publish('aricodec/reload', adm_file.norm_name)
+                TRANSMORGIFIER.reload(adm_file.norm_name)
                 logger.info(f"{info_message} adm file:  {file.filename} successfully")
             except Exception as err:
                 logger.error(f"{sql_dialect} execution error: {err.args}")

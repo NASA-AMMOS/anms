@@ -25,7 +25,7 @@ jobs:
       AUTHNZ_HTTPS_PORT: 8443
     steps:
       - name: Start Container Service
-        if: ${{matrix.ctrmgr}} == 'podman'
+        if: ${{matrix.ctrmgr == 'podman'}}
         run: |
           systemctl --user start podman.socket
           systemctl --user enable podman.socket
@@ -35,12 +35,12 @@ jobs:
           ${DOCKER_CMD} -v
           ${DOCKER_CMD} compose -v
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Tag name env
         run: |
-          DOCKER_IMAGE_TAG=$(echo ${{ github.head_ref || github.ref_name }} | sed 's/[^a-zA-Z0-9\-\._]/-/g')
+          DOCKER_IMAGE_TAG=${{ github.sha }}
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
       - name: Build ANMS
         run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build

@@ -81,7 +81,7 @@ services:
   opensearch:
     profiles: ["full"]
     hostname: opensearch
-    image: docker.io/opensearchproject/opensearch:2.0.0
+    image: docker.io/opensearchproject/opensearch:2.19.5
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch.process"
@@ -89,6 +89,7 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
     # privileged: true # doesn't work
     # ulimits: # acuses permission error
     #   memlock:
@@ -106,7 +107,7 @@ services:
   opensearch-dashboards:
     profiles: ["full"]
     hostname: opensearch-dashboards
-    image: docker.io/opensearchproject/opensearch-dashboards:2.0.0
+    image: docker.io/opensearchproject/opensearch-dashboards:2.19.5
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch-dashboards.process"
@@ -134,8 +135,10 @@ services:
       - "${DB_PORT-5432}:5432"
 
   mqtt-broker:
+    profiles:
+      - external_transcode
     hostname: mqtt-broker
-    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker
+    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG}
     build:
       dockerfile: anms.Containerfile
       target: mqtt-broker
@@ -146,6 +149,8 @@ services:
       - "${MQTT_PORT:-1883}:1883"
       
   transcoder:
+    profiles:
+      - external_transcode
     hostname: transcoder
     image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG}
     build:
@@ -159,6 +164,8 @@ services:
         condition: service_healthy
 
   aricodec:
+    profiles:
+      - external_transcode
     hostname: aricodec
     image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG}
     build:
@@ -219,11 +226,19 @@ services:
     depends_on:
       - grafana-image-renderer
     environment:
-      - GF_RENDERING_SERVER_URL=http://${RENDERER_HOST_PORT}/render
-      - GF_RENDERING_CALLBACK_URL=http://${GRAFANA_HOST_PORT}/
-      - GF_SERVER_ROOT_URL=http://${ANMS_GW_FQDN}/grafana/
-    volumes:
-      - "grafana-data:/var/lib/grafana"
+      GF_RENDERING_SERVER_URL: http://${RENDERER_HOST_PORT}/render
+      GF_RENDERING_CALLBACK_URL: http://${GRAFANA_HOST_PORT}/
+      GF_SERVER_ROOT_URL: http://${ANMS_GW_FQDN}/grafana/
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: postgres:5432
+      GF_DATABASE_NAME: ${GRAFANA_DB_NAME}
+      GF_DATABASE_USER: ${DB_USER}
+      GF_DATABASE_PASSWORD: ${DB_PASSWORD}
+      GF_DATABASE_SSL_MODE: disable
+      GF_DATABASE_PATH: "" # Explicitly disable internal sqlite for clarity
+      GF_PLUGINS_PREINSTALL: "yesoreyeram-infinity-datasource"
+      GODEBUG: x509negativeserial=1 #fix for tls: failed to parse certificate from server: x509: negative serial number
+      GRAFANA_PASS: ${GRAFANA_PASS}
 
   grafana-image-renderer:
     hostname: grafana-image-renderer
@@ -275,8 +290,6 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
-      mqtt-broker:
-        condition: service_healthy
 
   amp-manager:
     hostname: amp-manager
@@ -285,7 +298,7 @@ services:
       dockerfile: anms.Containerfile
       target: amp-manager
     ports:
-      - "8089:8089/tcp"
+      - "${ION_MGR_PORT:-8089}:8089/tcp"
     depends_on:
       postgres:
         condition: service_healthy

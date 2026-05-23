@@ -212,7 +212,7 @@ export default {
                                         index: index,
                                         result: [],
                                         name: name,
-                                        type: "TYPEDEF",
+                                        type: parm,
                                         listComponents: aris,
                                         count: 1, 
                                     },

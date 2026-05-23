@@ -13,7 +13,7 @@
           <div class="input-group mb-3">
             <input type="text"
               class="form-control"
-              placeholder="ari:0x0"
+              placeholder="0x0"
               v-model="cborString"
               v-on:keyup.enter="handleCbor($event.target.value)" />
             <div class="input-group-append">
@@ -34,7 +34,7 @@
         <b-container>
           <h5>ARI Builder</h5>
           <label>
-          <input type="checkbox" v-model="isExecutionCheck" onchange="updateNonce"/>
+          <input type="checkbox" v-model="isExecutionCheck"/>
           Execution Set?
         </label>
         <div v-if="isExecutionCheck">
@@ -138,9 +138,6 @@ export default {
       reloadARIs: "reloadARIs",
       setSearchString: "setSearchString"
     }),
-    updateNonce(){
-      this.correlator_nonce = undefined;
-    },
     onSearch(search, loading) {
       if (search.length) {
         loading(true);
@@ -186,8 +183,10 @@ export default {
       });
     },
     updateResults: function (result) {
-      let head = result[0].value.includes("ari") ? "" : "ari://";
-      this.finResultStr = head + result[0].value;
+      if(result[0].value){
+        let head = result[0].value.includes("ari") ? "" : "ari://";
+        this.finResultStr = head + result[0].value;
+      }
     },
     submitAriString() {
       this.handleCbor(this.finResultStr);

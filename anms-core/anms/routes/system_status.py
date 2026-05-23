@@ -49,7 +49,7 @@ status_cfg = [
   {"name": "anms-ui", "url": "http://anms-ui:9030"},
   {"name": "aricodec"},
   {"name": "authnz", "url": "http://authnz/authn/login.html"},
-  {"name": "grafana", "url": "http://grafana:3000"},
+  {"name": "grafana", "tcp_port": 3000},
   {"name": "grafana-image-renderer", "url": "http://grafana-image-renderer:8081"},
   {"name": "amp-manager", "url": "http://amp-manager:8089/nm/api/version"},
   {"name": "mqtt-broker"},
@@ -78,7 +78,7 @@ def get_containers_status():
     if "url" in container:
       url = container['url']
       try:
-        response = requests.get(url, timeout=timeout)
+        response = requests.get(url, timeout=timeout, allow_redirects=False)
         if response.status_code == 200:
           statuses[name] = "healthy"
         else:
@@ -107,7 +107,9 @@ def get_containers_status():
       # If no other check defined, test that host can be pinged
       try:
         cmd = ["ping", "-c1", f"-W{timeout}", hostname]
-        result = subprocess.run(cmd, shell=False)
+        
+        # Capturing output to suppress it (otherwise it floods system log)
+        result = subprocess.run(cmd, shell=False, stdout=subprocess.DEVNULL, text=True)
         if result.returncode == 0:
           statuses[name] = "healthy"
         else:
@@ -136,4 +138,5 @@ async def sys_status_get_version():
 async def sys_status_get_services_status():
   statuses = get_containers_status()
   logger.debug(f"Checking all services' status: {str(statuses)}")
-  return json.dumps(statuses)
+  return statuses
+

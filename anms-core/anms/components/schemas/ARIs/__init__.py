@@ -53,4 +53,5 @@ from .registered_agent import RegisteredAgentInDB
 from .registered_agent import RegisteredAgentInDBBase
 from .rpt_entry import RptEntry
 from .rpt_entry import RptEntryName
+from .rpt_entry import RptEntryFull
 from .rpt_entry import RptEntryBaseInDBBase

@@ -21,32 +21,34 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
-from typing import List
-import ast 
+
+# for handling report set and exec set
+import ace
+
 
 from fastapi import APIRouter, Depends
 from fastapi import status
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
+from anms.shared.transmogrifier import TRANSMORGIFIER
+
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
+
+from typing import List
 
 from urllib.parse import unquote
 
 from anms.components.schemas import ARIs
-from anms.models.relational import get_async_session, get_session
 
+from anms.models.relational import get_async_session
 from anms.models.relational.report import Report
-from anms.models.relational.execution_set import ExecutionSet
+from anms.models.relational.const import Const
 from anms.models.relational.registered_agent import RegisteredAgent
 
 from anms.shared.opensearch_logger import OpenSearchLogger
-import io
 
-import anms.routes.transcoder as transcoder
-
-# for handling report set and exec set  
-import ace
+from datetime import datetime
 
 logger = OpenSearchLogger(__name__, log_console=True)
 
@@ -54,165 +56,296 @@ router = APIRouter(tags=["REPORTS"])
 
 
 # routes for ARIs
-@router.get("/all", status_code=status.HTTP_200_OK, response_model=Page[ARIs.RptEntry], tags=["REPORTS"])
-async def paged_report(params: Params = Depends()):
+@router.get(
+    "/page",
+    status_code=status.HTTP_200_OK,
+    response_model=Page[ARIs.RptEntryFull],
+    tags=["REPORTS"],
+)
+async def paged_reports(params: Params = Depends()):
     async with get_async_session() as session:
         return await paginate(session, select(Report), params)
 
 
-@router.get("/name/all", status_code=status.HTTP_200_OK, response_model=List[ARIs.RptEntryBaseInDBBase], tags=["REPORTS"])
-async def all_report_name():
+@router.get(
+    "/all",
+    status_code=status.HTTP_200_OK,
+    response_model=List[ARIs.RptEntryFull],
+    tags=["REPORTS"],
+)
+async def all_reports():
     stmt = select(Report)
+    res = []
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
-        return result.all()
+        res = result.all()
+    return res
 
 
-@router.get("/entry/name/{agent_id}", status_code=status.HTTP_200_OK, response_model=list,
-            tags=["REPORTS"])
-async def report_def_by_id(agent_id: int):
-    # select all reports belonging to the agent
-    final_res = []
-    agent_id_str = ""
-    stmt = select(Report).where(Report.agent_id == agent_id)
-    agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.registered_agents_id == agent_id)
+# report_source is cbor
+async def _report_from_id_source(
+    agent_idx: int, report_source: str, start_time: str = None, end_time: str = None
+):
+    res = []
+    report_dict = []
+
+    if agent_idx:
+        if start_time is None:
+            start_time = datetime.fromisoformat("2010-01-01T00:00:00+00:00")
+        if end_time is None:
+            end_time = datetime.fromisoformat("2100-01-01T00:00:00+00:00")
+        start_time = start_time.replace(tzinfo=None)
+        end_time = end_time.replace(tzinfo=None)
+
+        stmt = (
+            select(Report)
+            .where(Report.agent_id == agent_idx)
+            .where(Report.report_source == bytes.fromhex(report_source))
+            .filter(Report.reference_time >= start_time)
+            .filter(Report.reference_time <= end_time)
+        )
+        async with get_async_session() as session:
+            result: Result = await session.scalars(stmt)
+            res = result.all()
+
+    if res:
+        # translate report_source  if its const use its values as the forms for the final report
+        report_source_ari = TRANSMORGIFIER.transcode("0x" + report_source)
+        report_source_columns = [f"col {x}" for x, _ in enumerate(res[0].report_items)]
+        if isinstance(report_source_ari["ari"], ace.ari.ReferenceARI):
+            if report_source_ari["ari"].ident.type_id == ace.ari.StructType.CONST:
+                stmt = (
+                    select(Const.data_value)
+                    .where(Const.name == str(report_source_ari["ari"].ident.obj_id))
+                    .where(
+                        Const.data_model_name
+                        == str(report_source_ari["ari"].ident.model_id)
+                    )
+                    .where(
+                        Const.namespace == str(report_source_ari["ari"].ident.org_id)
+                    )
+                )
+                async with get_async_session() as session:
+                    result: Result = await session.scalars(stmt)
+                    result = result.all()
+                    if result:
+                        report_source_columns = []
+                        for val in TRANSMORGIFIER.transcode(result[0])["ari"].value:
+                            report_source_columns.append(val.ident.obj_id)
+            else:
+                if isinstance(report_source_ari["ari"].ident, ace.ari.LiteralARI):
+                    if isinstance(report_source_ari["ari"].ident.value, list):
+                        report_source_columns = []
+                        for val in report_source_ari["ari"].ident.value:
+                            report_source_columns.append(val.ident.obj_id)
+
+    # data_value
+    for row in res:
+        new_item = {
+            "reference_time": row.reference_time,
+            "mgr_time": row.mgr_time,
+            "agent_time": row.agent_time,
+            "rpt_set_nonce": row.nonce_cbor,
+            "report_source": report_source_ari["uri"],
+        }
+
+        for index, value in enumerate(row.report_items):
+            new_item[report_source_columns[index]] = value
+        report_dict.append(new_item)
+
+    return report_dict
+
+
+async def _source_from_id(agent_idx: int):
+    res = []
+    hold = {}
+    if agent_idx:
+        stmt = (
+            select(Report.report_source).distinct().where(Report.agent_id == agent_idx)
+        )
+        async with get_async_session() as session:
+            result: Result = await session.scalars(stmt)
+            for x in result.all():
+                # compiling same URI that have been stored with or without NN
+                curr_uri = TRANSMORGIFIER.transcode("0x" + x.hex())
+                hold.setdefault(curr_uri["uri"], []).append(x.hex())
+        
+        for ari,cbor in hold.items():
+            res.append(
+                    {
+                        "ari": ari,
+                        "cbor": cbor,
+                    }
+                )
+
+    return res
+
+
+async def _reports_from_id(agent_idx: int):
+    res = []
+    if agent_idx:
+        stmt = select(Report).where(Report.agent_id == agent_idx)
+        async with get_async_session() as session:
+            result: Result = await session.scalars(stmt)
+            res = result.all()
+    return res
+
+
+@router.get(
+    "/all/eid/{agent_eid}",
+    status_code=status.HTTP_200_OK,
+    response_model=List[ARIs.RptEntry],
+    tags=["REPORTS"],
+)
+async def reports_agent_by_name(agent_eid: str):
+    agent_idx = None
+    agent_id_stmt = select(RegisteredAgent).where(
+        RegisteredAgent.agent_endpoint_uri == unquote(agent_eid)
+    )
     async with get_async_session() as session:
-        result: Result = await session.scalars(stmt)
         # Execution set uses URI as agent_id
         result_agent: Result = await session.scalars(agent_id_stmt)
-        agent_id_str = result_agent.one_or_none()
-        agent_id_str = agent_id_str.agent_endpoint_uri
-        for res in result.all():   
-            # select from exec_set 
-            try:
-                nonce_cbor = res.nonce_cbor
-                stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
-                result: Result = await session.scalars(stmt)
-                exc_set = result.all()
-                for res in exc_set:
-                    ari_val = ""
-                    if(res):
-                        hex_str = res.entries.hex()
-                        hex_str = "0x"+hex_str.upper()
-                        ari_val = await transcoder.transcoder_put_cbor_await(hex_str)
-                        ari_val =  ari_val['data']
-                        logger.info(str(nonce_cbor))
-                        addition = {'exec_set': ari_val,'nonce_cbor':str(nonce_cbor)}    
-                        if addition not in final_res:
-                            final_res.append(addition)
-            except Exception as e:
-                logger.error(f"Error {e}, while processing nonce:{nonce_cbor} for agent: {agent_id_str}")
+        agent_idx = result_agent.one_or_none()
+        if agent_idx:
+            agent_idx = agent_idx.registered_agents_id
 
-    return final_res
+    return await _reports_from_id(agent_idx)
 
 
-# entries tabulated returns header and values in correct order
-@router.get("/entries/table/{agent_id}/{nonce_cbor}", status_code=status.HTTP_200_OK,
-            response_model=list)
-async def report_ac(agent_id: int, nonce_cbor: str):
-    
-    ari = None
-    dec = ace.ari_cbor.Decoder()
-    enc = ace.ari_text.Encoder()
-    try:
-        nonce_cbor = ast.literal_eval(nonce_cbor)
-    except Exception as e:
-        logger.error(f"{e} while processing nonce")
-        return []
-    
-    agent_id_str =""
-    agent_id_stmt =  select(RegisteredAgent).where(RegisteredAgent.registered_agents_id == agent_id)
+@router.get(
+    "/all/idx/{agent_idx}",
+    status_code=status.HTTP_200_OK,
+    response_model=List[ARIs.RptEntry],
+    tags=["REPORTS"],
+)
+async def reports_agent_by_id(agent_idx: int):
+    return await _reports_from_id(agent_idx)
+
+
+@router.get(
+    "/report_source/eid/{agent_eid}",
+    status_code=status.HTTP_200_OK,
+    response_model=list,
+    tags=["REPORTS"],
+)
+async def reports_source_agent_by_name(agent_eid: str):
+    agent_idx = None
+    agent_id_stmt = select(RegisteredAgent).where(
+        RegisteredAgent.agent_endpoint_uri == unquote(agent_eid)
+    )
     async with get_async_session() as session:
+        # Execution set uses URI as agent_id
         result_agent: Result = await session.scalars(agent_id_stmt)
-        agent_id_str = result_agent.one_or_none()
-        agent_id_str = agent_id_str.agent_endpoint_uri
+        agent_idx = result_agent.one_or_none()
+        if agent_idx:
+            agent_idx = agent_idx.registered_agents_id
 
-    # Load in adms 
-    # get command that made the report as first entry 
-    stmt = select(ExecutionSet).where(and_(ExecutionSet.agent_id == agent_id_str, ExecutionSet.nonce_cbor == nonce_cbor) )
-    async with get_async_session() as session:
-        result: Result = await session.scalars(stmt)
-        
-        # there should only be one execution per agent per nonce_cbor
-        # in the event that two occur pull the latest one  
-        result = result.all()
-        exec_set_dir = {}
-        
-        if result:
-            result = result[-1]
-            exec_set = result.entries.hex()
-            # use ACE to handle report set decoding  
-            in_text = '0x'+exec_set
-            try:
-                in_bytes = ace.cborutil.from_hexstr(in_text)
-                ari = dec.decode(io.BytesIO(in_bytes))
-                
-            except Exception as err:
-                logger.error(err)
-                
-    # current ARI should be  an exection set 
-    if ari:
-        if type(ari.value) == ace.ari.ExecutionSet: 
-            try:
-                
-                # run through targets and their parameters to get all things parts translated 
-                for targ in ari.value.targets: 
-                    buf = io.StringIO()
-                    exec_set_entry=["time"]
-                    enc.encode(targ, buf)
-                    out_text_targ = buf.getvalue()    
-                    if targ is ace.LiteralARI and targ.type_id is  ace.StructType.AC:
-                        for part in targ.value:
-                            buf = io.StringIO()
-                            enc.encode(part, buf)
-                            out_text = buf.getvalue()
-                            exec_set_entry.append(out_text)
-                    else:
-                        exec_set_entry.append(out_text_targ)
-                    
-                    exec_set_dir[out_text_targ] = [exec_set_entry]
-                    
-            except Exception as err:
-                logger.error(err)
-                
-                    
-    # final_res.append(exec_set_entry)
-    ari = None
-    stmt = select(Report).where(and_(Report.agent_id == agent_id, Report.nonce_cbor == nonce_cbor) )
-    async with get_async_session() as session:
-        result: Result = await session.scalars(stmt)
-        for res in result.all():
-            # used to hold final report set 
-            addition = [res.reference_time]
-            rpt_set = res.report_list_cbor.hex()
-            # Using Ace to translate CBOR into ARI object to process individual parts  
-            in_text = '0x'+rpt_set
-            try:
-                in_bytes = ace.cborutil.from_hexstr(in_text)
-                ari = dec.decode(io.BytesIO(in_bytes))
+    reports = await _source_from_id(agent_idx)
+    return reports
 
-            except Exception as err:
-                logger.error(err)
-                
-            # current ARI should be  an report set 
-            if ari:
-                if type(ari.value) == ace.ari.ReportSet:                    
-                    for rpt in ari.value.reports:
-                        try:
-                            enc = ace.ari_text.Encoder()
-                            # running through and translating all parts of rptset
-                            for item in rpt.items:
-                                buf = io.StringIO()
-                                enc.encode(item, buf)
-                                out_text = buf.getvalue()    
-                                addition.append(out_text)
-                            buf = io.StringIO()
-                            enc.encode(rpt.source, buf)
-                            out_text = buf.getvalue()    
-                            
-                            exec_set_dir[out_text].append(addition)  
-                        except Exception as err:
-                            logger.error(err)            
-    
-    return list(exec_set_dir.values())
-    
+
+@router.get(
+    "/report_source/idx/{agent_idx}/",
+    status_code=status.HTTP_200_OK,
+    response_model=list,
+    tags=["REPORTS"],
+)
+async def reports_source_agent_by_id(agent_idx: int):
+    reports = await _source_from_id(agent_idx)
+    return reports
+
+
+@router.get(
+    "/dictionary/idx/{agent_idx}/{source_cbor}",
+    status_code=status.HTTP_200_OK,
+    response_model=list,
+    tags=["REPORTS"],
+)
+async def reports_dictionary_by_id_and_report_source(agent_idx: int, source_cbor: str):
+    reports = await _report_from_id_source(agent_idx, source_cbor)
+    return reports
+
+
+@router.get(
+    "/dictionary/eid/{agent_eid}/{source_cbor}",
+    status_code=status.HTTP_200_OK,
+    response_model=list,
+    tags=["REPORTS"],
+)
+async def reports_dictionary_by_name_and_report_source(
+    agent_eid: str, source_cbor: str
+):
+    agent_idx = None
+    agent_id_stmt = select(RegisteredAgent).where(
+        RegisteredAgent.agent_endpoint_uri == unquote(agent_eid)
+    )
+    async with get_async_session() as session:
+        # Execution set uses URI as agent_id
+        result_agent: Result = await session.scalars(agent_id_stmt)
+        agent_idx = result_agent.one_or_none()
+        if agent_idx:
+            agent_idx = agent_idx.registered_agents_id
+
+    reports = await _report_from_id_source(agent_idx, source_cbor)
+    return reports
+
+
+# using the  known search criteria to filter the reports
+@router.post(
+    "/dictionary/search/idx/",
+    status_code=status.HTTP_200_OK,
+    response_model=list,
+    tags=["REPORTS"],
+)
+async def reports_dictionary_by_search_idx(
+    agent_idxs: list[int],
+    source_cbors: list,
+    start_time: datetime = None,
+    end_time: datetime = None,
+):
+    reports = []
+    for agent_idx in agent_idxs:
+        rpt_cur = []
+        for source_cbor in source_cbors:
+            rpt_cur.append(
+                await _report_from_id_source(
+                    agent_idx, source_cbor, start_time, end_time
+                )
+            )
+        reports.append({"agent": agent_idx, "reports": rpt_cur})
+    return reports
+
+
+@router.post(
+    "/dictionary/search/eid/",
+    status_code=status.HTTP_200_OK,
+    response_model=list,
+    tags=["REPORTS"],
+)
+async def reports_dictionary_by_search_eid(
+    agent_eids: list[str],
+    source_cbors: list,
+    start_time: datetime = None,
+    end_time: datetime = None,
+):
+    reports = []
+    for agent_eid in agent_eids:
+        rpt_cur = []
+        agent_idx = None
+        agent_id_stmt = select(RegisteredAgent).where(
+            RegisteredAgent.agent_endpoint_uri == unquote(agent_eid)
+        )
+        async with get_async_session() as session:
+            # Execution set uses URI as agent_id
+            result_agent: Result = await session.scalars(agent_id_stmt)
+            agent_idx = result_agent.one_or_none()
+            if agent_idx:
+                agent_idx = agent_idx.registered_agents_id
+            for source_cbor in source_cbors:
+                rpt_cur.append(
+                    await _report_from_id_source(
+                        agent_idx, source_cbor, start_time, end_time
+                    )
+                )
+        reports.append({"agent": agent_eid, "reports": rpt_cur})
+    return reports

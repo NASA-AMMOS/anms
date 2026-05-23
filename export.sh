@@ -3,10 +3,10 @@
 set -e
 
 GITTAG=$(git describe --always --tags --dirty)
-ANMS_VERSION=${ANMS_VERSION:=${GITTAG}}
+export ANMS_VERSION=${ANMS_VERSION:=${GITTAG}}
+export DOCKER_IMAGE_TAG=${ANMS_VERSION}
 OUTFILE="anms-${ANMS_VERSION}-images.tar.gz"
 
-# Get List of Images
 if command -v podman-compose &> /dev/null; then
     COMPOSE_CMD="podman-compose"
 elif command -v docker-compose &> /dev/null; then
@@ -18,7 +18,13 @@ else
     exit 1
 fi
 
-IMAGES=$(${COMPOSE_CMD} -f docker-compose.yml -f testenv-compose.yml config | grep --color=auto 'image:' | awk '{print $2}' | sort -u | less)
+# Build or pull images needed
+COMPOSE_OPTS="-f docker-compose.yml -f testenv-compose.yml --profile full --profile dev --parallel 1"
+${COMPOSE_CMD} ${COMPOSE_OPTS} --podman-build-args='--format docker' build
+${COMPOSE_CMD} ${COMPOSE_OPTS} pull
+
+# Get List of Images used
+IMAGES=$(${COMPOSE_CMD} ${COMPOSE_OPTS} config | grep --color=auto 'image:' | awk '{print $2}' | sort -u)
 echo "${COMPOSE_CMD} reports the following images: ${IMAGES}"
 
 # Determine base command (docker or podman)

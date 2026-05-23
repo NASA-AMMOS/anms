@@ -102,6 +102,8 @@
       router.get('/core/adms', userLimiter, adms.getAll);
       router.get('/core/adms/:adm_enum/:namespace', adms.getOne);
       router.post('/core/adms', userLimiter, upload.single('adm'), adms.upload);
+      router.post('/core/adms/load_default', userLimiter, upload.single('adm'), adms.loadDefault);
+
 
       // ---- Agents Routes ---- //
       const agents = require('../components/registeredAgents');
@@ -113,7 +115,6 @@
 
       // alerts
       const alerts = require('../components/alerts');
-      router.put('/alerts/incoming', alerts.putAlerts);
       router.get('/alerts/incoming', alerts.getAlerts);
       router.put('/alerts/acknowledge/:index', alerts.acknowledgeAlert);
 
@@ -149,7 +150,7 @@
       // --Reports Routes -- //
       const reports = require('../components/reports')
       router.get('/report/entry/name/:obj_agent_id', reports.getReportNameByAgent);
-      router.get('/report/entries/table/:obj_agent_id/:correlator_nonce', reports.getReportEntriesByAgent);
+      router.post('/report/entries/table/:obj_agent_id', reports.getReportEntriesByAgent);
 
       //------------- Unknown API Routes -------------//
       router.all('/*', function (req, res, next) {

@@ -22,7 +22,6 @@
 # subcontract 1658085.
 #
 import asyncio
-from functools import cache
 from typing import List
 
 from fastapi import Depends, APIRouter
@@ -36,12 +35,11 @@ from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session
 from anms.models.relational.actual_parameter import ActualParameter
 from anms.models.relational.ari import ARI
-from anms.models.relational.adms.data_model_view import DataModel 
 from anms.models.relational.formal_parameter import FormalParameter
 
 
 from anms.shared.opensearch_logger import OpenSearchLogger
-from cachetools import Cache
+from cachetools import LFUCache
 
 logger = OpenSearchLogger(__name__, log_console=True)
 
@@ -127,7 +125,7 @@ async def _generate_aris(ari_id):
         return None
 
 # for chaching the display names of ari
-class ResourceCache(Cache):
+class ResourceCache(LFUCache):
     def __missing__(self, key):
         resource = asyncio.create_task(_generate_aris(key))
         self[key] = resource

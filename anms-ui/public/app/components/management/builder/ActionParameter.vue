@@ -8,10 +8,8 @@
           :options="listComponents"
           @input="addToList"
           :clearSearchOnSelect="false">
-          <template v-slot:no-options="{ search, searching }">
-            <template v-if="searching">
-              <b-button @click="addARI(search)">Add ARI</b-button>
-            </template>
+          <template v-slot:list-header="{ search, _ }">
+              <b-button size="sm" @click="addARI(search)">Add ARI</b-button>
           </template>
         </v-select>
       </b-form-group>
@@ -54,7 +52,7 @@ export default {
     return {
       ariKey: undefined,
       ac: [],
-      result: { index: this.index, type: "AC", value: [] },
+      result: { index: this.index, type: this.type, value: [] },
       keys: [],
       currAc: [],
       keysRealIndex: [],
@@ -62,18 +60,14 @@ export default {
   },
   methods: {
     addARI(newARI ) {
+      newARI = newARI.trim();
       this.ariKey = { "display": newARI, "actual": true }
       this.addToList();
     },
     addToList: function () {
-      if(this.ac.length >= this.count){
-        this.ac.pop();
-      }
-
       if (this.ariKey != null) {
         this.ac.push(this.ariKey)
       }
-      
       this.ariKey = null;
       this.createAC();
     },

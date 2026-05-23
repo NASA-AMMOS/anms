@@ -158,16 +158,12 @@ export default {
               testResult.push(JSON.stringify(head + value).replaceAll('"', ""));
               break;
             case "AC": //ac
-            let curr_str=  ""  
-            currValue = [];
+              let curr_str=  ""  
+              currValue = [];
               value.forEach((ari) => {
                 currValue.push(ari);
               });
-              if(currValue.length = 1 ){
-                testResult.push(currValue[0])
-              }else{
-                testResult.push("/AC/("+currValue.join(",")+")");
-              }
+              testResult.push("/AC/("+currValue.join(",")+")");
               break;
 
             case "EXPR": //ac
@@ -181,11 +177,20 @@ export default {
 
               break;
             default:
-            if (type.includes("TYPEDEF")){
-              testResult.push(value[0]);
-            }else{
-              
-              testResult.push((value));}
+              if (type.includes("TYPEDEF")){
+                let curr_str=  ""  
+                currValue = [];
+                value.forEach((ari) => {
+                  currValue.push(ari);
+                });
+                if(currValue.length == 1 ){
+                  testResult.push(currValue[0])
+                }else{
+                  testResult.push("/AC/("+currValue.join(",")+")");
+                }
+              }else{
+                testResult.push((value));
+              }
             
             break;
           }

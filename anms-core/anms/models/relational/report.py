@@ -24,33 +24,48 @@
 from typing import Any
 from typing import Dict
 
+from anms.shared.transmogrifier import TRANSMORGIFIER
 from anms.models.relational import Model
 from sqlalchemy import Column
 from sqlalchemy import Integer
-from sqlalchemy import String
+from sqlalchemy import DateTime
+from sqlalchemy import ARRAY
 from sqlalchemy import LargeBinary
-
+from sqlalchemy import orm
 
 # class for vw_ctrl_definition used for build ari
 class Report(Model):
-    __tablename__ = 'ari_rptset'
-    ari_rptset_id = Column(Integer, primary_key=True)
-    nonce_cbor = Column(LargeBinary)
-    reference_time = Column(Integer)
-    report_list	= Column(String)
-    report_list_cbor = Column(LargeBinary)
-    agent_id = Column(Integer)
+    __tablename__ = 'vw_ari_rpt_set'
+    ari_rptset_id	= Column(Integer, primary_key=True)
+    mgr_time	    = Column(DateTime)
+    reference_time	= Column(DateTime)
+    nonce_cbor	    = Column(LargeBinary)
+    agent_id	    = Column(Integer)
+    ari_rptset_cbor	= Column(LargeBinary)
+    ari_rptlist_id	= Column(Integer)
+    agent_time	    = Column( DateTime)
+    report_source	= Column(LargeBinary)
+    report_items	= Column(ARRAY(LargeBinary) )#bytea[] NULL	
+
+    # processing the raw cbor into an ari object
+    @orm.reconstructor
+    def init_on_load(self):
+        self.nonce_cbor =  TRANSMORGIFIER.transcode("0x"+getattr(self, 'nonce_cbor').hex())['uri']        
+        self.report_source =  TRANSMORGIFIER.transcode("0x"+getattr(self, 'report_source').hex())['uri']
+        self.report_items =  [TRANSMORGIFIER.transcode("0x"+x.hex())['uri'] for x in getattr(self, 'report_items')]
+
     def __repr__(self) -> str:
         return self.as_dict().__repr__()
 
     def as_dict(self) -> Dict[str, Any]:
         dict_obj = {
                     'ari_rptset_id': getattr(self, 'ari_rptset_id'),
-                    'nonce_cbor': getattr(self, 'nonce_cbor'),        
                     'reference_time': getattr(self, 'reference_time'),
-                    'report_list': getattr(self, 'report_list'),
-                    'report_list_cbor': getattr(self, 'report_list_cbor'),
-                    'agent_id': getattr(self, 'agent_id')       
+                    'nonce_cbor': getattr(self, 'nonce_cbor'),
+                    'agent_id': getattr(self, 'agent_id'),       
+                    'ari_rptlist_id': getattr(self, 'ari_rptlist_id'),
+                    'agent_time': getattr(self, 'agent_time'),
+                    'report_source': getattr(self, 'report_source'),
+                    'report_items': getattr(self, 'report_items')
                     }
-
         return dict_obj

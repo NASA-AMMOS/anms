@@ -108,13 +108,16 @@ export default {
   },
   async mounted() {
     if (!this.hasAdms) {
+      await this.loadAdms();
       await this.getAdms();
     }
   },
   methods: {
     ...mapActions("adm", {
       getAdms: "getAdms",
-      uploadAdm: "uploadAdm"
+      uploadAdm: "uploadAdm",
+      loadAdms: "loadAdms"
+
     }),
     download(adm){
       let json  = {};
