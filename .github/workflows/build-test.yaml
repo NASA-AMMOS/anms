@@ -24,12 +24,12 @@ jobs:
       AUTHNZ_PORT: 8084
       AUTHNZ_HTTPS_PORT: 8443
     steps:
+      - name: Install Podman
+        if: ${{matrix.ctrmgr == 'podman'}}
+        uses: redhat-actions/podman-install@5bc2ecc87c737059124c295845be51ee7297fb89
       - name: Start Container Service
         if: ${{matrix.ctrmgr == 'podman'}}
-        run: |
-          systemctl --user start podman.socket
-          systemctl --user enable podman.socket
-          export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+        run: systemctl --user start podman.socket
       - name: Versions
         run: |
           ${DOCKER_CMD} -v
