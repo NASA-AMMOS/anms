@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {MatButton} from '@angular/material/button';
+import { environment } from '../../../environments/environment'
 
 enum Resource {
   API_DOCS,
@@ -13,12 +14,11 @@ enum Resource {
   ],
   templateUrl: './help.html',
   styleUrl: './help.css',
+  standalone: true
 })
 export class Help {
   protected resource = Resource;
-  // FIXME: use environment.ts or BASE_URL, etc.
-  // private baseHostname = window.location.hostname;
-  private baseHostname = 'http://anms-test';
+  private baseHostname = environment.BASE_API_URL;
   private baseHost = window.location.host;
 
 
