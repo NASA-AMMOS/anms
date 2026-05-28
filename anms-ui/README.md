@@ -24,9 +24,6 @@ subcontract 1658085.
 - Angular 21
 - Bootstrap 5
 
-## Development
-Project source files are Located under `angular-port/anms-ui` until VUE to Angular port is complete.  
-
 ### Configuration
 For local development and remote VM server use `proxy.confiig.json`  
 _NOTE_ `proxy.config.json` is used by default for dev-server profile builds. Change this behavior under `angular.json`.
