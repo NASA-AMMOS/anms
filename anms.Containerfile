@@ -106,53 +106,34 @@ FROM yarn-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
-# Install NodeJS Global Dependencies
-RUN --mount=type=cache,target=/root/.cache/yarn \
-    yarn global --ignore-engines add pm2 @vue/cli
-
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 
-# Install NodeJS Server Dependencies
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/server/package.json anms-ui/server/yarn.lock ${APP_WORK_DIR}/server/
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
-    cd ${APP_WORK_DIR}/server && \
-    yarn install --ignore-scripts --immutable --immutable-cache
 
-# Install NodeJS UI Dependencies
+# Install NodeJS Server Dependencies
+#COPY --chown=${APP_USER}:${APP_USER} \
+#    anms-ui/server/package.json anms-ui/server/yarn.lock ${APP_WORK_DIR}/server/
+#RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
+#    cd ${APP_WORK_DIR}/server && \
+#    yarn install --ignore-scripts --immutable --immutable-cache
+
+# Install Angular UI Dependencies
 COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/public/package.json anms-ui/public/yarn.lock ${APP_WORK_DIR}/public/
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
-    cd ${APP_WORK_DIR}/public && \
-    yarn install --ignore-scripts --immutable --immutable-cache
+    anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    cd ${APP_WORK_DIR}/ && \
+    npm ci
 
 # Build Backend/Frontend
 # These copies do not overwrite node_modules
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/server ${APP_WORK_DIR}/server/
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/public ${APP_WORK_DIR}/public/
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
-    cd ${APP_WORK_DIR}/public && \
-    yarn run build && \
-    rm -rf ${APP_WORK_DIR}/public/node_modules && \
-    yarn install --ignore-scripts --immutable --immutable-cache --production
-
-COPY --chmod=755 anms-ui/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-ENTRYPOINT ["docker-entrypoint"]
+COPY --chown=${APP_USER}:${APP_USER} anms-ui ${APP_WORK_DIR}/
+COPY --chown=${APP_USER}:${APP_USER} anms-ui ${APP_WORK_DIR}/
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    cd ${APP_WORK_DIR} && \
+    npm run build
 
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
-
-# NOTE: wildcard allows handling case when data directory has not been created locally
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/config.yaml anms-ui/process.yml anms-ui/config_ui_env.js anms-ui/data* ${APP_WORK_DIR}
-
-CMD ["pm2-docker", "process.yml", "--env", "production"]
-EXPOSE 9030
-
-HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
-    CMD ["pm2", "pid", "anms"]
-
 
 # Local grafana configuration
 #
