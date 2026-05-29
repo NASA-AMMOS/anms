@@ -109,17 +109,9 @@ ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 
-
-# Install NodeJS Server Dependencies
-#COPY --chown=${APP_USER}:${APP_USER} \
-#    anms-ui/server/package.json anms-ui/server/yarn.lock ${APP_WORK_DIR}/server/
-#RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
-#    cd ${APP_WORK_DIR}/server && \
-#    yarn install --ignore-scripts --immutable --immutable-cache
-
 # Install Angular UI Dependencies
 COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
+    package.json package-lock.json ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     cd ${APP_WORK_DIR}/ && \
     npm ci
