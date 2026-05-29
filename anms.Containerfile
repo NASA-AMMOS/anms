@@ -110,14 +110,15 @@ ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 USER ${APP_USER}:${APP_USER}
 
 # Install Angular UI Dependencies
+COPY . /tmp/build-context-debug
+RUN find /tmp/build-context-debug -maxdepth 3 -name 'package-lock.json' -o -name 'package.json'
 COPY --chown=${APP_USER}:${APP_USER} \
-    package.json package-lock.json ${APP_WORK_DIR}/
+    anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm ci
 
 # Build Backend/Frontend
 # These copies do not overwrite node_modules
-COPY --chown=${APP_USER}:${APP_USER} anms-ui ${APP_WORK_DIR}/
 COPY --chown=${APP_USER}:${APP_USER} anms-ui ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm run build
