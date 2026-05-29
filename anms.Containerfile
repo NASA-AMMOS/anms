@@ -110,8 +110,11 @@ ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 USER ${APP_USER}:${APP_USER}
 
 # Install Angular UI Dependencies
+RUN pwd
+RUN ls -l .
+RUN ls -l anms-ui/package.json anms-ui/package-lock.json
 COPY --chown=${APP_USER}:${APP_USER} \
-    package.json package-lock.json ${APP_WORK_DIR}/
+    ./package.json ./package-lock.json ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     cd ${APP_WORK_DIR}/ && \
     npm ci
