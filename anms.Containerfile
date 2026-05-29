@@ -110,7 +110,7 @@ ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 USER ${APP_USER}:${APP_USER}
 
 # Install Angular UI Dependencies
-RUN pwd
+RUN cd ${APP_WORK_DIR}
 RUN ls -l .
 RUN ls -l anms-ui/package.json anms-ui/package-lock.json
 COPY --chown=${APP_USER}:${APP_USER} \
