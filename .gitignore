@@ -24,4 +24,3 @@ docker-compose.override.yml
 
 # Javascript and ESLint related content to be ignored
 node_modules
-package-lock.json
