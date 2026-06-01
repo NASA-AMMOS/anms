@@ -114,6 +114,8 @@ COPY --chown=${APP_USER}:${APP_USER} \
     anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
 WORKDIR ${APP_WORK_DIR}
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    npm i
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm ci
 
 # Build Backend/Frontend
