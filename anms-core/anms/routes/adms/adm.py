@@ -25,8 +25,10 @@
 # External modules
 from fastapi import APIRouter, status, Request, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi import UploadFile
 from pydantic import BaseModel
+from typing import List
 import io
 import traceback
 
@@ -66,7 +68,7 @@ class UpdateAdmError(BaseModel):
 
 
 # API routes
-@router.get("/", status_code=status.HTTP_200_OK, responses={200: {"model": DataModelSchema}})
+@router.get("/", status_code=status.HTTP_200_OK, response_model=List[DataModelSchema])
 async def getall():
     response = None
     # return True
@@ -76,7 +78,7 @@ async def getall():
             message = f"DataModel view does not exist!"
             response = JSONResponse(status_code=404, content={"message": message})
         else:
-            response = result
+            response = jsonable_encoder(result)
     return response
 
 
