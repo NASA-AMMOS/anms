@@ -97,8 +97,6 @@ ENV NODE_OPTIONS=--use-openssl-ca
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y nodejs && \
-    npm install --ignore-scripts --global yarn && \
-    yarn config set --global cafile ${PIP_CERT} && \
     npm config set cafile ${PIP_CERT}
 
 
@@ -107,13 +105,22 @@ FROM yarn-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
+# Install NodeJS Global Dependencies
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    npm install --global pm2
+
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 
-# Install Angular UI Dependencies
+# Install Angular UI and Server Dependencies
 COPY --chown=${APP_USER}:${APP_USER} \
     anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
 WORKDIR ${APP_WORK_DIR}
+COPY --chown=${APP_USER}:${APP_USER} \
+    anms-ui/server/package.json ${APP_WORK_DIR}/server/
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    cd ${APP_WORK_DIR}/server && \
+    npm install --omit=dev
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm i
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
@@ -125,8 +132,20 @@ COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm run build
 
+
+# Clean any old release dir and copy Angular browser build into it
+RUN rm -rf ${APP_WORK_DIR}/server/release && \
+    mkdir -p ${APP_WORK_DIR}/server/release && \
+    cp -R ${APP_WORK_DIR}/dist/anms-ui/browser/* ${APP_WORK_DIR}/server/release/
+
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
+
+CMD ["pm2-docker", "process.yml", "--env", "production"]
+EXPOSE 9030
+
+HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
+    CMD ["pm2", "pid", "anms"]
 
 # Local grafana configuration
 #
