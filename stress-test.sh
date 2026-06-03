@@ -14,31 +14,20 @@ fi
 # Source .env early so config values are available (including dry-run)
 set -a && . .env && set +a
 
-# Dry-run
-if [[ "${1:-}" == "--dry-run" ]]; then
-  echo "=== Stress-test dry-run ==="
-  echo "AUTHNZ_PORT:       ${AUTHNZ_PORT:-80}"
-  echo "ANMS_CORE_HTTP_PORT: ${ANMS_CORE_HTTP_PORT:-5555}"
-  echo "ANMS_UI_HTTP_PORT:   ${ANMS_UI_HTTP_PORT:-9030}"
-  echo "ION_MGR_PORT:      ${ION_MGR_PORT:-8089}"
-  echo "CONCURRENCY:       ${HTTP_CONCURRENCY:-100}"
-  echo "Landing reqs:      ${LANDING_REQS:-3000}"
-  echo "Core API reqs:     ${CORE_API_REQS:-2000}"
-  echo "Grafana reqs:      ${GRAFANA_REQS:-2000}"
-  echo "AMP reporters:     ${REPORTERS:-8}"
-  exit 0
-fi
+# Detect container runtime early (needed for cleanup)
+DOCKER_CMD=${DOCKER_CMD:-$(command -v docker 2>/dev/null || command -v podman 2>/dev/null || echo podman)}
+
+# Clean up any leftover containers from previous runs
+${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
+${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
 
 # Globals
 : "${AUTHNZ_PORT:=80}"
-: "${ION_MGR_PORT:=8089}"
 : "${HTTP_CONCURRENCY:=100}"
 : "${LANDING_REQS:=3000}"
 : "${CORE_API_REQS:=2000}"
 : "${GRAFANA_REQS:=2000}"
-: "${REPORTERS:=8}"
-: "${ANMS_CORE_HTTP_PORT:=5555}"
-: "${ANMS_UI_HTTP_PORT:=9030}"
+: "${GRAFANA_REQS:=2000}"
 
 # Wait for a URL to respond (up to 90s, 1s interval)
 wait_for_url() {
@@ -66,13 +55,12 @@ fi
 echo "System up – beginning load"
 
 TMP_METRICS=$(mktemp)
-TMP_AMP=$(mktemp)
 TMP_RAW=$(mktemp /tmp/stats.XXXXXX)
 TMP_PEAK=$(mktemp)
-TMP_SCRIPT=$(mktemp /tmp/amp-script.XXXXXX.py)
+
 
 cleanup() {
-  rm -f "$TMP_METRICS" "$TMP_AMP" "$TMP_RAW" "$TMP_PEAK" "$TMP_SCRIPT" 2>/dev/null || true
+  rm -f "$TMP_METRICS" "$TMP_RAW" "$TMP_PEAK" 2>/dev/null || true
   ${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
   ${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
 }
@@ -202,49 +190,4 @@ for line in lines:
     print('{:<10} {:>8} {:>11} {:>8.1f}s {:>6} {:>8} {:>9.1f} {:>7.0f} {:>7.0f} {:>7.0f}'.format(lbl, reqs.get(lbl,'?'), 100, r['elapsed'], r['ok'], r['errors'], r['avg_ms'], r['p50_ms'], r['p95_ms'], r['p99_ms']))
 print('-' * 95)
 " "$TMP_METRICS" "${LANDING_REQS}" "${CORE_API_REQS}" "${GRAFANA_REQS}"
-
-# AMP reporting
-echo ""; echo "[phase] AMP reporters (via Docker exec)"
-: > "$TMP_AMP"
-
-# Create script for container
-cat > "$TMP_SCRIPT" << 'SCRIPTEND'
-import subprocess, requests, sys
-results_file = sys.argv[1]
-ari = 'ari:/EXECSET/n=1;(ari://ietf/dtnma-agent/CTRL/inspect(ari://ietf/dtnma-agent/EDD/num-msg-rx))'
-try:
-    proc = subprocess.Popen(
-        ['python3', '-m', 'ace.tools.ace_ari',
-         '--log-level=warning', '--outform=cborhex', '--must-nickname'],
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-    out, _ = proc.communicate(input=ari.encode(), timeout=30)
-    resp = requests.put('http://localhost:8089/nm/api/agents/eid/ipn:2.6/hex',
-                        data=out, headers={'Content-Type': 'text/plain'}, timeout=30)
-    resp.close()
-    with open(results_file, 'a') as f: f.write('OK\n')
-except Exception as e:
-    with open(results_file, 'a') as f: f.write('FAIL: {}\n'.format(e))
-SCRIPTEND
-
-# Copy into container once
-${DOCKER_CMD} cp "$TMP_SCRIPT" anms-core:/tmp/amp-runner.py
-
-START_AMP=$(date +%s)
-for i in $(seq "$REPORTERS"); do
-  ${DOCKER_CMD} exec -T anms-core python3 /tmp/amp-runner.py "$TMP_AMP" &
-done
-wait
-
-# Count results
-if [[ -s "$TMP_AMP" ]]; then
-  started=$(wc -l < "$TMP_AMP" | tr -d ' ')
-  ok_count=$(grep -c "^OK$" "$TMP_AMP" || echo 0)
-else
-  started=0; ok_count=0
-fi
-failed_count=$(( started - ok_count ))
-END_AMP=$(date +%s)
-amp_dur=$(( END_AMP - START_AMP ))
-
-echo "AMP: ${amp_dur}s, ${started} started, ${ok_count} ok, ${failed_count} failed"
 echo ""; echo "Stress test finished"
