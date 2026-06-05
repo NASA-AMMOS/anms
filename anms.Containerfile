@@ -138,6 +138,10 @@ RUN rm -rf ${APP_WORK_DIR}/server/release && \
     mkdir -p ${APP_WORK_DIR}/server/release && \
     cp -R ${APP_WORK_DIR}/dist/anms-ui/browser/* ${APP_WORK_DIR}/server/release/
 
+# for updating config.yaml
+COPY --chmod=755 anms-ui/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+ENTRYPOINT ["docker-entrypoint"]
+
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
 
