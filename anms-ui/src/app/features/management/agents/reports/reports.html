@@ -33,26 +33,19 @@
             }
           </tr>
           </thead>
+          <tbody>
+            @for (row of tableItems[index]; track row) {
+              <tr>
+                <!-- {{ row }}   -->
+                @for (cell of row; track cell) {
+                  <td>
+                    {{ cell }}
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
         </table>
-      </div>
-
-      <div class="scrollable-div">
-        @if (!loading && selected) {
-          <table class="table table-bordered table-striped mb-0">
-            <tbody>
-              @for (row of tableItems[index]; track row) {
-                <tr>
-                  <!-- {{ row }}   -->
-                  @for (cell of row; track cell) {
-                    <td>
-                      {{ cell }}
-                    </td>
-                  }
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
       </div>
   }
 </div>

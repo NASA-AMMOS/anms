@@ -12,8 +12,10 @@
 
 
     <div class="ps-4" [matTooltip]="!showNavTitle ? 'Management' : ''" [matTooltipPosition]="'right'">
-      <details (click)="showNavTitle = true;">
-        <summary>
+      <details>
+        <summary
+          (click)="showNavTitle = true"
+          (keydown)="onManagementSummaryKeydown($event)">
           @if (showNavTitle) {
             <span class="ps-3 list-item-title">Management</span>
           }

@@ -10,24 +10,22 @@
           <th class="text-info">Namespace</th>
           <th class="text-info">Version</th>
           <th class="text-info">Use Description</th>
+          <th class="text-info">Download ADM</th>
         </tr>
         </thead>
         <tbody>
 
           @for (adm of admService.adms(); track adm) {
             <tr
-              class="downloadable-row"
-              (click)="downloadFile(adm)">
+              class="downloadable-row">
               <td>{{ adm.enumeration }}</td>
-              <td
-                [title]="'Click Row to Download ADM YANG'"
-
-                style="cursor: pointer;">
+              <td>
                 <b>{{ adm.name }}</b>
               </td>
               <td>{{ adm.namespace }}</td>
               <td>{{ adm.version_name }}</td>
               <td>{{ adm.use_desc }}</td>
+              <td><button class="btn btn-link p-0" (click)="downloadFile(adm)"><span class="material-icons">download</span></button></td>
             </tr>
           }
         </tbody>

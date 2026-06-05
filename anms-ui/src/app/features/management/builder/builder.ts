@@ -181,4 +181,11 @@ export class Builder implements OnInit {
     this.commandHandoffService.setCborCommands(cborCommands);
     this.router.navigate(['/dashboard/agents']);
   }
+
+  onRowKeydown(event: KeyboardEvent, row: TranscoderLogEntry): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.toggleRow(row);
+    }
+  }
 }

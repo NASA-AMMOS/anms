@@ -85,7 +85,11 @@
         mat-row
         *matRowDef="let row; columns: displayedColumns;"
         class="transcoder-row"
-        (click)="toggleRow(row)">
+        tabindex="0"
+        role="checkbox"
+        [attr.aria-checked]="selection.isSelected(row)"
+        (click)="toggleRow(row)"
+        (keydown)="onRowKeydown($event, row)">
       </tr>
 
       </table>

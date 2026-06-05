@@ -67,16 +67,25 @@
         <tbody>
 
           @for (agent of agentsService.currentAgents(); track agent) {
-            <tr>
+            <tr
+              class="agent-row"
+              tabindex="0"
+              role="button"
+              (click)="goToAgentDetails(agent)"
+              (keydown)="onAgentRowKeydown($event, agent)"
+            >
               <td class="text-center">
                 <mat-checkbox
                   [checked]="selection.isSelected(agent)"
-                  (change)="toggleAgent(agent)">
+                  (click)="$event.stopPropagation()"
+                  (keydown)="$event.stopPropagation()"
+                  (change)="toggleAgent(agent)"
+                >
                 </mat-checkbox>
               </td>
-              <td (click)="goToAgentDetails(agent)">{{ agent.agent_endpoint_uri }}</td>
-              <td (click)="goToAgentDetails(agent)">{{ agent.first_registered }}</td>
-              <td (click)="goToAgentDetails(agent)">{{ agent.last_registered }}</td>
+              <td>{{ agent.agent_endpoint_uri }}</td>
+              <td>{{ agent.first_registered }}</td>
+              <td>{{ agent.last_registered }}</td>
             </tr>
           }
         </tbody>

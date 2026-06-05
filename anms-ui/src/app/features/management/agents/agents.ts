@@ -128,7 +128,10 @@ export class Agents implements AfterViewInit {
 
   }
 
-  private getAgentIndexById(agentId: any) {
-    return this.agentsService.currentAgents().findIndex(agent => agent.registered_agents_id === agentId);
+  onAgentRowKeydown(event: KeyboardEvent, agent: AgentInfo): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.goToAgentDetails(agent);
+    }
   }
 }

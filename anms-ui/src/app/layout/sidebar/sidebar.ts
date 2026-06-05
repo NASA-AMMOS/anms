@@ -43,4 +43,11 @@ export class Sidebar implements AfterViewInit {
       this.showNavTitle = true;
     }
   }
+
+  onManagementSummaryKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();        // avoid scrolling on Space
+      this.showNavTitle = true;
+    }
+  }
 }
