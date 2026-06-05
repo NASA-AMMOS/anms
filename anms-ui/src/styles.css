@@ -3,6 +3,33 @@
 @import "bootstrap-icons/font/bootstrap-icons.css";
 @import '@angular/material/prebuilt-themes/cyan-orange.css';
 
+/* Roboto 300 */
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/static/Roboto-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Roboto 400 */
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/static/Roboto-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Roboto 500 */
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/static/Roboto-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;
@@ -14,7 +41,8 @@ body, html {
   width: 100%;
   height: 100%;
   margin: 0;
-  padding: 0
+  padding: 0;
+  font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 :root {
