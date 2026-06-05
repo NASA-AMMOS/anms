@@ -94,11 +94,10 @@ ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
 # Yarn cannot be installed via RPM because of FIPS-mode restrictions
+RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y https://rpm.nodesource.com/pub_16.x/el/9/x86_64/nodesource-release-el9-1.noarch.rpm && \
     dnf install -y nodejs && \
-    npm install --ignore-scripts --global yarn && \
-    yarn config set --global cafile ${PIP_CERT}
+    npm config set cafile ${PIP_CERT}
 
 
 # Actual installation
@@ -107,52 +106,50 @@ ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
 # Install NodeJS Global Dependencies
-RUN --mount=type=cache,target=/root/.cache/yarn \
-    yarn global --ignore-engines add pm2 @vue/cli
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    npm install --global pm2
 
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 
-# Install NodeJS Server Dependencies
+# Install Angular UI and Server Dependencies
 COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/server/package.json anms-ui/server/yarn.lock ${APP_WORK_DIR}/server/
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
+    anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
+WORKDIR ${APP_WORK_DIR}
+COPY --chown=${APP_USER}:${APP_USER} \
+    anms-ui/server/package.json ${APP_WORK_DIR}/server/
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     cd ${APP_WORK_DIR}/server && \
-    yarn install --ignore-scripts --immutable --immutable-cache
-
-# Install NodeJS UI Dependencies
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/public/package.json anms-ui/public/yarn.lock ${APP_WORK_DIR}/public/
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
-    cd ${APP_WORK_DIR}/public && \
-    yarn install --ignore-scripts --immutable --immutable-cache
+    npm install --omit=dev
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    npm i
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    npm ci
 
 # Build Backend/Frontend
 # These copies do not overwrite node_modules
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/server ${APP_WORK_DIR}/server/
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/public ${APP_WORK_DIR}/public/
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.cache/yarn \
-    cd ${APP_WORK_DIR}/public && \
-    yarn run build && \
-    rm -rf ${APP_WORK_DIR}/public/node_modules && \
-    yarn install --ignore-scripts --immutable --immutable-cache --production
+COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
+RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+    npm run build
 
+
+# Clean any old release dir and copy Angular browser build into it
+RUN rm -rf ${APP_WORK_DIR}/server/release && \
+    mkdir -p ${APP_WORK_DIR}/server/release && \
+    cp -R ${APP_WORK_DIR}/dist/anms-ui/browser/* ${APP_WORK_DIR}/server/release/
+
+# for updating config.yaml
 COPY --chmod=755 anms-ui/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 ENTRYPOINT ["docker-entrypoint"]
 
 # Tune Final Settings
 WORKDIR ${APP_WORK_DIR}
 
-# NOTE: wildcard allows handling case when data directory has not been created locally
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/config.yaml anms-ui/process.yml anms-ui/config_ui_env.js anms-ui/data* ${APP_WORK_DIR}
-
 CMD ["pm2-docker", "process.yml", "--env", "production"]
 EXPOSE 9030
 
 HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
     CMD ["pm2", "pid", "anms"]
-
 
 # Local grafana configuration
 #
