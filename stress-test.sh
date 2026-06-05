@@ -101,23 +101,23 @@ with open('$TMP_METRICS','a') as f: f.write(json.dumps(m)+'\n')
 " 2>/dev/null || true
 }
 
-# Stats collection during command execution
+# Stats collection: snapshot before/after command for peak tracking
 stats_and_run() {
-  sleep 2
   local outfile="$1"; shift
-  (
-    while true; do
-      ${DOCKER_CMD} stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' 2>/dev/null || break
-      sleep 0.2
-    done
-  ) > "$TMP_RAW" &
-  local spid=$!
+  # Snapshot before command
+  docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' > "$TMP_RAW" 2>/dev/null
+
+  # Run the command
   "$@" 2>&1
-  kill $spid 2>/dev/null || true
-  if ! wait $spid 2>/dev/null; then
-    timeout 10 kill $spid 2>/dev/null || true
-    wait $spid 2>/dev/null || true
-  fi
+
+  # Snapshot after (multiple samples to catch peak)
+  local i
+  for i in $(seq 1 10); do
+    docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' >> "$TMP_RAW" 2>/dev/null
+    sleep 0.2
+  done
+
+  # Process collected stats
   python3 - "$TMP_RAW" "$outfile" <<'PYEOF'
 import sys, json
 raw, out = sys.argv[1], sys.argv[2]
