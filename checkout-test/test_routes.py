@@ -277,27 +277,22 @@ class TestPrimaryRoutes(BaseTest):
             resp_ctype=['text/html'],
         )
         resp = self._require_response(
-            url='/home',
+            url='/dashboard/home',
             resp_status=[200],
             resp_ctype=['text/html'],
         )
         resp = self._require_response(
-            url='/monitor',
+            url='/dashboard/monitor',
             resp_status=[200],
             resp_ctype=['text/html'],
         )
         resp = self._require_response(
-            url='/agents',
+            url='/dashboard/agents',
             resp_status=[200, 401],
             resp_ctype=['text/html'],
         )
         resp = self._require_response(
-            url='/build',
-            resp_status=[200],
-            resp_ctype=['text/html'],
-        )
-        resp = self._require_response(
-            url='/build',
+            url='/dashboard/builder',
             resp_status=[200],
             resp_ctype=['text/html'],
         )

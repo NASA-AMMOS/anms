@@ -1,0 +1,21 @@
+.selected-agents-section {
+  margin-bottom: 1rem;
+}
+
+.selected-agents-header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.selected-agents-chip-container {
+  background-color: rgba(243, 245, 247, 0.39);
+  border: 1px solid #d8dde3;
+  border-radius: 8px;
+  padding: 0.75rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.command-builder-section {
+  padding-top: 1rem;
+}

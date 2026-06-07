@@ -35,8 +35,8 @@
     process.env.NODE_ENV = 'production';
   }
   const publicRoot = 'public';
-  const releaseRoot = 'release'; // yarn build
-  
+  const releaseRoot = 'dist/anms-ui/browser'; // yarn build
+
   const config = {
     root: rootPath,
     logPath: null,
@@ -253,7 +253,7 @@
   }
 
   config.core.parsedUri = url.format(config.core.uri);
-  
+
 
 
   module.exports = config;

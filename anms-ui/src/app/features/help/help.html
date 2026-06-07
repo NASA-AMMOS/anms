@@ -1,0 +1,34 @@
+<div class="p-2">
+  <div>
+    <p class="h2 text-secondary">Asynchronous Network Management System (ANMS) documentation</p>
+    <ul class="list-group">
+      <li class="list-group-item"><a mat-raised-button href="https://github.com/NASA-AMMOS/anms/">Github</a></li>
+      <li class="list-group-item"><a mat-raised-button href="https://nasa-ammos.github.io/anms-docs/product-guide/html/index.html">Product
+        Guide</a></li>
+      <li class="list-group-item"><a mat-raised-button href="https://nasa-ammos.github.io/anms-docs/user-guide/html/index.html">User
+        Guide</a></li>
+    </ul>
+  </div>
+
+  <div class="pt-4">
+    <p class="h2 text-secondary">Developer Resources</p>
+    <ul class="list-group">
+      <li class="list-group-item">
+        <button mat-raised-button (click)="openUrl(resource.API_DOCS)">ANMS REST API Docs</button>
+      </li>
+      <li class="list-group-item"><button mat-raised-button (click)="openUrl(resource.GRAFANA)">Grafana</button>
+        This powers the 'Monitor' tab. Tip: Press the 'Esc' key
+        in the Monitor tab after clicking within the display to exit Kiosk mode and access the full UI interface.
+      </li>
+      <li class="list-group-item"><a mat-raised-button href="/adminer?pgsql=postgres&username=root">Adminer (DB Management)</a>
+         if ANMS is configured with 'dev' profile.
+      </li>
+    </ul>
+  </div>
+
+  <div class="pt-4 text-secondary">
+      NOTE: This page is a placeholder. If you have suggestions to improve this page, or ANMS in general, share it with
+      us
+      on github.
+  </div>
+</div>
