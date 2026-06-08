@@ -1,0 +1,187 @@
+##
+## Copyright (c) 2023 The Johns Hopkins University Applied Physics
+## Laboratory LLC.
+##
+## This file is part of the Asynchronous Network Management System (ANMS).
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##     http://www.apache.org/licenses/LICENSE-2.0
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+## This work was performed for the Jet Propulsion Laboratory, California
+## Institute of Technology, sponsored by the United States Government under
+## the prime contract 80NM0018D0004 between the Caltech and NASA under
+## subcontract 1658085.
+##
+#
+# Lightweight integration test environment for Angular UI Playwright tests.
+# Only spins up services required by the UI:
+#   postgres, redis, anms-core, ion-manager, amp-manager, anms-ui
+#
+# This is a subset of docker-compose-full.yml — use for faster CI runs
+# where the full stack (authnz, grafana, opensearch, etc.) is not needed.
+#
+# Usage:
+#   cd ~/anms/anms-ui/integration_test
+#   docker compose -f docker-compose-testenv.yml up -d
+#   npx playwright test
+#   docker compose -f docker-compose-testenv.yml down --remove-orphans
+#
+version: '3.8'
+
+services:
+  # ─── postgres ───────────────────────────────────────────────────────────
+  postgres:
+    image: ${DOCKER_IMAGE_PREFIX}anms-sql:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: anms-sql
+    init: true
+    environment:
+      POSTGRES_USER: ${DB_USER:-root}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_NAME:-amp_core}
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-root}"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+  # ─── redis ──────────────────────────────────────────────────────────────
+  redis:
+    image: redis:6.0-alpine
+    init: true
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    command: redis-server --databases 1 --bind 0.0.0.0 --port 6379
+    restart: unless-stopped
+
+  # ─── anms-core ──────────────────────────────────────────────────────────
+  anms-core:
+    image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: anms-core
+    expose:
+      - "5555"
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      DB_NAME: ${DB_NAME:-amp_core}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── ion-manager ───────────────────────────────────────────────────────
+  ion-manager:
+    image: ghcr.io/nasa-ammos/anms/ion-manager:latest
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - sockdir:${CTR_SOCKDIR:-/var/tmp/nm}
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR:-/var/tmp/nm}/proxy.sock"
+      ION_NODE_NUM: 1
+      MGR_NODE_NUM: 1
+    restart: unless-stopped
+
+  # ─── amp-manager ────────────────────────────────────────────────────────
+  amp-manager:
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: amp-manager
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ion-manager:
+        condition: service_started
+    expose:
+      - "8089"
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - sockdir:${CTR_SOCKDIR:-/var/tmp/nm}
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR:-/var/tmp/nm}/proxy.sock"
+      DB_HOST: postgres
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      DB_NAME: ${DB_NAME:-amp_core}
+    healthcheck:
+      test: ["CMD", "test", "-S", "/var/tmp/nm/proxy.sock"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  # ─── anms-ui ────────────────────────────────────────────────────────────
+  anms-ui:
+    image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: anms-ui
+    ports:
+      - "9030:9030"
+      - "9443:9443"
+    expose:
+      - "9030"
+      - "9443"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      anms-core:
+        condition: service_started
+      amp-manager:
+        condition: service_started
+    environment:
+      NET_BIND_INTERFACE: "0.0.0.0"
+      REDIS_URI_HOSTNAME: redis
+      ANMS_CORE_NAME: anms-core
+      ANMS_CORE_HTTP_PORT: "5555"
+      REDIS_NAME: redis
+      REDIS_PORT: "6379"
+      ION_MGR_HOST: amp-manager
+      ION_MGR_PORT: "8089"
+    restart: unless-stopped
+
+volumes:
+  sockdir:
+    external: true

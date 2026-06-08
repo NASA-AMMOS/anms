@@ -20,27 +20,97 @@
 ## subcontract 1658085.
 ##
 #
-# Full-stack integration test environment for ANMS Angular UI Playwright tests.
-# Spins up: postgres, anms-core, redis, ion-manager, amp-manager, UI.
+# Full-stack integration test environment for ANMS.
+# Spins up ALL services from both docker-compose.yml and testenv-compose.yml:
+#   authnz, adminer, opensearch, opensearch-dashboards, postgres,
+#   mqtt-broker, transcoder, aricodec, anms-ui, grafana, grafana-image-renderer,
+#   redis, anms-core, amp-manager, ion-manager, ion-agent2, ion-agent3
 #
-# ion-manager creates the Unix SEQPACKET socket (/var/tmp/nm/proxy.sock) that
-# amp-manager (refdm-proxy) connects to for DTN command delivery.
-# This mirrors the real deployment architecture from stress-test.sh.
+# This mirrors the exact stack used by stress-test.sh (main compose + testenv).
 #
-# Requires APL infrastructure (privileged mode allowed).
+# Requires APL infrastructure (privileged mode for ion-manager/amp-manager).
 #
 # Usage:
 #   cd ~/anms/anms-ui/integration_test
 #   docker compose -f docker-compose-full.yml up -d
-#   # Wait ~2-3 minutes for ion-manager + amp-manager to start
+#   # Wait ~3-5 minutes for all services to start
+#   # Run tests:
 #   npx playwright test
 #   docker compose -f docker-compose-full.yml down --remove-orphans
 #
-version: '2.4'
+# Environment variables (from root .env or override with .env in this directory):
+#   DOCKER_IMAGE_PREFIX  — image registry prefix (default: ghcr.io/nasa-ammos/anms/)
+#   DOCKER_IMAGE_TAG     — image tag (default: latest)
+#   AUTHNZ_PORT          — authnz HTTP port (default: 80)
+#   AUTHNZ_HTTPS_PORT    — authnz HTTPS port (default: 443)
+#   OPENSEARCH_PORT1     — opensearch HTTP port (default: 9200)
+#   OPENSEARCH_PORT2     — opensearch internal port (default: 9600)
+#   OPENSEARCH_DASH_PORT — opensearch-dashboards port (default: 5601)
+#   GRAFANA_PORT         — grafana port (default: 3000)
+#   RENDERER_PORT        — grafana-image-renderer port (default: 8081)
+#   ION_MGR_PORT         — amp-manager port (default: 8089)
+#   DB_PORT              — postgres port (default: 5432)
+#   REDIS_PORT           — redis port (default: 6379)
+#   DB_USER              — postgres user (default: root)
+#   DB_PASSWORD          — postgres password (default: changeme)
+#   DB_NAME              — postgres database (default: amp_core)
+#   HOST_SOCKDIR         — host sockdir path (default: sockdir)
+#   CTR_SOCKDIR          — container sockdir path (default: /var/tmp/nm)
+#
+
+networks:
+  default:
+    name: integration_test
+
+volumes:
+  postgres-data: {}
+  opensearch: {}
+  ammos-tls: {}  # needed for authnz build context, even though we use demo mode
+  sockdir:
+    external: true
 
 services:
+  # ─── authnz temporarily disabled (requires TLS certs)
+  # authnz:
+  #   # ... (skip for integration test)
 
-  # ─── Postgres (relational store) ───────────────────────────────────────
+  # ─── adminer (database management UI) ──────────────────────────────────
+  adminer:
+    image: docker.io/library/adminer:latest
+    hostname: adminer
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  # ─── opensearch (search engine) ─────────────────────────────────────────
+  opensearch:
+    hostname: opensearch
+    image: docker.io/opensearchproject/opensearch:2.19.5
+    ports:
+      - "${OPENSEARCH_PORT1:-9200}:9200"
+      - "${OPENSEARCH_PORT2:-9600}:9600"
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-Str0ng!Pass#2026}"
+    volumes:
+      - "opensearch:/usr/share/opensearch/data"
+    restart: unless-stopped
+
+  # ─── opensearch-dashboards ──────────────────────────────────────────────
+  opensearch-dashboards:
+    hostname: opensearch-dashboards
+    image: docker.io/opensearchproject/opensearch-dashboards:2.19.5
+    ports:
+      - "${OPENSEARCH_DASH_PORT:-5601}:5601"
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+    depends_on:
+      - opensearch
+    restart: unless-stopped
+
+  # ─── postgres ───────────────────────────────────────────────────────────
   postgres:
     image: ${DOCKER_IMAGE_PREFIX}anms-sql:${DOCKER_IMAGE_TAG:-latest}
     build:
@@ -52,18 +122,129 @@ services:
       POSTGRES_USER: ${DB_USER:-root}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
       POSTGRES_DB: ${DB_NAME:-amp_core}
-      POSTGRES_HEALTHCHECK_USER: healthcheck
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
     expose:
       - "5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U healthcheck"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-root}"]
       interval: 10s
       timeout: 10s
       retries: 10
     restart: unless-stopped
 
-  # ─── Redis (sessions + caching) ────────────────────────────────────────
+  # ─── mqtt-broker ────────────────────────────────────────────────────────
+  mqtt-broker:
+    image: ${DOCKER_IMAGE_PREFIX}mqtt-broker:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: mqtt-broker
+    expose:
+      - "1883"
+    restart: unless-stopped
+
+  # ─── transcoder ─────────────────────────────────────────────────────────
+  transcoder:
+    image: ${DOCKER_IMAGE_PREFIX}transcoder:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: transcoder
+    depends_on:
+      mqtt-broker:
+        condition: service_started
+    restart: unless-stopped
+
+  # ─── aricodec ───────────────────────────────────────────────────────────
+  aricodec:
+    image: ${DOCKER_IMAGE_PREFIX}aricodec:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: aricodec
+    environment:
+      DB_URI: postgresql://${DB_USER:-root}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-amp_core}
+      MQTT_HOST: mqtt-broker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_started
+    restart: unless-stopped
+
+  # ─── anms-ui (Angular UI) ──────────────────────────────────────────────
+  anms-ui:
+    image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: anms-ui
+    ports:
+      - "9030:9030"
+      - "9443:9443"
+    expose:
+      - "9030"
+      - "9443"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      anms-core:
+        condition: service_started
+      amp-manager:
+        condition: service_started
+    environment:
+      NET_BIND_INTERFACE: "0.0.0.0"
+      REDIS_URI_HOSTNAME: redis
+      ANMS_CORE_NAME: anms-core
+      ANMS_CORE_HTTP_PORT: "5555"
+      REDIS_NAME: redis
+      REDIS_PORT: "6379"
+      ION_MGR_HOST: amp-manager
+      ION_MGR_PORT: "8089"
+    restart: unless-stopped
+
+  # ─── grafana (monitoring dashboard) ─────────────────────────────────────
+  grafana:
+    hostname: grafana
+    image: ${DOCKER_IMAGE_PREFIX}anms-grafana:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      grafana-image-renderer:
+        condition: service_started
+    environment:
+      GF_RENDERING_SERVER_URL: http://grafana-image-renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_SERVER_ROOT_URL: http://localhost/grafana/
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: postgres:5432
+      GF_DATABASE_NAME: grafana_internal_db
+      GF_DATABASE_USER: ${DB_USER:-root}
+      GF_DATABASE_PASSWORD: ${DB_PASSWORD:-changeme}
+      GF_DATABASE_SSL_MODE: disable
+      GF_DATABASE_PATH: ""
+      GF_PLUGINS_PREINSTALL: "yesoreyeram-infinity-datasource"
+      GODEBUG: x509negativeserial=1
+    restart: unless-stopped
+
+  # ─── grafana-image-renderer ─────────────────────────────────────────────
+  grafana-image-renderer:
+    hostname: grafana-image-renderer
+    image: docker.io/grafana/grafana-image-renderer
+    expose:
+      - "8081"
+    restart: unless-stopped
+
+  # ─── redis ──────────────────────────────────────────────────────────────
   redis:
+    hostname: redis
     image: redis:6.0-alpine
     init: true
     expose:
@@ -76,18 +257,13 @@ services:
     command: redis-server --databases 1 --bind 0.0.0.0 --port 6379
     restart: unless-stopped
 
-  # ─── anms-core (Flask REST API) ────────────────────────────────────────
+  # ─── anms-core (Flask REST API) ──────────────────────────────────────────
   anms-core:
     image: ${DOCKER_IMAGE_PREFIX}anms-core:${DOCKER_IMAGE_TAG:-latest}
     build:
       context: ../..
       dockerfile: anms.Containerfile
       target: anms-core
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     expose:
       - "5555"
     environment:
@@ -95,37 +271,18 @@ services:
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-changeme}
       DB_NAME: ${DB_NAME:-amp_core}
-      DB_PORT: "5432"
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      amp-manager:
+        condition: service_started
     restart: unless-stopped
 
-  # ─── ion-manager (DTN management daemon) ───────────────────────────────
-  # Creates the Unix SEQPACKET socket (/var/tmp/nm/proxy.sock) that amp-manager
-  # connects to for DTN command delivery. This is the real ion-manager image
-  # from the ANMS deployment, configured to run a single DTN node.
-  ion-manager:
-    image: ghcr.io/nasa-ammos/anms/ion-manager:latest
-    privileged: true
-    tty: true
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
-    volumes:
-      - sockdir:${CTR_SOCKDIR}
-    environment:
-      container: docker
-      DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
-    restart: unless-stopped
-
-  # ─── Real amp-manager (refdm-proxy) ────────────────────────────────────
-  # The real amp-manager connects to ion-manager's Unix socket for DTN commands
-  # and exposes an HTTP REST API on port 8089. The Angular UI's /nm/* endpoints
-  # proxy to this service for agent management operations.
+  # ─── amp-manager (refdm-proxy) ──────────────────────────────────────────
   amp-manager:
     build:
       context: ../..
@@ -136,8 +293,8 @@ services:
         condition: service_healthy
       ion-manager:
         condition: service_started
-    ports:
-      - "${ION_MGR_PORT:-8089}:8089/tcp"
+    expose:
+      - "8089"
     privileged: true
     tty: true
     cap_add:
@@ -145,11 +302,11 @@ services:
       - NET_RAW
       - SYS_NICE
     volumes:
-      - sockdir:${CTR_SOCKDIR}
+      - sockdir:${CTR_SOCKDIR:-/var/tmp/nm}
     environment:
       container: docker
       DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR:-/var/tmp/nm}/proxy.sock"
       DB_HOST: postgres
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-changeme}
@@ -161,42 +318,53 @@ services:
       retries: 30
     restart: unless-stopped
 
-  # ─── ANMS UI (Express server + Angular static files) ──────────────────
-  anms-ui:
-    image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG:-latest}
-    build:
-      context: ../..
-      dockerfile: anms.Containerfile
-      target: anms-ui
-    depends_on:
-      redis:
-        condition: service_healthy
-      anms-core:
-        condition: service_started
-      amp-manager:
-        condition: service_started
-    ports:
-      - "9030:9030"
-      - "9443:9443"
-    expose:
-      - "9030"
-      - "9443"
-    healthcheck:
-      test: ["CMD", "pm2", "pid", "anms"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
+  # ─── ion-manager (DTN management daemon) ───────────────────────────────
+  ion-manager:
+    image: ghcr.io/nasa-ammos/anms/ion-manager:latest
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - sockdir:${CTR_SOCKDIR:-/var/tmp/nm}
     environment:
-      NET_BIND_INTERFACE: "0.0.0.0"
-      REDIS_URI_HOSTNAME: redis
-      ANMS_CORE_NAME: anms-core
-      ANMS_CORE_HTTP_PORT: "5555"
-      REDIS_NAME: redis
-      REDIS_PORT: "6379"
-      ION_MGR_HOST: amp-manager
-      ION_MGR_PORT: "8089"
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR:-/var/tmp/nm}/proxy.sock"
+      ION_NODE_NUM: 1
+      MGR_NODE_NUM: 1
     restart: unless-stopped
 
-volumes:
-  sockdir:
-    external: true
+  # ─── ion-agent2 (DTN agent) ────────────────────────────────────────────
+  ion-agent2:
+    image: ghcr.io/nasa-ammos/anms/ion-agent:latest
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      ION_NODE_NUM: 2
+      MGR_NODE_NUM: 1
+    restart: unless-stopped
+
+  # ─── ion-agent3 (DTN agent) ────────────────────────────────────────────
+  ion-agent3:
+    image: ghcr.io/nasa-ammos/anms/ion-agent:latest
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      ION_NODE_NUM: 3
+      MGR_NODE_NUM: 1
+    restart: unless-stopped
