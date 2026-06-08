@@ -1,0 +1,11 @@
+# ANMS UI integration test configuration
+# This file is mounted into the anms-ui container at runtime.
+#
+# Usage:
+#   cd ~/anms/anms-ui/integration_test
+#   docker compose -f docker-compose-full.yml up -d
+
+CORE_HOSTNAME: "anms-core"
+CORE_PORT: "5555"
+REDIS_HOSTNAME: "redis"
+REDIS_PORT: "6379"
