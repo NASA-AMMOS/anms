@@ -70,9 +70,22 @@ volumes:
     external: true
 
 services:
-  # ─── authnz temporarily disabled (requires TLS certs)
-  # authnz:
-  #   # ... (skip for integration test)
+  # ─── authnz (reverse proxy + authnz — demo mode with TLS certs) ───────
+  authnz:
+    image: ${DOCKER_IMAGE_PREFIX}authnz:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../../auth/demo
+      dockerfile: Dockerfile
+    hostname: authnz
+    restart: unless-stopped
+    ports:
+      - "${AUTHNZ_PORT:-80}:80"
+      - "${AUTHNZ_HTTPS_PORT:-443}:443"
+    environment:
+      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 adminer,http://adminer:8080 nm,http://amp-manager:8089"
+      DEMO_AUTH: "1"
+    volumes:
+      - ammos-tls:/ammos/etc/pki/tls:ro
 
   # ─── adminer (database management UI) ──────────────────────────────────
   adminer:
@@ -105,7 +118,9 @@ services:
     ports:
       - "${OPENSEARCH_DASH_PORT:-5601}:5601"
     environment:
-      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
+      OPENSEARCH_SECURE_COOKIES: 'false'
+      OPENSEARCH_SSL_VERIFICATION_MODE: 'none'
     depends_on:
       - opensearch
     restart: unless-stopped
