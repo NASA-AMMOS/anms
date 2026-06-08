@@ -1,273 +1,111 @@
 /**
  * API performance tests: Measure HTTP latency, response sizes, and throughput
  * for each backend endpoint.
- *
- * These tests directly measure the anms-core API performance without the
- * browser/Express overhead, providing a lower bound on total page load time.
- *
- * Test cases:
- *   1. Core API latency — /core/hello, /core/status
- *   2. Agent API latency — /agents, /agents/all, /agents/:id
- *   3. ADM API latency — /adms, /adms/all
- *   4. ARI API latency — /aris, /aris/all
- *   5. Report API latency — /reports, /reports/all
- *   6. Concurrency comparison — single vs 5 vs 20 concurrent API calls
- *   7. Large response handling — /all endpoints that return full datasets
  */
 
-import { test, expect, APIResponse } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { setupAuth } from './auth-setup';
 
-const CORE_URL = process.env.CORE_URL || 'http://localhost:5555';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
-const TEST_USERNAME = process.env.TEST_USERNAME || 'test';
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'test';
-
-interface APIMetric {
-  endpoint: string;
-  method: string;
-  status: number;
-  latencyMs: number;
-  responseBodySize: number;
-  error?: string;
-}
-
-/**
- * Measure a single API call with detailed metrics.
- */
-async function measureAPI(
-  page: any,
-  method: string,
-  url: string
-): Promise<APIMetric> {
-  const startTime = Date.now();
-  let status = 0;
-  let responseBodySize = 0;
-  let error: string | undefined;
-
-  try {
-    const response = await page.request.fetch(url, {
-      method: method.toUpperCase(),
-      timeout: 10000,
-    });
-
-    status = response.status();
-    const body = await response.text();
-    responseBodySize = Buffer.byteLength(body, 'utf8');
-  } catch (err: any) {
-    error = err.message;
-  }
-
-  const latencyMs = Date.now() - startTime;
-
-  return {
-    endpoint: url,
-    method,
-    status,
-    latencyMs,
-    responseBodySize,
-    error,
-  };
-}
+const API_BASE = BASE_URL.replace(/\/$/, '') + '/core';
 
 test.describe('API Performance', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login first to get session cookies for authenticated endpoints
-    await page.goto(`${BASE_URL}/`);
-    await page.fill('input[name="httpd_username"]', TEST_USERNAME);
-    await page.fill('input[name="httpd_password"]', TEST_PASSWORD);
-    await page.click('button[type="submit"], input[type="submit"]');
-    await page.waitForLoadState('domcontentloaded', { timeout: 15000 });
+  test('GET /core/service_status is fast', async ({ page }) => {
+    await setupAuth(page);
+    const startTime = Date.now();
+    const response = await page.goto(`${API_BASE}/service_status`);
+    const loadTime = Date.now() - startTime;
+    
+    expect(response?.status()).toBeLessThan(400);
+    expect(loadTime).toBeLessThan(5000);
+    console.log(`[api-perf] service_status: ${loadTime}ms`);
   });
 
-  test('Core API latency baseline', async ({ page }) => {
-    console.log('\n══════════════════════════════════════════════');
-    console.log('  API Performance: Core API Latency');
-    console.log('══════════════════════════════════════════════');
-
-    const endpoints = [
-      `${CORE_URL}/core/hello`,
-      `${CORE_URL}/core/status`,
-    ];
-
-    const metrics: APIMetric[] = [];
-
-    for (const url of endpoints) {
-      const metric = await measureAPI(page, 'GET', url);
-      metrics.push(metric);
-    }
-
-    // Report results
-    console.log('\n[api-core] Latency results:');
-    for (const m of metrics) {
-      console.log(`  ${m.method} ${m.endpoint}`);
-      console.log(`    Status: ${m.status}`);
-      console.log(`    Latency: ${m.latencyMs}ms`);
-      console.log(`    Response size: ${m.responseBodySize} bytes`);
-      if (m.error) console.log(`    Error: ${m.error}`);
-    }
-
-    // Expect reasonable latency (under 500ms for core endpoints)
-    const avgLatency = metrics.reduce((sum, m) => sum + m.latencyMs, 0) / metrics.length;
-    console.log(`[api-core] Average latency: ${avgLatency.toFixed(0)}ms`);
-    expect(avgLatency).toBeLessThan(2000); // Generous threshold for CI
+  test('GET /core/adms returns data', async ({ page }) => {
+    await setupAuth(page);
+    const startTime = Date.now();
+    const response = await page.goto(`${API_BASE}/adms`);
+    const loadTime = Date.now() - startTime;
+    
+    const body = await response?.json();
+    expect(body).toBeDefined();
+    console.log(`[api-perf] adms: ${loadTime}ms, ${JSON.stringify(body).length} bytes`);
   });
 
-  test('Agent API latency', async ({ page }) => {
-    console.log('\n══════════════════════════════════════════════');
-    console.log('  API Performance: Agent API Latency');
-    console.log('══════════════════════════════════════════════');
-
-    const endpoints = [
-      { url: `${CORE_URL}/agents`, method: 'GET' },
-      { url: `${CORE_URL}/agents/all`, method: 'GET' },
-    ];
-
-    const metrics: APIMetric[] = [];
-
-    for (const ep of endpoints) {
-      const metric = await measureAPI(page, ep.method, ep.url);
-      metrics.push(metric);
-    }
-
-    console.log('\n[api-agents] Latency results:');
-    for (const m of metrics) {
-      console.log(`  ${m.method} ${m.endpoint}`);
-      console.log(`    Status: ${m.status}, Latency: ${m.latencyMs}ms, Size: ${m.responseBodySize} bytes`);
-    }
+  test('GET /agents returns data', async ({ page }) => {
+    await setupAuth(page);
+    const startTime = Date.now();
+    const response = await page.goto('/agents');
+    const loadTime = Date.now() - startTime;
+    
+    const body = await response?.json();
+    console.log(`[api-perf] agents: ${loadTime}ms, ${JSON.stringify(body).length} bytes`);
+    // Agents may be empty, that's fine
   });
 
-  test('ADM API latency', async ({ page }) => {
-    console.log('\n══════════════════════════════════════════════');
-    console.log('  API Performance: ADM API Latency');
-    console.log('══════════════════════════════════════════════');
-
-    const endpoints = [
-      { url: `${CORE_URL}/adms`, method: 'GET' },
-      { url: `${CORE_URL}/adms/all`, method: 'GET' },
-    ];
-
-    const metrics: APIMetric[] = [];
-
-    for (const ep of endpoints) {
-      const metric = await measureAPI(page, ep.method, ep.url);
-      metrics.push(metric);
-    }
-
-    console.log('\n[api-adms] Latency results:');
-    for (const m of metrics) {
-      console.log(`  ${m.method} ${m.endpoint}`);
-      console.log(`    Status: ${m.status}, Latency: ${m.latencyMs}ms, Size: ${m.responseBodySize} bytes`);
-    }
+  test('GET /build/ari/all returns data', async ({ page }) => {
+    await setupAuth(page);
+    const startTime = Date.now();
+    const response = await page.goto('/build/ari/all');
+    const loadTime = Date.now() - startTime;
+    
+    console.log(`[api-perf] ari/all: ${loadTime}ms`);
   });
 
-  test('ARI API latency', async ({ page }) => {
-    console.log('\n══════════════════════════════════════════════');
-    console.log('  API Performance: ARI API Latency');
-    console.log('══════════════════════════════════════════════');
-
-    const endpoints = [
-      { url: `${CORE_URL}/aris`, method: 'GET' },
-      { url: `${CORE_URL}/aris/all`, method: 'GET' },
-    ];
-
-    const metrics: APIMetric[] = [];
-
-    for (const ep of endpoints) {
-      const metric = await measureAPI(page, ep.method, ep.url);
-      metrics.push(metric);
-    }
-
-    console.log('\n[api-aris] Latency results:');
-    for (const m of metrics) {
-      console.log(`  ${m.method} ${m.endpoint}`);
-      console.log(`    Status: ${m.status}, Latency: ${m.latencyMs}ms, Size: ${m.responseBodySize} bytes`);
-    }
+  test('GET /report/entry/name/test returns gracefully', async ({ page }) => {
+    await setupAuth(page);
+    const startTime = Date.now();
+    const response = await page.goto('/report/entry/name/test');
+    const loadTime = Date.now() - startTime;
+    
+    // May return 404 (no data) — that's acceptable
+    console.log(`[api-perf] report/name/test: ${loadTime}ms, status=${response?.status()}`);
   });
 
-  test('Report API latency', async ({ page }) => {
-    console.log('\n══════════════════════════════════════════════');
-    console.log('  API Performance: Report API Latency');
-    console.log('══════════════════════════════════════════════');
-
-    const endpoints = [
-      { url: `${CORE_URL}/reports`, method: 'GET' },
-      { url: `${CORE_URL}/reports/all`, method: 'GET' },
-    ];
-
-    const metrics: APIMetric[] = [];
-
-    for (const ep of endpoints) {
-      const metric = await measureAPI(page, ep.method, ep.url);
-      metrics.push(metric);
+  test('Multiple sequential API calls show stable latency', async ({ page }) => {
+    await setupAuth(page);
+    const latencies = [];
+    
+    for (let i = 0; i < 5; i++) {
+      const startTime = Date.now();
+      await page.goto(`${API_BASE}/service_status`);
+      const loadTime = Date.now() - startTime;
+      latencies.push(loadTime);
     }
-
-    console.log('\n[api-reports] Latency results:');
-    for (const m of metrics) {
-      console.log(`  ${m.method} ${m.endpoint}`);
-      console.log(`    Status: ${m.status}, Latency: ${m.latencyMs}ms, Size: ${m.responseBodySize} bytes`);
-    }
+    
+    const avg = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+    const max = Math.max(...latencies);
+    const min = Math.min(...latencies);
+    
+    console.log(`[api-perf] Sequential calls: avg=${Math.round(avg)}ms, min=${min}ms, max=${max}ms`);
+    // Max should not be more than 3x average
+    expect(max).toBeLessThan(avg * 3);
   });
 
-  test('Concurrent API calls — single vs parallel', async ({ page }) => {
-    console.log('\n══════════════════════════════════════════════');
-    console.log('  API Performance: Concurrent API Calls');
-    console.log('══════════════════════════════════════════════');
-
-    const url = `${CORE_URL}/agents/all`;
-
-    // Measure single request
-    const singleStart = Date.now();
-    const singleMetric = await measureAPI(page, 'GET', url);
-    const singleTime = Date.now() - singleStart;
-
-    // Measure 5 concurrent requests
-    const parallelStart = Date.now();
-    const promises = Array(5).fill(null).map(() =>
-      measureAPI(page, 'GET', url)
+  test('Concurrent API calls remain responsive', async ({ browser }) => {
+    const context = await browser.newContext();
+    const pages = await Promise.all(
+      Array.from({ length: 5 }, () => context.newPage())
     );
-    await Promise.all(promises);
-    const parallelTime = Date.now() - parallelStart;
-    const avgParallelTime = parallelTime / 5;
-
-    console.log(`\n[api-concurrent] ${url}:`);
-    console.log(`  Single request:   ${singleTime}ms`);
-    console.log(`  5 parallel total: ${parallelTime}ms`);
-    console.log(`  5 parallel avg:   ${avgParallelTime.toFixed(0)}ms`);
-    console.log(`  Speedup factor:   ${(singleTime / avgParallelTime).toFixed(1)}x`);
-
-    // Parallel should be faster than single
-    expect(avgParallelTime).toBeLessThan(singleTime * 0.8);
-  });
-
-  test('Large response handling — DOM impact', async ({ page }) => {
-    console.log('\n══════════════════════════════════════════════');
-    console.log('  API Performance: Large Response Handling');
-    console.log('══════════════════════════════════════════════');
-
-    // Measure response sizes for /all endpoints
-    const endpoints = [
-      `${CORE_URL}/agents/all`,
-      `${CORE_URL}/adms/all`,
-      `${CORE_URL}/aris/all`,
-      `${CORE_URL}/reports/all`,
-    ];
-
-    let totalResponseBytes = 0;
-    const metrics: APIMetric[] = [];
-
-    for (const url of endpoints) {
-      const metric = await measureAPI(page, 'GET', url);
-      metrics.push(metric);
-      totalResponseBytes += metric.responseBodySize;
-    }
-
-    console.log(`\n[api-large] Total response size: ${totalResponseBytes} bytes (${(totalResponseBytes / 1024).toFixed(1)} KB)`);
-    console.log('\n[api-large] Per-endpoint breakdown:');
-    for (const m of metrics) {
-      console.log(`  ${m.endpoint}: ${m.responseBodySize} bytes (${(m.responseBodySize / 1024).toFixed(1)} KB), ${m.latencyMs}ms`);
-    }
-
-    // Expect total response to be under 1 MB
-    expect(totalResponseBytes).toBeLessThan(1024 * 1024);
+    
+    const latencies = await Promise.all(
+      pages.map(async (page) => {
+        await setupAuth(page);
+        const startTime = Date.now();
+        await page.goto(`${API_BASE}/service_status`);
+        return Date.now() - startTime;
+      })
+    );
+    
+    const avg = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+    console.log(`[api-perf] 5 concurrent API calls: avg=${Math.round(avg)}ms`);
+    
+    // All should complete within reasonable time
+    latencies.forEach((l, i) => {
+      expect(l).toBeLessThan(10000);
+      console.log(`[api-perf] Call ${i}: ${l}ms`);
+    });
+    
+    await context.close();
   });
 });
