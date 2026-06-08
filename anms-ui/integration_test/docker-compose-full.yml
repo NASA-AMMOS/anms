@@ -21,14 +21,17 @@
 ##
 #
 # Full-stack integration test environment for ANMS Angular UI Playwright tests.
-# Spins up: postgres, anms-core, redis, UI, real amp-manager, and ion-manager.
+# Spins up: postgres, anms-core, redis, UI, real amp-manager.
 #
 # Requires APL infrastructure (privileged mode allowed).
+# Note: ION DTN daemon is not included — amp-manager (refdm-proxy) will start
+# but ION connectivity will show as disconnected. This is sufficient for
+# UI integration tests which exercise the HTTP API, not DTN routing.
 #
 # Usage:
 #   cd ~/anms/anms-ui/integration_test
 #   docker compose -f docker-compose-full.yml up -d
-#   # Wait ~3-5 minutes for amp-manager + ion-manager to be healthy
+#   # Wait ~2-3 minutes for services to start
 #   npx playwright test
 #   docker compose -f docker-compose-full.yml down --remove-orphans
 #
@@ -95,6 +98,9 @@ services:
   # The real amp-manager is the REFDM management daemon that exposes the
   # HTTP REST API (/nm/api/*) and bridges to ION via a Unix SEQPACKET socket.
   # Requires privileged mode: NET_ADMIN, NET_RAW, SYS_NICE.
+  # Note: ION is not included in this compose setup — amp-manager will start
+  # but ION connectivity will show as disconnected. This is sufficient for
+  # UI integration tests which exercise the HTTP API, not DTN routing.
   amp-manager:
     build:
       context: ../..
@@ -103,8 +109,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      ion-manager:
-        condition: service_started
     ports:
       - "${ION_MGR_PORT:-8089}:8089/tcp"
     privileged: true
@@ -130,31 +134,6 @@ services:
       retries: 30
     restart: unless-stopped
 
-  # ─── Real ion-manager (DTN node) ───────────────────────────────────────
-  # ION is the DTN daemon (Bundle Protocol / LTP over UDP).
-  # The amp-manager proxy bridges HTTP → ION via the Unix socket.
-  ion-manager:
-    build:
-      context: ../..
-      dockerfile: anms.Containerfile
-      target: ion-manager
-    depends_on: {}
-    privileged: true
-    tty: true
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-      - SYS_NICE
-    volumes:
-      - sockdir:${CTR_SOCKDIR}
-    environment:
-      container: docker
-      DTNMA_LOGLEVEL: debug
-      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
-      ION_NODE_NUM: 1
-      MGR_NODE_NUM: 1
-    restart: unless-stopped
-
   # ─── ANMS UI (Express server + Angular static files) ──────────────────
   anms-ui:
     image: ${DOCKER_IMAGE_PREFIX}anms-ui:${DOCKER_IMAGE_TAG:-latest}
@@ -168,7 +147,7 @@ services:
       anms-core:
         condition: service_started
       amp-manager:
-        condition: service_healthy
+        condition: service_started
     ports:
       - "9030:9030"
       - "9443:9443"
