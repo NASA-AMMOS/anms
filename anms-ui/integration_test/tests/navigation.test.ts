@@ -71,10 +71,10 @@ test.describe('Navigation Performance', () => {
       await page.waitForTimeout(100);
       
       const metrics = await getMetrics(page);
-      elementCounts.push(metrics.elementCount);
+      elementCounts.push(metrics.domElementCount);
       
       if (i % 10 === 0) {
-        console.log(`[nav] Cycle ${i + 1}/50: elements=${metrics.elementCount}`);
+        console.log(`[nav] Cycle ${i + 1}/50: elements=${metrics.domElementCount}`);
       }
     }
     
@@ -98,7 +98,7 @@ test.describe('Navigation Performance', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     
     const metrics = await getMetrics(page);
-    console.log(`[nav] Refresh: DOM=${metrics.domContentLoaded}ms, elements=${metrics.elementCount}`);
-    expect(metrics.domContentLoaded).toBeLessThan(10000);
+    console.log(`[nav] Refresh: DOM=${metrics.domContentLoadedMs}ms, elements=${metrics.domElementCount}`);
+    expect(metrics.domContentLoadedMs).toBeLessThan(10000);
   });
 });

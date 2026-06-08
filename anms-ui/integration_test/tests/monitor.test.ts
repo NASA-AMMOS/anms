@@ -24,8 +24,8 @@ test.describe('Monitor Tab', () => {
     expect(pageText.length).toBeGreaterThan(100);
     
     const metrics = await getMetrics(page);
-    console.log(`[monitor] Dashboard metrics: DOM ${metrics.domContentLoaded}ms, Elements: ${metrics.elementCount}`);
-    expect(metrics.elementCount).toBeGreaterThan(5);
+    console.log(`[monitor] Dashboard metrics: DOM ${metrics.domContentLoadedMs}ms, Elements: ${metrics.domElementCount}`);
+    expect(metrics.domElementCount).toBeGreaterThan(5);
   });
 
   test('Service status indicators are present', async ({ page }) => {

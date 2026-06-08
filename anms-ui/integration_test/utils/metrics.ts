@@ -161,3 +161,8 @@ export function detectPerformanceIssues(metrics: PageMetrics): string[] {
 
   return issues;
 }
+
+/**
+ * Convenience alias for capturePageMetrics — used by some test files.
+ */
+export const getMetrics = capturePageMetrics;

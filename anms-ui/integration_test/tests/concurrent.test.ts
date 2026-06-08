@@ -22,7 +22,7 @@ test.describe('Concurrent Load Tests', () => {
     const loadTime = Date.now() - startTime;
     
     const metrics = await getMetrics(page);
-    console.log(`[stress] Single user: load=${loadTime}ms, DOM=${metrics.domContentLoaded}ms, elements=${metrics.elementCount}`);
+    console.log(`[stress] Single user: load=${loadTime}ms, DOM=${metrics.domContentLoadedMs}ms, elements=${metrics.domElementCount}`);
     expect(loadTime).toBeLessThan(15000);
   });
 
@@ -48,7 +48,7 @@ test.describe('Concurrent Load Tests', () => {
     
     // All users should load within reasonable time
     results.forEach(r => {
-      console.log(`[stress] User ${r.index}: load=${r.loadTime}ms, elements=${r.metrics.elementCount}`);
+      console.log(`[stress] User ${r.index}: load=${r.loadTime}ms, elements=${r.metrics.domElementCount}`);
       expect(r.loadTime).toBeLessThan(15000);
     });
     
@@ -99,10 +99,10 @@ test.describe('Concurrent Load Tests', () => {
       await page.waitForTimeout(200);
       
       const metrics = await getMetrics(page);
-      memoryReadings.push(metrics.domContentLoaded);
+      memoryReadings.push(metrics.domContentLoadedMs);
       
       if (i % 10 === 0) {
-        console.log(`[stress] Reload ${i + 1}/50: DOM=${metrics.domContentLoaded}ms, elements=${metrics.elementCount}`);
+        console.log(`[stress] Reload ${i + 1}/50: DOM=${metrics.domContentLoadedMs}ms, elements=${metrics.domElementCount}`);
       }
     }
     

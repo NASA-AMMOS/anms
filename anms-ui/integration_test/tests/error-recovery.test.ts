@@ -117,9 +117,9 @@ test.describe('Error Recovery', () => {
     await page.goto(BASE_URL);
     await page.waitForTimeout(2000);
     
-    // Check for JS errors
-    const consoleErrors = page.locator('body').count();
-    expect(consoleErrors).toBeGreaterThan(0);
+    // Check page is still responsive
+    const bodyCount = await page.locator('body').count();
+    expect(bodyCount).toBeGreaterThan(0);
     
     console.log('[error-recovery] Malformed JSON handled gracefully');
   });

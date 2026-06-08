@@ -7,13 +7,13 @@ import { test, expect } from '@playwright/test';
 import { setupAuth } from './auth-setup';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
-const API_BASE = BASE_URL.replace(/\/$/, '') + '/core';
+const API_BASE = BASE_URL.replace(/\/$/, '') + '/api';
 
 test.describe('API Performance', () => {
-  test('GET /core/service_status is fast', async ({ page }) => {
+  test('GET /api/core/service_status is fast', async ({ page }) => {
     await setupAuth(page);
     const startTime = Date.now();
-    const response = await page.goto(`${API_BASE}/service_status`);
+    const response = await page.goto(`${API_BASE}/core/service_status`);
     const loadTime = Date.now() - startTime;
     
     expect(response?.status()).toBeLessThan(400);
@@ -21,10 +21,10 @@ test.describe('API Performance', () => {
     console.log(`[api-perf] service_status: ${loadTime}ms`);
   });
 
-  test('GET /core/adms returns data', async ({ page }) => {
+  test('GET /api/core/adms returns data', async ({ page }) => {
     await setupAuth(page);
     const startTime = Date.now();
-    const response = await page.goto(`${API_BASE}/adms`);
+    const response = await page.goto(`${API_BASE}/core/adms`);
     const loadTime = Date.now() - startTime;
     
     const body = await response?.json();
@@ -32,10 +32,10 @@ test.describe('API Performance', () => {
     console.log(`[api-perf] adms: ${loadTime}ms, ${JSON.stringify(body).length} bytes`);
   });
 
-  test('GET /agents returns data', async ({ page }) => {
+  test('GET /api/agents returns data', async ({ page }) => {
     await setupAuth(page);
     const startTime = Date.now();
-    const response = await page.goto('/agents');
+    const response = await page.goto(`${API_BASE}/agents?page=0&size=10`);
     const loadTime = Date.now() - startTime;
     
     const body = await response?.json();
@@ -43,19 +43,19 @@ test.describe('API Performance', () => {
     // Agents may be empty, that's fine
   });
 
-  test('GET /build/ari/all returns data', async ({ page }) => {
+  test('GET /api/build/ari/all returns data', async ({ page }) => {
     await setupAuth(page);
     const startTime = Date.now();
-    const response = await page.goto('/build/ari/all');
+    const response = await page.goto(`${API_BASE}/build/ari/all`);
     const loadTime = Date.now() - startTime;
     
     console.log(`[api-perf] ari/all: ${loadTime}ms`);
   });
 
-  test('GET /report/entry/name/test returns gracefully', async ({ page }) => {
+  test('GET /api/report/entry/name/test returns gracefully', async ({ page }) => {
     await setupAuth(page);
     const startTime = Date.now();
-    const response = await page.goto('/report/entry/name/test');
+    const response = await page.goto(`${API_BASE}/report/entry/name/test`);
     const loadTime = Date.now() - startTime;
     
     // May return 404 (no data) — that's acceptable
@@ -68,7 +68,7 @@ test.describe('API Performance', () => {
     
     for (let i = 0; i < 5; i++) {
       const startTime = Date.now();
-      await page.goto(`${API_BASE}/service_status`);
+      await page.goto(`${API_BASE}/core/service_status`);
       const loadTime = Date.now() - startTime;
       latencies.push(loadTime);
     }
@@ -92,7 +92,7 @@ test.describe('API Performance', () => {
       pages.map(async (page) => {
         await setupAuth(page);
         const startTime = Date.now();
-        await page.goto(`${API_BASE}/service_status`);
+        await page.goto(`${API_BASE}/core/service_status`);
         return Date.now() - startTime;
       })
     );
