@@ -21,17 +21,18 @@
 ##
 #
 # Full-stack integration test environment for ANMS Angular UI Playwright tests.
-# Spins up: postgres, anms-core, redis, UI, real amp-manager.
+# Spins up: postgres, anms-core, redis, ion-manager, amp-manager, UI.
+#
+# ion-manager creates the Unix SEQPACKET socket (/var/tmp/nm/proxy.sock) that
+# amp-manager (refdm-proxy) connects to for DTN command delivery.
+# This mirrors the real deployment architecture from stress-test.sh.
 #
 # Requires APL infrastructure (privileged mode allowed).
-# Note: ION DTN daemon is not included — amp-manager (refdm-proxy) will start
-# but ION connectivity will show as disconnected. This is sufficient for
-# UI integration tests which exercise the HTTP API, not DTN routing.
 #
 # Usage:
 #   cd ~/anms/anms-ui/integration_test
 #   docker compose -f docker-compose-full.yml up -d
-#   # Wait ~2-3 minutes for services to start
+#   # Wait ~2-3 minutes for ion-manager + amp-manager to start
 #   npx playwright test
 #   docker compose -f docker-compose-full.yml down --remove-orphans
 #
@@ -41,16 +42,21 @@ services:
 
   # ─── Postgres (relational store) ───────────────────────────────────────
   postgres:
-    image: docker.io/library/postgres:15-alpine
+    image: ${DOCKER_IMAGE_PREFIX}anms-sql:${DOCKER_IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: anms.Containerfile
+      target: anms-sql
     init: true
     environment:
       POSTGRES_USER: ${DB_USER:-root}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
       POSTGRES_DB: ${DB_NAME:-amp_core}
+      POSTGRES_HEALTHCHECK_USER: healthcheck
     expose:
       - "5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-root}"]
+      test: ["CMD-SHELL", "pg_isready -U healthcheck"]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -94,13 +100,32 @@ services:
       REDIS_PORT: "6379"
     restart: unless-stopped
 
+  # ─── ion-manager (DTN management daemon) ───────────────────────────────
+  # Creates the Unix SEQPACKET socket (/var/tmp/nm/proxy.sock) that amp-manager
+  # connects to for DTN command delivery. This is the real ion-manager image
+  # from the ANMS deployment, configured to run a single DTN node.
+  ion-manager:
+    image: ghcr.io/nasa-ammos/anms/ion-manager:latest
+    privileged: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - sockdir:${CTR_SOCKDIR}
+    environment:
+      container: docker
+      DTNMA_LOGLEVEL: debug
+      AMP_PROXY_SOCKET: "${CTR_SOCKDIR}/proxy.sock"
+      ION_NODE_NUM: 1
+      MGR_NODE_NUM: 1
+    restart: unless-stopped
+
   # ─── Real amp-manager (refdm-proxy) ────────────────────────────────────
-  # The real amp-manager is the REFDM management daemon that exposes the
-  # HTTP REST API (/nm/api/*) and bridges to ION via a Unix SEQPACKET socket.
-  # Requires privileged mode: NET_ADMIN, NET_RAW, SYS_NICE.
-  # Note: ION is not included in this compose setup — amp-manager will start
-  # but ION connectivity will show as disconnected. This is sufficient for
-  # UI integration tests which exercise the HTTP API, not DTN routing.
+  # The real amp-manager connects to ion-manager's Unix socket for DTN commands
+  # and exposes an HTTP REST API on port 8089. The Angular UI's /nm/* endpoints
+  # proxy to this service for agent management operations.
   amp-manager:
     build:
       context: ../..
@@ -109,6 +134,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ion-manager:
+        condition: service_started
     ports:
       - "${ION_MGR_PORT:-8089}:8089/tcp"
     privileged: true
@@ -159,8 +186,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 10
-    volumes:
-      - ./config.yaml:/opt/node_app/config.yaml:ro
     environment:
       NET_BIND_INTERFACE: "0.0.0.0"
       REDIS_URI_HOSTNAME: redis
