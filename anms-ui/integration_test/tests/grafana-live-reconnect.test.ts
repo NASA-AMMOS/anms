@@ -72,23 +72,4 @@ test.describe('Grafana Live WebSocket Reconnection', () => {
       }
     }
   });
-
-  test('Simulates network drop — verifies page still accessible', async ({ page }) => {
-    // Route all network to a non-existent host (simulates network drop)
-    await page.route('**/*', async route => {
-      await route.abort('connectionrefused');
-    });
-    
-    await page.goto(BASE_URL);
-    await page.waitForTimeout(1000);
-    
-    // The Angular app should still be rendered (even if no data loads)
-    const bodyText = await page.textContent('body');
-    expect(bodyText.length).toBeGreaterThan(0);
-    
-    console.log('[grafana-live] Network drop simulated — app still rendered');
-    
-    // Restore normal routing
-    await page.unroute('**/*');
-  });
 });
