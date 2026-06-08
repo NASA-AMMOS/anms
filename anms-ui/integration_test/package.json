@@ -1,0 +1,21 @@
+{
+  "name": "anms-ui-integration-tests",
+  "version": "1.0.0",
+  "description": "Playwright integration tests for ANMS Angular UI",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright test --reporter=html",
+    "test:agents": "playwright test tests/agents.test.ts",
+    "test:build": "playwright test tests/build.test.ts",
+    "test:base": "playwright test tests/base.test.ts",
+    "test:concurrent": "playwright test tests/concurrent.test.ts",
+    "test:monitor": "playwright test tests/monitor.test.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.48.0",
+    "@types/node": "^22.19.20"
+  }
+}
