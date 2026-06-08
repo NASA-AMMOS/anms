@@ -1,23 +1,44 @@
 /**
  * Global Playwright setup - runs once before all tests.
  *
- * This fixture can be used to:
- * - Seed the database with test data
- * - Create test users
- * - Set up initial state
- *
- * Currently empty - the test environment should be fully initialized
- * via docker-compose before tests run. See README.md for usage.
+ * Waits for all backend services to be healthy before tests run:
+ * - UI (port 9030)
+ * - authnz (port 80)
+ * - OpenSearch (port 9200)
+ * - OpenSearch Dashboards (port 5601)
  */
 
 import { chromium } from '@playwright/test';
+import { waitForUrlHealthy } from '../utils/api-helpers';
+
+const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
+const AUTHNZ_URL=process.env.AUTHNZ_URL || 'http://localhost:80';
+const OPENSEARCH_URL = process.env.OPENSEARCH_URL || 'http://localhost:9200';
+const OPENSEARCH_DASH_URL = process.env.OPENSEARCH_DASH_URL || 'http://localhost:5601';
 
 export default async function globalSetup() {
-  console.log('\n╔══════════════════════════════════════════╗');
-  console.log('║  ANMS Angular UI Integration Tests       ║');
-  console.log('║  Global Setup                            ║');
-  console.log('╚══════════════════════════════════════════╝');
-  console.log('\nTest environment should be running:');
-  console.log('  docker compose -f docker-compose-full.yml up -d');
-  console.log('\nWaiting for UI to be healthy...\n');
+  console.log('\n=== ANMS Integration Tests ===');
+  console.log('Waiting for services to be healthy...\n');
+
+  // Wait for UI
+  console.log('  -> UI (port 9030)...');
+  const uiReady = await waitForUrlHealthy(BASE_URL, 30);
+  console.log('  ' + (uiReady ? 'OK' : 'timeout (may not be started)'));
+
+  // Wait for authnz
+  console.log('  -> authnz (port 80)...');
+  const authnzReady = await waitForUrlHealthy(AUTHNZ_URL, 20);
+  console.log('  ' + (authnzReady ? 'OK' : 'timeout (may not be started)'));
+
+  // Wait for OpenSearch
+  console.log('  -> OpenSearch (port 9200)...');
+  const opensearchReady = await waitForUrlHealthy(OPENSEARCH_URL, 30);
+  console.log('  ' + (opensearchReady ? 'OK' : 'timeout (may not be started)'));
+
+  // Wait for OpenSearch Dashboards
+  console.log('  -> OpenSearch Dashboards (port 5601)...');
+  const dashReady = await waitForUrlHealthy(OPENSEARCH_DASH_URL, 20);
+  console.log('  ' + (dashReady ? 'OK' : 'timeout (may not be started)'));
+
+  console.log('\n=== Global setup complete ===\n');
 }
