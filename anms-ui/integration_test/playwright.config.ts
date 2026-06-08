@@ -65,26 +65,15 @@ export default defineConfig({
   },
 
   // Configure projects for different browser engines
+  // Chromium only — Firefox/WebKit require additional OS deps (GTK4 for WebKit, etc.)
+  // that aren't available in EL9 / Rocky 9 repos. Chromium is sufficient for
+  // integration testing the Angular UI.
   projects: [
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
         // Context for concurrent testing (simulates multiple users)
-        viewport: { width: 1920, height: 1080 },
-      },
-    },
-    {
-      name: 'firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-        viewport: { width: 1920, height: 1080 },
-      },
-    },
-    {
-      name: 'webkit',
-      use: {
-        ...devices['Desktop Safari'],
         viewport: { width: 1920, height: 1080 },
       },
     },
