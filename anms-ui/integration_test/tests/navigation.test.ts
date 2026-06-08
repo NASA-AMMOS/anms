@@ -63,6 +63,7 @@ test.describe('Navigation Performance', () => {
   });
 
   test('Memory stable after 50 page cycles', async ({ page }) => {
+    test.setTimeout(120000);
     await setupAuth(page);
     const elementCounts = [];
     

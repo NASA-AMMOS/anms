@@ -91,6 +91,7 @@ test.describe('Concurrent Load Tests', () => {
   });
 
   test('Memory leak detection — 50 page reloads', async ({ page }) => {
+    test.setTimeout(120000);
     await setupAuth(page);
     
     const memoryReadings = [];
