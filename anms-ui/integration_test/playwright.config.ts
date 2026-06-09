@@ -2,7 +2,7 @@
  * Playwright configuration for ANMS Angular UI integration tests.
  *
  * Tests the full stack (postgres, anms-core, redis, UI) with headless Chromium.
- * Runs tests against the built Angular UI through authnz reverse proxy on port 80 (matches production).
+ * Runs tests against the built Angular UI through authnz reverse proxy on port 8084 (matches production).
  *
  * Usage:
  *   # Run all tests
@@ -27,7 +27,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Read environment variables for custom base URL.
  * Default: http://localhost:9030
  */
-const BASE_URL = process.env.BASE_URL || 'http://localhost:80';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8084';
 const USERNAME = process.env.TEST_USERNAME || 'test';
 const PASSWORD = process.env.TEST_PASSWORD || 'test';
 

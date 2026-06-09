@@ -5,7 +5,7 @@
  * requests to backend services (anms-core, grafana, amp-manager). In demo mode it
  * redirects unauthenticated requests to a login page (HTTP 302).
  *
- * These tests run directly against authnz (port 80) to validate the proxy layer
+ * These tests run directly against authnz (port 8084) to validate the proxy layer
  * that sits in front of the full ANMS stack.
  *
  * Test Spec: ANMS_FUN_APP_001 (auth proxy)
@@ -13,10 +13,10 @@
 
 import { test, expect } from '@playwright/test';
 
-const AUTHNZ_URL=process.env.AUTHNZ_URL || 'http://localhost:80';
+const AUTHNZ_URL=process.env.AUTHNZ_URL || 'http://localhost:8084';
 
 test.describe('Authnz Proxy', () => {
-  test('authnz service responds on port 80', async ({ request }) => {
+  test('authnz service responds on port 8084', async ({ request }) => {
     const response = await request.get(AUTHNZ_URL, {
       maxRetries: 2,
       timeout: 10000,

@@ -3,7 +3,7 @@
  *
  * Waits for all backend services to be healthy before tests run:
  * - UI (port 9030)
- * - authnz (port 80)
+ * - authnz (port 8084)
  * - OpenSearch (port 9200)
  * - OpenSearch Dashboards (port 5601)
  *
@@ -13,7 +13,7 @@
 import { waitForUrlHealthy } from '../utils/api-helpers';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
-const AUTHNZ_URL = process.env.AUTHNZ_URL || 'http://localhost:80';
+const AUTHNZ_URL = process.env.AUTHNZ_URL || 'http://localhost:8084';
 const OPENSEARCH_URL = process.env.OPENSEARCH_URL || 'http://localhost:9200';
 const OPENSEARCH_DASH_URL = process.env.OPENSEARCH_DASH_URL || 'http://localhost:5601';
 
@@ -27,7 +27,7 @@ export default async function globalSetup() {
   console.log('  ' + (uiReady ? 'OK' : 'timeout (may not be started)'));
 
   // Wait for authnz
-  console.log('  -> authnz (port 80)...');
+  console.log('  -> authnz (port 8084)...');
   const authnzReady = await waitForUrlHealthy(AUTHNZ_URL, 20);
   console.log('  ' + (authnzReady ? 'OK' : 'timeout (may not be started)'));
 
