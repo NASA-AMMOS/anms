@@ -1,0 +1,43 @@
+<div style="margin-top: 16px;">
+  <h5>Operation:</h5>
+
+  <!-- Select Operation -->
+  <div class="select-max-width mb-3">
+    <select
+      class="form-select"
+      [(ngModel)]="selected"
+      (change)="onOperationChange()"
+      [ngModelOptions]="{ standalone: true }"
+    >
+      <option [ngValue]="-1" disabled>-- Select Operation --</option>
+      @for (opt of operations; track opt; let index = $index) {
+        <option [ngValue]="opt">
+          {{ opt.command_name }}
+        </option>
+      }
+    </select>
+  </div>
+
+  <!-- Parameters Form -->
+  <form class="form-spacing" (ngSubmit)="onClick()">
+    @for (param of params; track param) {
+      <div class="mb-3">
+        <input
+          type="text"
+          class="form-control capitalize"
+          [id]="param.name"
+          [(ngModel)]="param.value"
+          [name]="param.name"
+          [placeholder]="param.name"
+        />
+      </div>
+    }
+
+    <button
+      type="submit"
+      class="btn btn-primary"
+    >
+      Send Parameter
+    </button>
+  </form>
+</div>

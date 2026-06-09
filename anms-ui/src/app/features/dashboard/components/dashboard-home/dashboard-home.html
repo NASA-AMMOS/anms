@@ -1,0 +1,129 @@
+<div class="d-flex flex-wrap">
+  <div class="pt-2 ps-3">
+    <div class="card card-dimensions">
+      <div class="card-header bg-info-subtle">
+        <div class="icon-with-text">
+          <mat-icon matListItemIcon>query_stats</mat-icon>
+          <span class="ps-2">Monitor</span>
+          <button matMiniFab routerLink="/dashboard/monitor" class="btn btn-secondary">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="card-body text-bg-dark">
+        <p class="card-text">
+
+          The Monitor view uses Grafana to display data stored in the ANMS databases,
+          which are populated with information collected
+          from the Managers and Agents in the network.
+
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-2 ps-3">
+    <div class="card card-dimensions">
+      <div class="card-header bg-info-subtle">
+        <div class="icon-with-text">
+          <mat-icon matListItemIcon>engineering</mat-icon>
+          <span class="ps-2">Agents</span>
+          <button matMiniFab routerLink="/dashboard/agents" class="btn btn-secondary">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="card-body text-bg-dark">
+        <p class="card-text">
+          The Agents view can be used to search for Agents known to the ANMS,
+          get additional information on these Agents, and add new
+          Agents to the system.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-2 ps-3">
+    <div class="card card-dimensions">
+      <div class="card-header bg-info-subtle">
+        <div class="icon-with-text">
+          <mat-icon matListItemIcon>build</mat-icon>
+          <span class="ps-2">Build</span>
+          <button matMiniFab routerLink="/dashboard/builder" class="btn btn-secondary">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="card-body text-bg-dark">
+        <p class="card-text">
+          The Build view is for used for generating ARIs,
+          translating string ARIs to CBOR, and sending those ARIs to the ANMS database
+          and/or Agent(s).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-2 ps-3">
+    <div class="card card-dimensions">
+      <div class="card-header bg-info-subtle">
+        <div class="icon-with-text">
+          <mat-icon matListItemIcon>checklist</mat-icon>
+          <span class="ps-2">Status</span>
+          <button matMiniFab routerLink="/dashboard/status" class="btn btn-secondary">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="card-body text-bg-dark">
+        <p class="card-text">
+          The Status view provides a summary of the overall health and status
+          of the ANMS services. If all ANMS containers are up and running,
+          a green "Good" label is included in the Status tab header.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-2 ps-3">
+    <div class="card card-dimensions">
+      <div class="card-header bg-info-subtle">
+        <div class="icon-with-text">
+          <mat-icon matListItemIcon>schema</mat-icon>
+          <span class="ps-2">ADMs</span>
+          <button matMiniFab routerLink="/dashboard/adms" class="btn btn-secondary">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="card-body text-bg-dark">
+        <p class="card-text">
+          The ADMs view of the ANMS displays the Application Data Models (ADMs)
+          known to the system, and allows a user to upload additional ADM files.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-2 ps-3">
+    <div class="card card-dimensions">
+      <div class="card-header bg-info-subtle">
+        <div class="icon-with-text">
+          <mat-icon matListItemIcon>help</mat-icon>
+          <span class="ps-2">Help</span>
+          <button matMiniFab routerLink="/dashboard/help" class="btn btn-secondary">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div class="card-body text-bg-dark">
+        <p class="card-text">
+          The Help view of the ANMS display provides access to developer resources and product documentation.
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+</div>

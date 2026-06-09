@@ -1,0 +1,117 @@
+<div class="builder-page">
+
+  <section class="ari-builder-section">
+    <app-ari-command-builder
+      (commandReady)="handleBuiltCommand($event)">
+    </app-ari-command-builder>
+  </section>
+
+  <mat-divider class="section-divider"></mat-divider>
+
+  <section class="transcoder-log-section">
+    <p>Select CBOR(s) to send to Agents display</p>
+
+    <div class="log-toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search logs</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchText"
+          (keyup.enter)="applyFilter()"
+          placeholder="Search by ID, input string, URI, or CBOR"
+        />
+      </mat-form-field>
+
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="applyFilter()">
+        Search
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" class="transcoder-table">
+
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let log">
+          <mat-checkbox
+            [checked]="selection.isSelected(log)"
+            (click)="$event.stopPropagation()"
+            (change)="toggleRow(log)">
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>Transcoder Log ID</th>
+        <td mat-cell *matCellDef="let log">
+          {{ log.transcoder_log_id }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="inputString">
+        <th mat-header-cell *matHeaderCellDef>Input String</th>
+        <td mat-cell *matCellDef="let log" class="long-text-cell">
+          {{ log.input_string }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="parsedAs">
+        <th mat-header-cell *matHeaderCellDef>Parsed As</th>
+        <td mat-cell *matCellDef="let log">
+          {{ log.parsed_as }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cbor">
+        <th mat-header-cell *matHeaderCellDef>CBOR</th>
+        <td mat-cell *matCellDef="let log" class="long-text-cell">
+          {{ log.cbor }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="ari">
+        <th mat-header-cell *matHeaderCellDef>ARI</th>
+        <td mat-cell *matCellDef="let log" class="long-text-cell">
+          {{ log.ari }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns;"
+        class="transcoder-row"
+        tabindex="0"
+        role="checkbox"
+        [attr.aria-checked]="selection.isSelected(row)"
+        (click)="toggleRow(row)"
+        (keydown)="onRowKeydown($event, row)">
+      </tr>
+
+      </table>
+
+      <div class="table-footer">
+        <button
+          mat-stroked-button
+          class="send-to-agents-button"
+          [disabled]="selection.isEmpty()"
+        (click)="sendToAgents()">
+          Send to agents
+        </button>
+
+        <mat-paginator
+          [length]="totalResults"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          showFirstLastButtons
+          (page)="handlePageEvent($event)">
+        </mat-paginator>
+      </div>
+    </div>
+  </section>
+</div>

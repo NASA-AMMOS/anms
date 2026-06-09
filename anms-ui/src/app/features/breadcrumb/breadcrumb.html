@@ -1,0 +1,11 @@
+<div>
+  <ol class="breadcrumb text-secondary">
+    @for (breadcrumb of currentUri.split('/'); track breadcrumb) {
+      <li class="breadcrumb-item">
+        {{ breadcrumb }}
+      </li>
+    } @empty {
+      <li class="breadcrumb-item"></li>
+    }
+  </ol>
+</div>

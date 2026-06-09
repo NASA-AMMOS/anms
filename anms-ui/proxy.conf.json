@@ -1,0 +1,62 @@
+{
+  "/authn": {
+    "target": "http://anms-test:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api": {
+    "target": "http://anms-test:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/agents": {
+    "target": "http://anms-test:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/adms": {
+    "target": "http://anms-test:5555",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/core": {
+    "target": "http://anms-test:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/grafana": {
+    "target": "http://anms-test:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/docs": {
+    "target": "http://anms-test:5555",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/release": {
+    "target": "http://anms-test:5555",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/openapi.json": {
+    "target": "http://anms-test:5555",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/authn/": {
+    "target": "http://anms-test:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

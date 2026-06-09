@@ -25,14 +25,6 @@ set -e
 # Default creation permission is 777
 umask 000
 
-
-ORIGFILE="/opt/node_app/config_ui_env.js"
-OUTFILE="/opt/node_app/release/assets/scripts/config_env.js"
-
-TMPFILE=$(mktemp)
-VUE_APP_UI_VERSION=$ENV_UI_VERSION
-sed "s/VUE_APP_UI_VERSION_TEMPLATE/$VUE_APP_UI_VERSION/" "${ORIGFILE}" > $OUTFILE
-
 # update for hostnames and ports
 sed -i "s/CORE_HOSTNAME_PLACEHOLDER/${ANMS_CORE_NAME:-anms-core}/" "/opt/node_app/config.yaml"
 sed -i "s/CORE_PORT_PLACEHOLDER/${ANMS_CORE_HTTP_PORT:-5555}/" "/opt/node_app/config.yaml"
