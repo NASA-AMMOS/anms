@@ -15,8 +15,9 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { setupAuth } from './auth-setup';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8084';
 
 test.describe('Grafana Proxy Endpoints', () => {
   test('Grafana root proxy returns 200 or redirect', async ({ request }) => {
@@ -95,6 +96,9 @@ test.describe('Grafana Proxy Endpoints', () => {
   });
 
   test('Monitor page loads via UI (not direct Grafana)', async ({ page }) => {
+    // Need to login through authnz first
+    await setupAuth(page);
+    
     await page.goto(BASE_URL + '/dashboard/monitor', {
       waitUntil: 'domcontentloaded',
       timeout: 15000,

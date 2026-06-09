@@ -7,17 +7,48 @@
  * - OpenSearch Dashboards accessibility
  * - anms-core is writing data to OpenSearch
  *
- * Note: OpenSearch requires HTTPS with basic auth (admin / password).
- * Playwright's request API needs ignoreHTTPSErrors for the self-signed cert.
+ * Note: OpenSearch requires HTTPS with basic auth. Playwright's request API
+ * needs ignoreHTTPSErrors for the self-signed cert.
  *
  * Test Spec: ANMS_FUN_MGT_002 (Verify Grafana monitoring)
  */
 
 import { test, expect } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const OPENSEARCH_URL = 'https://localhost:9200';
 const OPENSEARCH_USER = 'admin';
-const OPENSEARCH_PASS = 'Str0ng!Pass#2026';
+
+/**
+ * Read the OpenSearch admin password from the .env file in the anms root.
+ * Falls back to a known default if the .env is not found.
+ */
+function getOpenSearchPassword(): string {
+  const envPath = path.resolve(__dirname, '../../../.env');
+  try {
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    const match = envContent.match(/^OPENSEARCH_INITIAL_ADMIN_PASSWORD=(.+)$/m);
+    if (match) {
+      const pass = match[1].trim();
+      if (pass && pass !== '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}') {
+        console.log(`[opensearch] Password loaded from .env`);
+        return pass;
+      }
+    }
+  } catch {
+    // .env not found or unreadable
+  }
+  console.warn('[opensearch] WARNING: Could not read password from .env, using default');
+  return 'Str0ng!Pass#2026';
+}
+
+const OPENSEARCH_PASS = getOpenSearchPassword();
+
+/** Build a Basic auth header string */
+function authHeader(user: string, pass: string): string {
+  return 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
+}
 
 test.describe('OpenSearch Integration', () => {
   test('OpenSearch root endpoint responds via HTTPS', async ({ request }) => {
@@ -25,6 +56,7 @@ test.describe('OpenSearch Integration', () => {
       maxRetries: 2,
       timeout: 10000,
       ignoreHTTPSErrors: true, // self-signed cert in test env
+      headers: { Authorization: authHeader(OPENSEARCH_USER, OPENSEARCH_PASS) },
     });
     
     console.log('[opensearch] Root status: ' + response.status());
@@ -43,6 +75,7 @@ test.describe('OpenSearch Integration', () => {
       maxRetries: 2,
       timeout: 10000,
       ignoreHTTPSErrors: true,
+      headers: { Authorization: authHeader(OPENSEARCH_USER, OPENSEARCH_PASS) },
     });
     
     console.log('[opensearch] Cluster health status: ' + response.status());
@@ -60,6 +93,7 @@ test.describe('OpenSearch Integration', () => {
       maxRetries: 2,
       timeout: 10000,
       ignoreHTTPSErrors: true,
+      headers: { Authorization: authHeader(OPENSEARCH_USER, OPENSEARCH_PASS) },
     });
     
     console.log('[opensearch] Indices status: ' + response.status());
@@ -73,7 +107,10 @@ test.describe('OpenSearch Integration', () => {
 
   test('OpenSearch search endpoint works', async ({ request }) => {
     const response = await request.post(OPENSEARCH_URL + '/_search', {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': authHeader(OPENSEARCH_USER, OPENSEARCH_PASS),
+      },
       data: { query: { match_all: {} } },
       maxRetries: 2,
       timeout: 10000,
@@ -99,12 +136,11 @@ test.describe('OpenSearch Integration', () => {
     expect(response.status()).toBeLessThan(500);
   });
 
-  test('OpenSearch Dashboards API responds with auth', async ({ request }) => {
-    // OS Dashboards requires auth in production-like mode
+  test('OpenSearch Dashboards API responds', async ({ request }) => {
+    // OS Dashboards requires auth; 401 is acceptable in environments without session cookie
     const response = await request.get('http://localhost:5601/api/status', {
       maxRetries: 2,
       timeout: 10000,
-      // May return 401 (unauthorized) — but should not be 502/503
       failOnStatusCode: false,
     });
     
@@ -120,13 +156,13 @@ test.describe('OpenSearch Integration', () => {
   test('OpenSearch indexing works (write test)', async ({ request }) => {
     // Create a test index and index a document
     const testIndex = 'test-integration-' + Date.now();
-    const authHeader = 'Basic ' + btoa('admin:Str0ng!Pass#2026');
+    const auth = authHeader(OPENSEARCH_USER, OPENSEARCH_PASS);
     
     // Create index
     const createResp = await request.put(OPENSEARCH_URL + '/' + testIndex, {
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': authHeader,
+        'Authorization': auth,
       },
       data: JSON.stringify({
         settings: { number_of_shards: 1, number_of_replicas: 0 },
@@ -143,7 +179,7 @@ test.describe('OpenSearch Integration', () => {
     const indexResp = await request.post(OPENSEARCH_URL + '/' + testIndex + '/_doc?refresh=true', {
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': authHeader,
+        'Authorization': auth,
       },
       data: JSON.stringify({
         test: true,
@@ -162,7 +198,7 @@ test.describe('OpenSearch Integration', () => {
     const searchResp = await request.post(OPENSEARCH_URL + '/' + testIndex + '/_search', {
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': authHeader,
+        'Authorization': auth,
       },
       data: JSON.stringify({ query: { match_all: {} } }),
       maxRetries: 2,
@@ -176,7 +212,7 @@ test.describe('OpenSearch Integration', () => {
     
     // Clean up
     await request.delete(OPENSEARCH_URL + '/' + testIndex, {
-      headers: { 'Authorization': authHeader },
+      headers: { 'Authorization': auth },
       maxRetries: 2,
       timeout: 10000,
       ignoreHTTPSErrors: true,
