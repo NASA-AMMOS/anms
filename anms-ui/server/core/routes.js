@@ -176,6 +176,14 @@
       //------------- Main Page -------------//
       router.get(indexPageMatches, pageHandlers.preMainPageHandler, pageHandlers.mainPageHandler);
 
+      //------------- Grafana Proxy -------------//
+      const proxy = require('express-http-proxy');
+      router.use('/grafana', proxy('http://grafana:3000', {
+        https: false,
+        preserveHostHdr: false,
+        userAgent: 'ANMS-Proxy'
+      }));
+
       //------------- HTML5 Matcher -------------//
       router.get('/*', pageHandlers.preMainPageHandler, pageHandlers.mainPageHandler);
 
