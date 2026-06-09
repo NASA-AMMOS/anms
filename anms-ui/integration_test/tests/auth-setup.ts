@@ -1,35 +1,57 @@
 /**
- * Auth setup: Configures Playwright pages with the x-remote-user header
- * for integration test auth bypass. All auth-dependent tests should
- * call setupAuth() on their page before navigating.
+ * Auth setup: Handles authnz form-based login to match production environment.
  *
- * The anms-ui server (main.js) checks this header and sets req.user
- * if no session auth is present.
+ * authnz (Apache) uses mod_auth_form for authentication. The login page is at
+ * /authn/login.html and the form posts to /authn/dologin.html with fields
+ * "username" and "password". On success, authnz redirects to /index.html and
+ * sets a session cookie.
+ *
+ * All auth-dependent tests should call setupAuth(page) before navigating.
+ * This ensures the test environment matches production (through authnz).
+ *
+ * Test credentials: test:test (from auth/demo/htpasswd)
  */
 
 import { chromium } from '@playwright/test';
 import type { BrowserContext, Page } from '@playwright/test';
 
 const TEST_USERNAME = process.env.TEST_USERNAME || 'test';
+const TEST_PASSWORD = process.env.TEST_PASSWORD || 'test';
 
 /**
- * Configure a page with auth header and return it.
+ * Log in through authnz's form-based authentication.
+ * Navigate to the login page, fill out the form, and submit.
  */
 export async function setupAuth(page: Page): Promise<Page> {
-  await page.setExtraHTTPHeaders({
-    'x-remote-user': TEST_USERNAME,
-  });
+  // Navigate to authnz login page
+  await page.goto('/authn/login.html', { waitUntil: 'domcontentloaded' });
+
+  // Fill out the login form - authnz uses fields named "username" and "password"
+  await page.fill('input[name="httpd_username"]', TEST_USERNAME);
+  await page.fill('input[name="httpd_password"]', TEST_PASSWORD);
+
+  // Submit the form (posts to /authn/dologin.html)
+  const [response] = await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 10000 }),
+    page.locator('button[type="submit"]').click(),
+  ]);
+
+  // Verify login succeeded - should be redirected to /index.html or /
+  const currentUrl = page.url();
+  console.log(`[authnz] Login successful, redirected to: ${currentUrl}`);
+
   return page;
 }
 
 /**
- * Configure a browser context with auth header (affects all pages in the context).
+ * Configure a browser context with authnz login (affects all pages in the context).
+ * Uses the same form-based login but applied at the context level.
  */
 export async function setupAuthContext(context: BrowserContext): Promise<BrowserContext> {
-  await context.addInitScript(() => {
-    // Set global variable for tests to reference
-    (window as any).__TEST_USERNAME = TEST_USERNAME;
-  });
+  const page = await context.newPage();
+  await setupAuth(page);
+  // Context now has the authnz session cookie
+  await page.close();
   return context;
 }
 
