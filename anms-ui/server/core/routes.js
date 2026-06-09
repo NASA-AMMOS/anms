@@ -134,8 +134,6 @@
 
       // ---NM Routes ---///
       const networkManager = require('../components/networkManager')
-      // GET /nm/agents - list all agents
-      router.get('/nm/agents', networkManager.nm_get_agents);
       router.get('/nm/version', networkManager.getVersion)
       router.post('/nm/agents', networkManager.nm_register_agent);
       router.put('/nm/agents/eid/:eid/hex', networkManager.nm_put_hex_eid);
