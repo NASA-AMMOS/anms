@@ -72,7 +72,7 @@ COPY deps/dtnma-adms /usr/src/dtnma-adms
 
 
 # This is a postgres stateful database with data definition startup SQL scripts
-FROM docker.io/library/postgres:14 AS anms-sql
+FROM docker.io/library/postgres:18 AS anms-sql
 
 # Grafana DB Creation (can't setup second DB via env variable)
 COPY grafana/create_grafana_db.sql /docker-entrypoint-initdb.d/
