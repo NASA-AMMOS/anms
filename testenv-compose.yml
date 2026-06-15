@@ -47,6 +47,8 @@ services:
     build:
       dockerfile: testenv.Containerfile
       target: ion-manager
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     depends_on: {}
     privileged: true
     tty: true
@@ -78,6 +80,8 @@ services:
     build:
       dockerfile: testenv.Containerfile
       target: ion-agent
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     privileged: true
     tty: true
     cap_add:
