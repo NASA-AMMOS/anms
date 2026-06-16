@@ -62,7 +62,7 @@ services:
       AGENT_NAME: ${CAM_AGENT_NAME}
       AGENT_PASSWORD: ${CAM_AGENT_PASSWORD}
       CAM_GW_URL: "https://${ANMS_GW_FQDN}:443/"
-      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089 http://anms-ui:9030"
+      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089 http://anms-ui:9030 opensearch-dashboards,http://opensearch-dashboards:5601"
     volumes:
       - ammos-tls:/ammos/etc/pki/tls:ro
 
@@ -100,7 +100,7 @@ services:
     #     hard: 65536
     volumes:
       - "opensearch:/usr/share/opensearch/data"
-      - "opensearch/dashboards:/tmp/dashboards"
+      - "./opensearch/dashboards:/tmp/dashboards"
     ports:
       - "${OPENSEARCH_PORT1:-9200}:9200"
       - "${OPENSEARCH_PORT2:-9600}:9600" # required for Performance Analyzer
