@@ -44,7 +44,7 @@ jobs:
             echo "DOCKER_IMAGE_TAG=latest" >> $GITHUB_ENV
           fi
       - name: Set ENV
-        run: update_env.sh
+        run: ./update_env.sh
       - name: Build and push base images via compose
         run: |
           docker compose build --push

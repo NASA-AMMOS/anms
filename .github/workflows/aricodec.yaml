@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: recursive
       - name: Set ENV
-        run: update_env.sh
+        run: ./update_env.sh
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
