@@ -2,9 +2,10 @@
 """Phase B: Per-Endpoint Latency Breakdown.
 
 Measures latency, throughput, and response size for every ANMS endpoint.
+In direct mode, no cookies/auth needed (API on port 5555 is unauthenticated).
 
 Usage:
-    python3 stress_endpoint_latency.py <cookie_file> <metrics_dir> <authnz_port>
+    python3 stress_endpoint_latency.py <direct:0|1> <cookie_file_or_empty> <admin_cookie_file_or_empty> <metrics_dir> <base_port>
 """
 
 import concurrent.futures
@@ -17,24 +18,32 @@ import urllib.request
 
 from stress_utils import safe_throughput, compute_percentiles
 
+def parse_cookie_file(cookie_file):
+    """Parse a Netscape cookie file and extract session cookie value."""
+    if not cookie_file or cookie_file == "":
+        return ""
+    cookie_text = open(cookie_file).read().strip()
+    session = ""
+    for line in cookie_text.split('\n'):
+        if 'session' in line and not line.startswith('#'):
+            parts = line.split('\t')
+            session = parts[-1]
+            break
+    if not session:
+        session = cookie_text
+    return session
+
+
 # Endpoint definitions: (method, path, display_label)
 ENDPOINTS = [
-    ("GET", "/core/hello", "core-hello"),
+    ("GET", "/nm/version", "nm-version"),
+    ("GET", "/hello", "hello"),
     ("GET", "/ari/all", "ari-all"),
     ("GET", "/ari/all/display", "ari-all-display"),
-    ("GET", "/actual_objects/all", "actual-objects"),
-    ("GET", "/formal_objects/all", "formal-objects"),
     ("GET", "/agents/all", "agents"),
     ("GET", "/report/page", "report-page"),
     ("GET", "/report/all", "report-all"),
-    ("GET", "/grafana/api/health", "grafana-health"),
-    ("GET", "/grafana/api/org", "grafana-org"),
-    ("GET", "/grafana/api/search", "grafana-search"),
-    ("POST", "/logging", "POST-logging"),
-    ("POST", "/logging/query", "POST-logging-query"),
-    ("POST", "/adms/load_default", "POST-load-default"),
-    ("POST", "/users", "POST-users"),
-    ("PUT", "/transcoder/ui/incoming/str", "PUT-transcoder"),
+    ("GET", "/sys_status/services", "sys-status"),
     ("PUT", "/alerts/acknowledge/1", "PUT-alerts-ack"),
 ]
 
@@ -42,6 +51,7 @@ ENDPOINTS = [
 PAYLOADS = {
     ("POST", "/logging"): '{"message": "stress-test-heartbeat"}',
     ("POST", "/logging/query"): '{"limit": 10}',
+    ("POST", "/adms/load_default"): '',  # no body needed
     ("POST", "/users"): '{"username": "stresstest"}',
 }
 
@@ -52,10 +62,12 @@ CONTENT_TYPES = {
 }
 
 
-def timed_request(method, url, cookie, payload=None, content_type=None,
+def timed_request(method, url, cookie=None, payload=None, content_type=None,
                   concurrency=5, n=50):
     """Time a batch of requests and return structured results."""
-    hdrs = {"Cookie": cookie}
+    hdrs = {}
+    if cookie:
+        hdrs["Cookie"] = cookie
     if content_type:
         hdrs["Content-Type"] = content_type
     data = payload.encode() if payload else None
@@ -115,31 +127,45 @@ def timed_request(method, url, cookie, payload=None, content_type=None,
 
 
 def main():
-    cookie_file = sys.argv[1]
-    metrics_dir = sys.argv[2]
-    authnz_port = sys.argv[3]
+    # Args: direct cookie_file admin_cookie_file metrics_dir base_port
+    args = sys.argv[1:]
+    if len(args) != 5:
+        print(f"Usage: python3 {sys.argv[0]} <direct:0|1> <cookie_file_or_empty> <admin_cookie_file_or_empty> <metrics_dir> <base_port>", file=sys.stderr)
+        sys.exit(1)
 
-    cookie = open(cookie_file).read().strip()
+    direct = int(args[0])
+    cookie_file = args[1]
+    admin_cookie_file = args[2]
+    metrics_dir = args[3]
+    base_port = args[4]
+
+    user_cookie = "" if direct else parse_cookie_file(cookie_file)
+    admin_cookie = "" if direct else parse_cookie_file(admin_cookie_file)
+    
+    mode_str = "direct" if direct else "authnz"
+    print(f"  Mode: {mode_str} (port {base_port})")
+    
     results = {}
 
-    print("  {:30s} {:>10} {:>8} {:>8} {:>8} {:>6} {:>8}".format(
-        "Endpoint", "req/s", "avg_ms", "p50_ms", "p95_ms", "p99_ms", "errors"
+    print("  {:30s} {:>8} {:>6} {:>6} {:>6} {:>6} {:>6}".format(
+        "Endpoint", "req/s", "avg", "p50", "p95", "p99", "errors"
     ))
 
     for method, path, label in ENDPOINTS:
-        url = f"http://localhost:{authnz_port}{path}"
+        url = f"http://localhost:{base_port}{path}"
         payload = PAYLOADS.get((method, path))
         content_type = CONTENT_TYPES.get((method, path))
+        cookie = user_cookie  # In direct mode, no cookies needed
 
         r = timed_request(method, url, cookie, payload, content_type)
         results[label] = r
         print(
             f"  {label:30s}"
-            f" {r['throughput']:8.1f}"
-            f" {r['avg_ms']:6.1f}"
-            f" {r['p50_ms']:6.1f}"
-            f" {r['p95_ms']:6.1f}"
-            f" {r['p99_ms']:6.1f}"
+            f" {r['throughput']:6.1f}"
+            f" {r['avg_ms']:5.1f}"
+            f" {r['p50_ms']:5.1f}"
+            f" {r['p95_ms']:5.1f}"
+            f" {r['p99_ms']:5.1f}"
             f" {r['errors']:4d}"
         )
 

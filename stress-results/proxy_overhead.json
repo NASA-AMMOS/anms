@@ -1,0 +1,138 @@
+{
+  "seq:core/hello": {
+    "label": "seq:core/hello",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.138,
+    "throughput": 363.0,
+    "avg_ms": 2.7,
+    "p50_ms": 2.5,
+    "p95_ms": 4.2,
+    "p99_ms": 6.6,
+    "min_ms": 1.8,
+    "max_ms": 6.6,
+    "codes": {
+      "200": 50
+    }
+  },
+  "seq:ari/all": {
+    "label": "seq:ari/all",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.192,
+    "throughput": 260.0,
+    "avg_ms": 3.8,
+    "p50_ms": 2.7,
+    "p95_ms": 6.3,
+    "p99_ms": 38.8,
+    "min_ms": 1.7,
+    "max_ms": 38.8,
+    "codes": {
+      "200": 50
+    }
+  },
+  "seq:actual-objects/all": {
+    "label": "seq:actual-objects/all",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.189,
+    "throughput": 264.2,
+    "avg_ms": 3.7,
+    "p50_ms": 3.0,
+    "p95_ms": 9.1,
+    "p99_ms": 13.3,
+    "min_ms": 1.9,
+    "max_ms": 13.3,
+    "codes": {
+      "200": 50
+    }
+  },
+  "seq:grafana/health": {
+    "label": "seq:grafana/health",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.186,
+    "throughput": 269.4,
+    "avg_ms": 3.6,
+    "p50_ms": 2.8,
+    "p95_ms": 10.3,
+    "p99_ms": 15.9,
+    "min_ms": 1.6,
+    "max_ms": 15.9,
+    "codes": {
+      "200": 50
+    }
+  },
+  "conc:core/hello": {
+    "label": "conc:core/hello",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.114,
+    "throughput": 439.0,
+    "avg_ms": 10.3,
+    "p50_ms": 10.0,
+    "p95_ms": 20.9,
+    "p99_ms": 25.7,
+    "min_ms": 3.3,
+    "max_ms": 25.7,
+    "codes": {
+      "200": 50
+    }
+  },
+  "conc:ari/all": {
+    "label": "conc:ari/all",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.11,
+    "throughput": 452.6,
+    "avg_ms": 10.6,
+    "p50_ms": 9.9,
+    "p95_ms": 19.7,
+    "p99_ms": 20.9,
+    "min_ms": 4.7,
+    "max_ms": 20.9,
+    "codes": {
+      "200": 50
+    }
+  },
+  "conc:actual-objects/all": {
+    "label": "conc:actual-objects/all",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.109,
+    "throughput": 460.3,
+    "avg_ms": 10.3,
+    "p50_ms": 9.6,
+    "p95_ms": 17.4,
+    "p99_ms": 20.5,
+    "min_ms": 5.4,
+    "max_ms": 20.5,
+    "codes": {
+      "200": 50
+    }
+  },
+  "conc:grafana/health": {
+    "label": "conc:grafana/health",
+    "n": 50,
+    "ok": 50,
+    "errors": 0,
+    "elapsed_s": 0.112,
+    "throughput": 446.0,
+    "avg_ms": 10.6,
+    "p50_ms": 9.0,
+    "p95_ms": 25.4,
+    "p99_ms": 33.0,
+    "min_ms": 2.7,
+    "max_ms": 33.0,
+    "codes": {
+      "200": 50
+    }
+  }
+}

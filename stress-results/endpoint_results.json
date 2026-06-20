@@ -1,0 +1,306 @@
+{
+  "core-hello": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.059,
+    "throughput": 67.7,
+    "avg_ms": 4.3,
+    "p50_ms": 4.2,
+    "p95_ms": 8.7,
+    "p99_ms": 9.9,
+    "min_ms": 0.9,
+    "max_ms": 9.9,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "ari-all": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.057,
+    "throughput": 70.0,
+    "avg_ms": 4.7,
+    "p50_ms": 3.4,
+    "p95_ms": 11.9,
+    "p99_ms": 26.5,
+    "min_ms": 1.3,
+    "max_ms": 26.5,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "ari-all-display": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.061,
+    "throughput": 65.7,
+    "avg_ms": 4.6,
+    "p50_ms": 4.4,
+    "p95_ms": 8.9,
+    "p99_ms": 11.2,
+    "min_ms": 1.4,
+    "max_ms": 11.2,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "actual-objects": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.065,
+    "throughput": 61.1,
+    "avg_ms": 5.1,
+    "p50_ms": 4.3,
+    "p95_ms": 11.2,
+    "p99_ms": 25.1,
+    "min_ms": 1.8,
+    "max_ms": 25.1,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "formal-objects": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.098,
+    "throughput": 40.9,
+    "avg_ms": 7.7,
+    "p50_ms": 5.8,
+    "p95_ms": 21.2,
+    "p99_ms": 23.4,
+    "min_ms": 1.4,
+    "max_ms": 23.4,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "agents": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.071,
+    "throughput": 56.6,
+    "avg_ms": 5.0,
+    "p50_ms": 4.1,
+    "p95_ms": 12.6,
+    "p99_ms": 21.8,
+    "min_ms": 1.6,
+    "max_ms": 21.8,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "report-page": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.097,
+    "throughput": 41.1,
+    "avg_ms": 5.6,
+    "p50_ms": 3.4,
+    "p95_ms": 17.8,
+    "p99_ms": 25.5,
+    "min_ms": 1.7,
+    "max_ms": 25.5,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "report-all": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.092,
+    "throughput": 43.4,
+    "avg_ms": 8.1,
+    "p50_ms": 7.2,
+    "p95_ms": 16.4,
+    "p99_ms": 24.3,
+    "min_ms": 1.0,
+    "max_ms": 24.3,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "grafana-health": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.054,
+    "throughput": 73.8,
+    "avg_ms": 4.5,
+    "p50_ms": 3.7,
+    "p95_ms": 9.7,
+    "p99_ms": 12.9,
+    "min_ms": 1.4,
+    "max_ms": 12.9,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "grafana-org": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.056,
+    "throughput": 71.6,
+    "avg_ms": 4.5,
+    "p50_ms": 3.9,
+    "p95_ms": 10.2,
+    "p99_ms": 14.3,
+    "min_ms": 1.3,
+    "max_ms": 14.3,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "grafana-search": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.066,
+    "throughput": 60.7,
+    "avg_ms": 5.4,
+    "p50_ms": 4.2,
+    "p95_ms": 14.4,
+    "p99_ms": 18.6,
+    "min_ms": 1.1,
+    "max_ms": 18.6,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "POST-logging": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.072,
+    "throughput": 55.8,
+    "avg_ms": 5.7,
+    "p50_ms": 5.4,
+    "p95_ms": 9.7,
+    "p99_ms": 11.6,
+    "min_ms": 1.2,
+    "max_ms": 11.6,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "POST-logging-query": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.072,
+    "throughput": 55.4,
+    "avg_ms": 6.2,
+    "p50_ms": 5.2,
+    "p95_ms": 15.3,
+    "p99_ms": 17.6,
+    "min_ms": 1.4,
+    "max_ms": 17.6,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "POST-load-default": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.068,
+    "throughput": 58.6,
+    "avg_ms": 5.6,
+    "p50_ms": 4.0,
+    "p95_ms": 16.7,
+    "p99_ms": 19.4,
+    "min_ms": 1.3,
+    "max_ms": 19.4,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "POST-users": {
+    "n": 50,
+    "ok": 4,
+    "errors": 46,
+    "elapsed_s": 0.081,
+    "throughput": 49.6,
+    "avg_ms": 6.7,
+    "p50_ms": 4.7,
+    "p95_ms": 16.8,
+    "p99_ms": 35.7,
+    "min_ms": 1.4,
+    "max_ms": 35.7,
+    "avg_body_bytes": 149.0,
+    "codes": {
+      "200": 4,
+      "302": 46
+    }
+  },
+  "PUT-transcoder": {
+    "n": 50,
+    "ok": 0,
+    "errors": 50,
+    "elapsed_s": 0.088,
+    "throughput": 0.0,
+    "avg_ms": 6.7,
+    "p50_ms": 5.3,
+    "p95_ms": 15.1,
+    "p99_ms": 30.7,
+    "min_ms": 1.7,
+    "max_ms": 30.7,
+    "avg_body_bytes": 0.0,
+    "codes": {
+      "302": 50
+    }
+  },
+  "PUT-alerts-ack": {
+    "n": 50,
+    "ok": 0,
+    "errors": 50,
+    "elapsed_s": 0.044,
+    "throughput": 0.0,
+    "avg_ms": 3.9,
+    "p50_ms": 3.2,
+    "p95_ms": 9.1,
+    "p99_ms": 10.5,
+    "min_ms": 1.2,
+    "max_ms": 10.5,
+    "avg_body_bytes": 0.0,
+    "codes": {
+      "302": 50
+    }
+  }
+}

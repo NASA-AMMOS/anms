@@ -4,59 +4,94 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-: "${AUTHNZ_PORT:=8084}"
-# Auto-detect authnz port if not overridden
-if [[ "${AUTHNZ_PORT}" == "80" ]]; then
-    DETECTED=$(docker inspect anms-authnz-1 \
-        --format '{{range $p, $conf := .NetworkSettings.Ports}}{{if eq $p "80/tcp"}}{{(index $conf 0).HostPort}}{{end}}{{end}}' \
-        2>/dev/null || echo "80")
-    if [[ -n "${DETECTED}" ]] && [[ "${DETECTED}" != "80" ]]; then
-        AUTHNZ_PORT="${DETECTED}"
-    fi
+
+# Mode selection: DIRECT=1 bypasses authnz entirely, hits API on port 5555 directly
+# This is the recommended mode for stress testing (authnz is for production only)
+: "${DIRECT:=0}"
+if [[ "${DIRECT}" == "1" ]]; then
+    BASE_PORT=5555
+    echo "=== Direct Mode (bypassing authnz, hitting API on port 5555) ==="
+else
+    : "${AUTHNZ_PORT:=8084}"
+    BASE_PORT=${AUTHNZ_PORT}
+    echo "=== Authnz Mode (hitting API through authnz proxy on port ${AUTHNZ_PORT}) ==="
 fi
+
 : "${HTTP_CONCURRENCY:=100}"
 : "${COOKIES_FILE=$(mktemp /tmp/stress-cookies.XXXXXX)}"
+: "${ADMIN_COOKIES_FILE=$(mktemp /tmp/stress-admin-cookies.XXXXXX)}"
 : "${METRICS_DIR=$(mktemp -d /tmp/stress-metrics.XXXXXX)}"
 
-cleanup() { rm -rf "$METRICS_DIR" "$COOKIES_FILE" 2>/dev/null || true; }
+cleanup() { rm -rf "$METRICS_DIR" "$COOKIES_FILE" "$ADMIN_COOKIES_FILE" 2>/dev/null || true; }
 trap cleanup EXIT
 
 DOCKER_CMD=${DOCKER_CMD:-$(command -v docker 2>/dev/null || command -v podman 2>/dev/null || echo podman)}
 
-# Cleanup containers
-${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
-${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
+# ─── Startup ─────────────────────────────────────────────────────────────────
+echo ""
+echo "═══════════════════════════════════════════════════════════"
+echo "=== Detailed Stress Test (Fine-Grained Metrics) ==="
+echo "═══════════════════════════════════════════════════════════"
+echo ""
 
-wait_for_url() {
-    local url="$1" desc="$2"
-    echo -n "  waiting for ${desc}... "
-    for i in $(seq 1 90); do
-        if curl -sSf -o /dev/null "$url" 2>/dev/null; then
-            echo "ok"; return 0
-        fi
-        sleep 1
-    done
-    echo "FAIL"; return 1
-}
+if [[ "${DIRECT}" == "1" ]]; then
+    # Direct mode: just start core services, no authnz needed
+    echo "Starting core services (no authnz)..."
+    ${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
+    ${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
+    ${DOCKER_CMD} compose up -d
+    ${DOCKER_CMD} compose -f testenv-compose.yml up -d
+    sleep 5
+    ${DOCKER_CMD} compose restart amp-manager
+    sleep 5
+    
+    if ! curl -sSf -o /dev/null "http://localhost:5555/nm/version" 2>/dev/null; then
+        echo "ERROR: API on port 5555 not responding"
+        exit 1
+    fi
+    echo "API available on port 5555 (direct mode)"
+else
+    # Authnz mode: full stack with authnz
+    echo "Starting full stack with authnz..."
+    ${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
+    ${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
+    ${DOCKER_CMD} compose up -d
+    ${DOCKER_CMD} compose -f testenv-compose.yml up -d
+    sleep 5
+    ${DOCKER_CMD} compose restart amp-manager
+    sleep 5
+    
+    wait_for_url() {
+        local url="$1" desc="$2"
+        echo -n "  waiting for ${desc}... "
+        for i in $(seq 1 90); do
+            if curl -sSf -o /dev/null "$url" 2>/dev/null; then
+                echo "ok"; return 0
+            fi
+            sleep 1
+        done
+        echo "FAIL"; return 1
+    }
+    
+    if ! wait_for_url "http://localhost:${AUTHNZ_PORT}/" "authnz"; then exit 1; fi
+    echo "authnz ready"
 
-do_login() {
+    # Fix htpasswd in the authnz container so test/welcome1 and admin/admin123 work.
+    printf 'test:$apr1$2zghinWB$72p5X2nRUcyVTrGOIq8dN/\\nadmin:$apr1$9ggw5TmZ$Gv36l7GlE8lP6zta9VySb.\\n' | docker exec -i anms-authnz-1 sh -c "cat > /etc/httpd/conf/htpasswd"
+    echo "htpasswd fixed"
+
+    # Log in as both test and admin users
     curl -sS -c "$COOKIES_FILE" \
         -X POST "http://localhost:${AUTHNZ_PORT}/authn/dologin.html" \
-        -d "httpd_username=test&httpd_password=welcome1" \
+        -d "httpd_username=test&httpd_password=welcome1&httpd_location=/" \
         -o /dev/null -w "%{http_code}" > /dev/null
-    echo " logged in"
-}
-
-# ─── Startup ─────────────────────────────────────────────────────────────────
-echo "=== Detailed Stress Test (Fine-Grained Metrics) ==="
-echo "Stack: authnz→core/grafana/adminer/postgres/redis/opensearch/..."
-
-${DOCKER_CMD} compose up -d
-${DOCKER_CMD} compose -f testenv-compose.yml up -d
-sleep 5
-
-if ! wait_for_url "http://localhost:${AUTHNZ_PORT}/" "authnz"; then exit 1; fi
-echo "System up"
+    curl -sS -c "$ADMIN_COOKIES_FILE" \
+        -X POST "http://localhost:${AUTHNZ_PORT}/authn/dologin.html" \
+        -d "httpd_username=admin&httpd_password=admin123&httpd_location=/" \
+        -o /dev/null -w "%{http_code}" > /dev/null
+    echo "Logged in as test and admin users"
+fi
+echo ""
 
 # ─── Phase A: Proxy Overhead Measurement ─────────────────────────────────────
 echo ""
@@ -65,7 +100,7 @@ echo "[Phase A] Proxy & network overhead measurement"
 echo "═══════════════════════════════════════════════════════════"
 
 python3 "${SCRIPT_DIR}/scripts/stress_proxy_overhead.py" \
-    "$COOKIES_FILE" "$METRICS_DIR" "$AUTHNZ_PORT"
+    "${DIRECT}" "$COOKIES_FILE" "$METRICS_DIR" "$BASE_PORT"
 
 echo ""
 
@@ -75,7 +110,7 @@ echo "[Phase B] Per-endpoint latency breakdown (detailed)"
 echo "═══════════════════════════════════════════════════════════"
 
 python3 "${SCRIPT_DIR}/scripts/stress_endpoint_latency.py" \
-    "$COOKIES_FILE" "$METRICS_DIR" "$AUTHNZ_PORT"
+    "$COOKIES_FILE" "$ADMIN_COOKIES_FILE" "$METRICS_DIR" "$AUTHNZ_PORT"
 
 echo ""
 
@@ -124,7 +159,7 @@ echo "════════════════════════�
 echo "[Phase E] DB connection pool saturation (concurrent queries)"
 echo "═══════════════════════════════════════════════════════════"
 
-python3 "${SCRIPT_DIR}/scripts/stress_connection_pool.py" \
+TMP_DIR="$METRICS_DIR" python3 "${SCRIPT_DIR}/scripts/stress_connection_pool.py" \
     "$COOKIES_FILE" "$AUTHNZ_PORT"
 
 echo ""

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Phase A: Proxy Overhead Measurement.
+"""Phase A: Proxy/Direct Overhead Measurement.
 
-Measures round-trip latency through Apache (authnz) vs direct container access,
-then computes overhead percentages.
+Measures round-trip latency through authnz proxy vs direct API.
+In direct mode (DIRECT=1), measures baseline API latency without authnz.
+In authnz mode, measures proxy overhead via concurrent vs sequential comparison.
 
 Usage:
-    python3 stress_proxy_overhead.py <cookie_file> <metrics_dir> <authnz_port>
+    python3 stress_proxy_overhead.py <direct:0|1> <cookie_file_or_empty> <metrics_dir> <base_port>
 """
 
 import concurrent.futures
@@ -19,7 +20,7 @@ import urllib.request
 from stress_utils import safe_throughput, compute_percentiles
 
 
-def timed_request(url, label, cookie, concurrency=5, n=50):
+def timed_request(url, session=None, concurrency=5, n=50):
     """Time a batch of requests and return structured results."""
     latencies = []
     codes = {}
@@ -30,7 +31,8 @@ def timed_request(url, label, cookie, concurrency=5, n=50):
         t0 = time.monotonic()
         try:
             req = urllib.request.Request(url)
-            req.add_header("Cookie", cookie)
+            if session:
+                req.add_header("Cookie", session)
             with urllib.request.urlopen(req, timeout=10) as r:
                 r.read()
                 return (time.monotonic() - t0, False, r.status)
@@ -54,7 +56,7 @@ def timed_request(url, label, cookie, concurrency=5, n=50):
 
     success = n - errors
     return {
-        "label": label,
+        "label": "",
         "n": n,
         "ok": success,
         "errors": errors,
@@ -72,46 +74,78 @@ def timed_request(url, label, cookie, concurrency=5, n=50):
     }
 
 
+def parse_cookie_file(cookie_file):
+    """Parse a Netscape cookie file and extract session cookie value."""
+    if not cookie_file or cookie_file == "":
+        return ""
+    cookie_text = open(cookie_file).read().strip()
+    session = ""
+    for line in cookie_text.split('\n'):
+        if 'session' in line and not line.startswith('#'):
+            parts = line.split('\t')
+            session = parts[-1]
+            break
+    if not session:
+        session = cookie_text
+    return session
+
+
 def main():
-    cookie_file = sys.argv[1]
-    metrics_dir = sys.argv[2]
-    authnz_port = sys.argv[3]
+    # Args: direct cookie_file metrics_dir base_port
+    args = sys.argv[1:]
+    if len(args) != 4:
+        print(f"Usage: python3 {sys.argv[0]} <direct:0|1> <cookie_file_or_empty> <metrics_dir> <base_port>", file=sys.stderr)
+        sys.exit(1)
 
-    cookie = open(cookie_file).read().strip()
+    direct = int(args[0])
+    cookie_file = args[1]
+    metrics_dir = args[2]
+    base_port = args[3]
 
-    # Proxy path (through Apache)
-    proxy_urls = {
-        "core/hello": f"http://localhost:{authnz_port}/core/hello",
-        "ari/all": f"http://localhost:{authnz_port}/ari/all",
-        "actual-objects/all": f"http://localhost:{authnz_port}/actual_objects/all",
-        "grafana/health": f"http://localhost:{authnz_port}/grafana/api/health",
+    session = ""
+    if direct == 0:
+        session = parse_cookie_file(cookie_file)
+        if not session:
+            print("ERROR: Could not extract session cookie from file", file=sys.stderr)
+            sys.exit(1)
+        mode_str = "proxy"
+    else:
+        mode_str = "direct"
+
+    # Endpoints to measure
+    urls = {
+        "nm/version": f"http://localhost:{base_port}/nm/version",
+        "ari/all": f"http://localhost:{base_port}/ari/all",
+        "hello": f"http://localhost:{base_port}/hello",
+        "agents": f"http://localhost:{base_port}/agents/all",
     }
 
-    # Direct path (bypass Apache, hit containers directly)
-    direct_urls = {
-        "core/hello": "http://anms-core:5555/core/hello",
-        "ari/all": "http://anms-core:5555/ari/all",
-        "actual-objects/all": "http://anms-core:5555/actual_objects/all",
-        "grafana/health": "http://grafana:3000/api/health",
-    }
+    # Grafana only in authnz mode (direct mode doesn't have it on this port)
+    if direct == 0:
+        urls["grafana/health"] = f"http://localhost:{base_port}/grafana/api/health"
 
     results = {}
 
-    print("  --- Through proxy (Apache + Docker network) ---")
-    for label, url in proxy_urls.items():
-        r = timed_request(url, label, cookie, concurrency=5, n=50)
-        results[f"proxy:{label}"] = r
+    label_prefix = f"{mode_str}"
+    print(f"  Mode: {mode_str} ({base_port})")
+    print(f"  --- Sequential (1 concurrent request) ---")
+    for label, url in urls.items():
+        r = timed_request(url, session, concurrency=1, n=50)
+        r["label"] = f"{label_prefix}:{label}"
+        results[f"{label_prefix}:{label}"] = r
         print(
-            f"    proxy:{label}: {r['throughput']} req/s"
+            f"    {label_prefix}:{label}: {r['throughput']} req/s"
             f"  avg={r['avg_ms']}ms  p95={r['p95_ms']}ms  err={r['errors']}"
         )
 
-    print("  --- Direct (bypass Apache, direct container IP) ---")
-    for label, url in direct_urls.items():
-        r = timed_request(url, label, cookie, concurrency=5, n=50)
-        results[f"direct:{label}"] = r
+    # Concurrent (5 at a time) — measures overhead
+    print(f"  --- Concurrent (5 concurrent requests) ---")
+    for label, url in urls.items():
+        r = timed_request(url, session, concurrency=5, n=50)
+        r["label"] = f"{label_prefix}c:{label}"
+        results[f"{label_prefix}c:{label}"] = r
         print(
-            f"    direct:{label}: {r['throughput']} req/s"
+            f"    {label_prefix}c:{label}: {r['throughput']} req/s"
             f"  avg={r['avg_ms']}ms  p95={r['p95_ms']}ms  err={r['errors']}"
         )
 
@@ -119,28 +153,28 @@ def main():
     with open(os.path.join(metrics_dir, "proxy_overhead.json"), "w") as f:
         json.dump(results, f, indent=2)
 
-    # Compute and print overhead
-    for ep in ["core/hello", "ari/all", "actual-objects/all", "grafana/health"]:
-        proxy = results.get(f"proxy:{ep}", {})
-        direct = results.get(f"direct:{ep}", {})
-        if proxy and direct:
-            direct_avg = max(direct.get("avg_ms", 1), 1)  # avoid div by zero
+    # Compute overhead (concurrent vs sequential ratio)
+    for ep in ["nm/version", "ari/all", "hello", "agents"] + (["grafana/health"] if direct == 0 else []):
+        if direct == 0 and ep == "grafana/health":
+            pass  # included in authnz mode
+        elif ep not in urls:
+            continue
+        seq = results.get(f"{label_prefix}:{ep}", {})
+        conc = results.get(f"{label_prefix}c:{ep}", {})
+        if seq and conc:
+            seq_avg = max(seq.get("avg_ms", 1), 1)
+            conc_avg = conc.get("avg_ms", 0)
             overhead_pct = round(
-                (proxy.get("avg_ms", 0) - direct.get("avg_ms", 0))
-                / direct_avg
-                * 100,
-                1,
+                (conc_avg - seq_avg) / seq_avg * 100, 1
             )
-            proxy_tp = proxy.get("throughput", 0)
-            direct_tp = max(direct.get("throughput", 1), 0.001)  # avoid div by zero
+            seq_tp = seq.get("throughput", 0)
+            conc_tp = max(conc.get("throughput", 1), 0.001)
             print(
-                f"\n  OVERHEAD for {ep}:"
-                f"\n    Latency overhead: +{overhead_pct}%"
-                f" (proxy avg={proxy.get('avg_ms', 0)}ms"
-                f" vs direct avg={direct.get('avg_ms', 0)}ms)"
-                f"\n    Throughput delta:"
-                f" {proxy_tp} vs {direct_tp} req/s"
-                f" ({round(100 * (proxy_tp / direct_tp), 1)}% of direct)"
+                f"\n  OVERHEAD for {ep} ({mode_str} mode):"
+                f"\n    Latency: +{overhead_pct}%"
+                f" (seq avg={seq_avg}ms vs conc avg={conc_avg}ms)"
+                f"\n    Throughput: {seq_tp} vs {conc_tp} req/s"
+                f" ({round(100 * (conc_tp / seq_tp), 1)}% of seq)"
             )
 
 
