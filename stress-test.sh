@@ -47,6 +47,13 @@ DOCKER_CMD=${DOCKER_CMD:-$(command -v docker 2>/dev/null || command -v podman 2>
 ${DOCKER_CMD} compose up -d
 ${DOCKER_CMD} compose -f testenv-compose.yml up -d
 
+# Restart amp-manager after compose up. Known issue: amp-manager does not
+# properly re-establish its connection to the Docker bridge network on its
+# first start after the stack comes up, so a restart is required.
+# amp-manager is defined in the main docker-compose.yml (not testenv).
+${DOCKER_CMD} compose restart amp-manager
+sleep 5
+
 # Wait for UI
 sleep 5
 if ! wait_for_url "http://localhost:${AUTHNZ_PORT}/" "authnz"; then
