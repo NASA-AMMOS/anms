@@ -110,7 +110,7 @@ echo "[Phase B] Per-endpoint latency breakdown (detailed)"
 echo "═══════════════════════════════════════════════════════════"
 
 python3 "${SCRIPT_DIR}/scripts/stress_endpoint_latency.py" \
-    "$COOKIES_FILE" "$ADMIN_COOKIES_FILE" "$METRICS_DIR" "$AUTHNZ_PORT"
+    "${DIRECT}" "$COOKIES_FILE" "$ADMIN_COOKIES_FILE" "$METRICS_DIR" "$BASE_PORT"
 
 echo ""
 
@@ -120,7 +120,7 @@ echo "[Phase C] OpenSearch logging latency (per-logging-ops overhead)"
 echo "═══════════════════════════════════════════════════════════"
 
 python3 "${SCRIPT_DIR}/scripts/stress_logging_latency.py" \
-    "$COOKIES_FILE" "$METRICS_DIR" "$AUTHNZ_PORT"
+    "${DIRECT}" "$COOKIES_FILE" "$METRICS_DIR" "$BASE_PORT"
 
 echo ""
 
@@ -134,7 +134,7 @@ echo "  Running 30s sustained load..."
 
 # Start sustained load in background, wait for it to finish, then collect stats
 python3 "${SCRIPT_DIR}/scripts/stress_sustained_load.py" \
-    "$COOKIES_FILE" "$AUTHNZ_PORT" &
+    "${DIRECT}" "$COOKIES_FILE" "$BASE_PORT" &
 LOAD_PID=$!
 
 # Collect docker stats samples while load is running (and one after)
@@ -160,7 +160,7 @@ echo "[Phase E] DB connection pool saturation (concurrent queries)"
 echo "═══════════════════════════════════════════════════════════"
 
 TMP_DIR="$METRICS_DIR" python3 "${SCRIPT_DIR}/scripts/stress_connection_pool.py" \
-    "$COOKIES_FILE" "$AUTHNZ_PORT"
+    "${DIRECT}" "$COOKIES_FILE" "$BASE_PORT"
 
 echo ""
 
@@ -175,7 +175,7 @@ echo "  Expected MPM: event (should have MaxRequestWorkers tuning)"
 echo "  Apache status endpoints:"
 for endpoint in "/server-status" "/server-info"; do
     status=$(curl -s -o /dev/null -w "%{http_code}" \
-        "http://localhost:${AUTHNZ_PORT}${endpoint}" 2>/dev/null || echo "N/A")
+        "http://localhost:${BASE_PORT}${endpoint}" 2>/dev/null || echo "N/A")
     echo "    ${endpoint}: HTTP ${status}"
 done
 
@@ -190,8 +190,10 @@ echo "════════════════════════�
 echo "[Phase G] Grafana rendering path latency"
 echo "═══════════════════════════════════════════════════════════"
 
+# Grafana is on port 3000 regardless of mode
+GRAFANA_PORT=3000
 python3 "${SCRIPT_DIR}/scripts/stress_grafana_path.py" \
-    "$COOKIES_FILE" "$AUTHNZ_PORT"
+    "${DIRECT}" "$COOKIES_FILE" "$GRAFANA_PORT"
 
 echo ""
 
@@ -207,6 +209,30 @@ echo "    Redis ping: ${redis_ping}"
 redis_info=$(docker exec anms-redis-1 redis-cli INFO memory 2>/dev/null || echo "N/A")
 redis_mem=$(echo "$redis_info" | grep "used_memory_human" | cut -d: -f2 | tr -d '[:space:]')
 echo "    Redis used memory: ${redis_mem}"
+
+# Check Redis keys
+echo ""
+echo "  Redis key counts (top 10 by type):"
+if [[ "${DIRECT}" == "1" ]]; then
+    # In direct mode, Redis is still used for session by core app
+    redis_keys=$(docker exec anms-redis-1 redis-cli KEYS "*" 2>/dev/null | head -20)
+    if [ -z "$redis_keys" ]; then
+        echo "    (no keys found)"
+    else
+        echo "$redis_keys" | while read key; do
+            echo "    $key: $(docker exec anms-redis-1 redis-cli TYPE "$key" 2>/dev/null)"
+        done
+    fi
+else
+    redis_keys=$(docker exec anms-redis-1 redis-cli KEYS "*" 2>/dev/null | head -20)
+    if [ -z "$redis_keys" ]; then
+        echo "    (no keys found)"
+    else
+        echo "$redis_keys" | while read key; do
+            echo "    $key: $(docker exec anms-redis-1 redis-cli TYPE "$key" 2>/dev/null)"
+        done
+    fi
+fi
 
 echo ""
 

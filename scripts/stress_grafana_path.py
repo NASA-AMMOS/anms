@@ -105,23 +105,15 @@ def main():
     base_port = args[2]
 
     session = "" if direct else parse_cookie_file(cookie_file)
-    base_url = f"http://localhost:{base_port}"
+    base_url = f"http://localhost:{base_port}" if direct else f"http://localhost:{base_port}"
     mode_str = "direct" if direct else "authnz"
 
     # Grafana is not on port 5555 in direct mode; skip if not found
+    # Grafana paths - only /api/health is unauthenticated
     grafana_paths = [
-        "/grafana/api/health",
-        "/grafana/api/org",
-        "/grafana/api/search",
-        "/grafana",
+        "/api/health",
     ]
     
-    # In direct mode (port 5555), Grafana is on a different port (3000)
-    # Only test Grafana in authnz mode or if port maps to Grafana
-    if direct and base_port == 5555:
-        print("  Skipping Grafana tests (not exposed on direct API port 5555)")
-        return
-
     paths = grafana_paths
     print(f"  GET endpoint through {mode_str} proxy:")
     print(f"  {'Endpoint':30s} {'req/s':>8} {'avg':>6} {'p95':>6} {'p99':>6} {'body':>8} {'err':>4}")

@@ -169,12 +169,13 @@ def main():
             )
             seq_tp = seq.get("throughput", 0)
             conc_tp = max(conc.get("throughput", 1), 0.001)
+            tp_ratio = round(100 * (conc_tp / seq_tp), 1) if seq_tp > 0 else 0
             print(
                 f"\n  OVERHEAD for {ep} ({mode_str} mode):"
                 f"\n    Latency: +{overhead_pct}%"
                 f" (seq avg={seq_avg}ms vs conc avg={conc_avg}ms)"
                 f"\n    Throughput: {seq_tp} vs {conc_tp} req/s"
-                f" ({round(100 * (conc_tp / seq_tp), 1)}% of seq)"
+                f" ({tp_ratio}% of seq)"
             )
 
 

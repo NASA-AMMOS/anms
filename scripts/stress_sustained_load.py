@@ -51,12 +51,15 @@ def main():
         f"{base_url}/ari/all",
         f"{base_url}/hello",
         f"{base_url}/agents/all",
+        f"{base_url}/ari/all/display",
+        f"{base_url}/sys_status/services",
         f"{base_url}/report/page",
+        f"{base_url}/report/all",
     ]
 
     # 30-second sustained load with 50 concurrent workers
     duration = 30
-    concurrency = 50
+    concurrency = 200
     latencies = []
     start = time.monotonic()
     end = start + duration
