@@ -35,8 +35,8 @@ RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
     else \
         echo "⚙️  INTERNAL_CERT_URL not set – skipping internal CA import"; \
     fi
-
 # ---------------------------------------------------------------------------
+
 ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
 
@@ -248,6 +248,11 @@ CMD ["/usr/local/bin/docker-entrypoint.sh"]
 # DB_NAME for the database schema to use
 #
 FROM dtnma-acelib AS anms-core
+
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ENV BUILD_VERSION=$BUILD_VERSION
+ENV BUILD_DATE=$BUILD_DATE
 
 ENV APP_WORK_DIR=/usr/src/anms-core
 

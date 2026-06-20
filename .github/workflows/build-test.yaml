@@ -42,6 +42,8 @@ jobs:
         run: |
           DOCKER_IMAGE_TAG=${{ github.sha }}
           echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
+      - name: Set ENV file
+        run: update_env.sh
       - name: Build ANMS
         run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} build
       - name: Build Agents
