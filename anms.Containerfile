@@ -284,7 +284,7 @@ CMD ["/usr/local/bin/docker-entrypoint.sh"]
 EXPOSE 5555/tcp
 
 HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
-    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/hello"]
+    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/version"]
 
 # for anms-core integration test
 FROM yarn-base AS anms-core-integration

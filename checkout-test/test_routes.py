@@ -308,14 +308,14 @@ class TestPrimaryRoutes(BaseTest):
 
     def test_anms_core(self):
         resp = self._require_response(
-            url='/core/hello',
+            url='/core/version',
             resp_status=[200],
             resp_ctype=['text/plain'],
         )
         resp = self._require_response(
             url='/core/docs/',
             resp_status=[200],
-            resp_ctype=['text/html'],
+            resp_ctype=['application/json'],
         )
 
     def test_refdm_access(self):
