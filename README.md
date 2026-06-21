@@ -282,3 +282,45 @@ If running certain versions of Podman, or sytems with SELinux features enabled, 
 The create_volume.sh script in the directions above automatically detects if docker or podman is available.  If both are available (and are not aliased to each other), you must explicitly specify your chosen container type to ensure the volume is created appropriately.
 
 This can be done by setting the DOCKER_CMD environment variable such as `DOCKER_CMD=podman ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
+
+**Testing & Performance**
+
+### Stress testing
+
+A lightweight stress‑test script (`stress-test.sh`) is provided in the repository root. It:
+
+- Starts the core ANMS stack and the test‑environment containers.
+- Issues high‑concurrency HTTP load against the UI, Core API and Grafana using `hey`.
+- Fires many parallel AMP reports through the socket used by `amp‑manager`.
+- Optionally scales the ION agents (`--scale ion‑agent2=5 --scale ion‑agent3=5`).
+- Prints a snapshot of `podman stats` and shuts the stack down.
+
+Run it with:
+
+```bash
+./stress-test.sh
+```
+
+The script requires the `hey` binary (or `wrk`) and Python 3.  Install them as described in the script header.
+
+### Verifying amp‑manager startup order
+
+On Podman the `amp‑manager` container may start before the test‑environment socket is present, causing it to exit.  Two mitigations are now built‑in:
+
+1. **Automatic restart** – the `quickstart.sh` script now restarts `amp‑manager` after the testenv is up when running under Podman.
+2. **Healthcheck** – `docker-compose.yml` now defines a healthcheck that verifies the socket file (`/var/tmp/nm/proxy.sock`).  When the container is built with the Docker format (`--format docker`) Podman will wait for this healthcheck before reporting the container as healthy.
+
+Either approach ensures the manager stays running without manual intervention.
+
+### Load‑scaling tips
+
+- Use `podman compose -f testenv-compose.yml up -d --scale ion-agent2=10 --scale ion-agent3=10` to spin many agents.
+- Monitor resource usage with `podman stats` or `podman top <container>`.
+- Adjust `.env` ports if you hit low‑port binding limits on root‑less Podman.
+
+### Further testing
+
+- Unit tests (`pytest`) and integration tests (`./anms-core/run_integration_test.sh`) remain the primary correctness checks.
+- For benchmark‑style workloads you can replace `hey` with `k6` scripts – see the `stress-test.sh` header for an example.
+
+---

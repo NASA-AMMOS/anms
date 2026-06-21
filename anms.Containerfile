@@ -110,6 +110,7 @@ RUN --mount=type=cache,target=/var/cache/yum \
 FROM yarn-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
+ENV NODE_PATH=${APP_WORK_DIR}/server/node_modules:${APP_WORK_DIR}/node_modules
 
 # Install NodeJS Global Dependencies
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \

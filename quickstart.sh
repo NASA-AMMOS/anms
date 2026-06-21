@@ -93,6 +93,12 @@ fi
 # Start testenv (unless disabled)
 if [[ ${USE_TESTENV:-} != n ]]; then
     ${DOCKER_CMD} compose -f testenv-compose.yml up -d
+
+# Workaround: ensure amp-manager sees the socket created by testenv
+if [[ ${DOCKER_CMD} == podman ]]; then
+    echo "Restarting amp-manager to pick up socket ..."
+    ${DOCKER_CMD} compose restart amp-manager || true
+fi
 fi
 
 # Start ANMS
