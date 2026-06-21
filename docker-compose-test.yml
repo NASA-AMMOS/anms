@@ -1,0 +1,216 @@
+# This is a COPY of docker-compose.yml for testing optimization changes.
+# Modifications here do NOT affect the main docker-compose.yml until explicitly merged.
+# Test this file by running: docker compose -f docker-compose-test.yml up -d
+
+name: anms-test
+
+networks:
+  default:
+    name: anms-test
+    driver_opts:
+      com.docker.network.bridge.name: br-anms-test
+      com.docker.network.driver.mtu: 65535  # CHANGE THIS to test MTU optimization
+
+volumes:
+  grafana-data: {}
+  postgres-data: {}
+  opensearch: {}
+
+services:
+  authnz:
+    image: ghcr.io/nasa-ammos/anms/authnz:latest
+    build:
+      context: auth/${AUTHNZ_EMU:-emu}
+      dockerfile: Dockerfile
+    hostname: authnz
+    restart: unless-stopped
+    ports:
+      - "8084:80"
+      - "8443:443"
+    environment:
+      CAM_SERVER_URL: ${CAM_SERVER_URL:-http://anms-core:5555}
+      CAM_ADMIN_USER: ${CAM_ADMIN_USER:-test}
+      CAM_ADMIN_PASSWORD: ${CAM_ADMIN_PASSWORD:-test}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  anms-core:
+    image: ghcr.io/nasa-ammos/anms/anms-core:latest
+    build:
+      context: .
+      dockerfile: anms-core.Containerfile
+    hostname: anms-core
+    restart: unless-stopped
+    ports:
+      - "5555:5555"
+    environment:
+      # PostgreSQL
+      DATABASE_URL: ${DATABASE_URL:-postgresql://anms_user:anms_pass@postgres:5432/anms}
+      # Redis for caching (NEW)
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      ANMS_USE_REDIS_CACHE: ${ANMS_USE_REDIS_CACHE:-0}  # Set to 1 to enable caching
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/hello"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:6.0-alpine
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: ghcr.io/nasa-ammos/anms/anms-sql:latest
+    hostname: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: anms_user
+      POSTGRES_PASSWORD: anms_pass
+      POSTGRES_DB: anms
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anms_user -d anms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mqtt-broker:
+    image: ghcr.io/nasa-ammos/anms/mqtt-broker:latest
+    hostname: mqtt-broker
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "1883"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  anms-ui:
+    image: ghcr.io/nasa-ammos/anms/anms-ui:latest
+    build:
+      context: .
+      dockerfile: anms-ui.Containerfile
+    hostname: anms-ui
+    restart: unless-stopped
+    ports:
+      - "9030:9030"
+      - "9443:9443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9030"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: ghcr.io/nasa-ammos/anms/anms-grafana:latest
+    hostname: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_RENDERING_SERVER_URL: http://grafana-image-renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_SERVER_ROOT_URL: http://localhost:3000/
+    depends_on:
+      grafana-image-renderer:
+        condition: service_started
+
+  grafana-image-renderer:
+    image: grafana/grafana-image-renderer
+    hostname: grafana-image-renderer
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.5
+    hostname: opensearch
+    restart: unless-stopped
+    ports:
+      - "9200:9200"
+    environment:
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-Bw1YckbI3jroOxVnaQHm}"
+    volumes:
+      - opensearch:/usr/share/opensearch/data
+    healthcheck:
+      test: "CMD-SHELL curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.19.5
+    hostname: opensearch-dashboards
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-Bw1YckbI3jroOxVnaQHm}"
+
+  aricodec:
+    image: ghcr.io/nasa-ammos/anms/aricodec:latest
+    build:
+      context: .
+      dockerfile: aricodec.Containerfile
+    hostname: aricodec
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+
+  transcoder:
+    image: ghcr.io/nasa-ammos/anms/transcoder:latest
+    build:
+      context: .
+      dockerfile: transcoder.Containerfile
+    hostname: transcoder
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+
+  amp-manager:
+    image: ghcr.io/nasa-ammos/anms/amp-manager:latest
+    build:
+      context: .
+      dockerfile: amp-manager.Containerfile
+    hostname: amp-manager
+    restart: unless-stopped
+    privileged: true
+    tty: true
+    depends_on:
+      anms-core:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  adminer:
+    image: adminer:latest
+    hostname: adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
