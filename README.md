@@ -119,45 +119,86 @@ To stop the system, use `podman compose -f testenv-compose.yml -f docker-compose
 To start the system in the future, use `podman compose -f testenv-compose.yml up` and `podman compose up`.
 
 ## Manual Startup
+
 Choose the appropriate docker, podman, or podman-compose commands in the directions below as appropriate for your system.
 
-- Edit `.env` file as appropriate.
-  - Select appropriate profile(s) as desired. 
-    - Core ANMS services are always started.
-    - The 'full' profile starts up all UI and related services.
-    - The 'dev' profile adds development tools, such as adminer
-    - Profiles can be set with COMPOSE_PROFILES in the .env file. The default includes full and dev profiles.
-  - Adjust network ports as necessary to avoid any conflicts or permissions issues.
-    - For rootless podman, the AUTHNZ_* ports must be changed to higher number ports to avoid permissions issues. 
-    - The corresponding lines can be uncommented in .env.
-- SELinux Security Labels Setup
-  - If your system does not support security labels, no additional steps are needed.
-  - If security labels are supported and you are unable to define them, they can be disabled for development purposes:
-    - `cp docker-compose.no-security-override.yml docker-compose.override.yml`
-- Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`)
+### 1. Configure `.env`
+
+Edit the `.env` file in the repository root. You only need to change values if your environment requires it:
+
+| Variable | When to change | Default |
+|----------|---------------|---------|
+| `AUTHNZ_PORT` | **Rootless podman** — low ports (<1024) require privilege. Uncomment and set to `***`. | `80` |
+| `AUTHNZ_HTTPS_PORT` | Same as above. | `443` |
+| `ANMS_CORE_HTTP_PORT` | Port `5555` already in use. | `5555` |
+| `COMPOSE_PROFILES` | You don't need the full UI (grafana, anms-ui, opensearch). Set to `full` or remove for core only. | `full,dev` |
+| `HOST_SOCKDIR` | Default `sockdir` (podman volume) works for most cases. For production, set to a host path like `/var/run/nm`. | `sockdir` |
+
+**Rootless podman**: You MUST uncomment the `AUTHNZ_PORT` and `AUTHNZ_HTTPS_PORT` lines in `.env` (remove the `#` prefix). These are the only ports below 1024 that rootless podman cannot bind to.
+
+### 2. SELinux (optional)
+
+If your system does not support security labels, no additional steps are needed.
+If security labels are supported and you are unable to define them, they can be disabled for development purposes:
+  - `cp docker-compose.no-security-override.yml docker-compose.override.yml`
+
+### 3. Clone and create volumes
+
+Clone this repository recursively (`git clone --recursive https://github.com/NASA-AMMOS/anms.git`), then create the required volumes:
+
 - Setup Volume containing PKI configuration (certificate chains and private keys):
   - `./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
-- OPTIONAL: The next 2 steps  will build all ANMS containers. If desired, these steps can be replaced with 'pull'ing prebuilt containers from ghcr.
-- Build Core Images using one of the following:
+    - This creates the `ammos-tls` volume with TLS certs and the `sockdir` volume for the amp-manager socket.
+    - If both `docker` and `podman` are installed, specify: `DOCKER_CMD=podman ./create_volume.sh ...`
+
+> **PostgreSQL 18+ note:** The database data directory changed from `/var/lib/postgresql/data` to `/var/lib/postgresql` in PG 18. Fresh installs work without modification. If upgrading from an older version, see `UPGRADING.md`.
+
+### 4. Build or pull images (optional)
+
+The next steps will build all ANMS containers. If desired, these steps can be replaced with 'pull'ing prebuilt containers from ghcr (this is the default for `quickstart.sh`).
+
+Build Core Images using one of the following:
   - `docker compose -f docker-compose.yml build`
   - `podman compose -f docker-compose.yml build`
   - `podman-compose --podman-build-args='--format docker' -f docker-compose.yml build`
     - Note: The docker format argument here enables support for HEALTHCHECK. If omitted, the system will run but will be unable to report the health of the system.  This flag does not appear necessary when using the no-dash version of compose.
-- Build test environment images using one of the following:
+
+Build test environment images using one of the following:
   - `docker compose -f testenv-compose.yml build`
   - `podman compose -f testenv-compose.yml build`
   - `podman-compose --podman-build-args='--format docker' -f testenv-compose.yml build`
-- Start System using one of the following:
-  - `docker compose -f docker-compose.yml up -d`
-  - `podman compose -f docker-compose.yml up -d`
-- Start sample ION nodes for manager and test agents using one of the following:
+
+### 5. Start services
+
+**Important:** Start the test environment first (it creates the socket that `amp-manager` needs), then restart `amp-manager` before starting the main services.
+
+Start sample ION nodes for manager and test agents:
   - `docker compose -f testenv-compose.yml up -d`
   - `podman compose -f testenv-compose.yml up -d`
+
+Restart `amp-manager` to pick up the socket (required after testenv starts):
+  - `docker compose restart amp-manager`
+  - `podman compose restart amp-manager`
+
+Start main ANMS services:
+  - `docker compose -f docker-compose.yml up -d`
+  - `podman compose -f docker-compose.yml up -d`
 
 To shutdown the system when needed:
 - `docker|podman compose -f docker-compose.yml -f testenv-compose.yml down`
 
+## Production Considerations
 
+The manual procedure above is suitable for evaluation and development. For production deployments:
+
+- **Security:** Do NOT copy `docker-compose.no-security-override.yml` — keep SELinux labels for production
+- **TLS:** Use real certificates, not the test certs from `puppet/modules/apl_test/files/anms/tls/`
+- **Backups:** Regularly back up `postgres-data` and `grafana-data` volumes
+- **Monitoring:** Configure Grafana with real datasource credentials
+- **Scaling:** Use `--scale` on compose commands for ion-agent replicas (e.g., `--scale ion-agent2=10`)
+- **Network:** If your network blocks `ghcr.io`, use `export.sh` to create offline image bundles before deploying
+
+---
 
 ## Usage
 
