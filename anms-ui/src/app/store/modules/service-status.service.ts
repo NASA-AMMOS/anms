@@ -5,6 +5,7 @@ import {catchError, finalize} from 'rxjs/operators';
 import {Constants} from '../../shared/constants';
 import * as _ from 'lodash';
 import {ApiService} from '../../shared/api.service';
+import {NotificationService } from '../../shared/notification.service';
 
 export interface Alert {
   id: string;
@@ -20,6 +21,8 @@ export interface ServiceStatus {
 })
 export class ServiceStatusService {
 
+  protected notificationService = inject(NotificationService);
+  
   // private http = inject(HttpClient);
   private api = inject(ApiService);
 
@@ -55,11 +58,22 @@ export class ServiceStatusService {
     ).subscribe({
       next: (res) => {
         this._alerts.set(res);
-
+        
         // TODO rethink tracking alerts for multiple accounts
-        res.forEach((alert: any) => {
-          if (!this._alertIds().includes(alert.id)) {
-            this._alertIds.update(ids => [...ids, alert.id]);
+        res.forEach((alert: any) => {  
+          if (!this._alertIds().includes(alert.id) && alert.visible ) {
+            switch(alert.type){
+              case "danger":
+                this.notificationService.error(alert.name + ": " + alert.msg, undefined, 100000, () => this.setAlert(alert.id));
+                break;
+              case "warning":
+                this.notificationService.warning(alert.name + ": " + alert.msg, undefined, 100000, () => this.setAlert(alert.id));
+                break;
+              default:
+                this.notificationService.info(alert.name + ": " + alert.msg, undefined, 100000, () => this.setAlert(alert.id));
+                break;
+            }
+          this._alertIds.update(ids => [...ids, alert.id]);
           }
         });
       },
@@ -67,6 +81,7 @@ export class ServiceStatusService {
         console.error('Error fetching alerts:', error);
       }
     });
+
 
     // Get service status
     // FIXME: ('/api/core/service_status')
@@ -128,7 +143,8 @@ export class ServiceStatusService {
 
   setAlert(index: number): void {
     const alertId = this._alerts()[index]?.id;
-    if (alertId) {
+
+    if (alertId !== null) {
       // FIXME: this.http.post(`/api/acknowledge-alerts/${alertId}`, {})
       this.api.apiAcknowledgeAlerts(alertId).subscribe({
         next: () => {
