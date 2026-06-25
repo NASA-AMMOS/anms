@@ -62,7 +62,7 @@ services:
       AGENT_NAME: ${CAM_AGENT_NAME}
       AGENT_PASSWORD: ${CAM_AGENT_PASSWORD}
       CAM_GW_URL: "https://${ANMS_GW_FQDN}:443/"
-      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089 http://anms-ui:9030 opensearch,http://opensearch:9200"
+      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089 http://anms-ui:9030 opensearch,http://opensearch:9200 dashboards,http://opensearch-dashboards:5601/dashboards"
     volumes:
       - ammos-tls:/ammos/etc/pki/tls:ro
 
@@ -119,6 +119,8 @@ services:
       - "./opensearch/opensearch-dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch-dashboards.yml"
     environment:
       OPENSEARCH_HOSTS: '["https://opensearch:9200"]' # must be a string with no spaces when specified as an environment variable
+      SERVER_BASEPATH: /dashboards
+      SERVER_REWRITEBASEPATH: true
 
   postgres:
     hostname: postgres
