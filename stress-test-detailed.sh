@@ -22,10 +22,36 @@ fi
 : "${ADMIN_COOKIES_FILE=$(mktemp /tmp/stress-admin-cookies.XXXXXX)}"
 : "${METRICS_DIR=$(mktemp -d /tmp/stress-metrics.XXXXXX)}"
 
-cleanup() { rm -rf "$METRICS_DIR" "$COOKIES_FILE" "$ADMIN_COOKIES_FILE" 2>/dev/null || true; }
+cleanup() {
+    rm -rf "$METRICS_DIR" "$COOKIES_FILE" "$ADMIN_COOKIES_FILE" 2>/dev/null || true
+    # Teardown containers — runs on EXIT whether normal or abnormal
+    compose down --remove-orphans 2>/dev/null || true
+}
 trap cleanup EXIT
 
 DOCKER_CMD=${DOCKER_CMD:-$(command -v docker 2>/dev/null || command -v podman 2>/dev/null || echo podman)}
+
+# Auto-apply podman override for docker-compose.yml and testenv-compose.yml
+COMPOSE_DEFAULTS="-f docker-compose.yml -f testenv-compose.yml"
+COMPOSE_OVERRIDE=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ "${DOCKER_CMD}" = "podman" ]; then
+    for override in docker-compose-podman-override.yml testenv-compose-podman-override.yml; do
+        if [ -f "${SCRIPT_DIR}/${override}" ]; then
+            COMPOSE_OVERRIDE="${COMPOSE_OVERRIDE} -f ${SCRIPT_DIR}/${override}"
+        fi
+    done
+fi
+
+# compose() wrapper — runs compose with auto-applied podman override
+compose() {
+    ${DOCKER_CMD} compose $COMPOSE_DEFAULTS $COMPOSE_OVERRIDE "$@"
+}
+
+# stats() wrapper — runs stats for both compose stacks
+stats() {
+    ${DOCKER_CMD} stats "$@"
+}
 
 # ─── Startup ─────────────────────────────────────────────────────────────────
 echo ""
@@ -37,12 +63,10 @@ echo ""
 if [[ "${DIRECT}" == "1" ]]; then
     # Direct mode: just start core services, no authnz needed
     echo "Starting core services (no authnz)..."
-    ${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
-    ${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
-    ${DOCKER_CMD} compose up -d
-    ${DOCKER_CMD} compose -f testenv-compose.yml up -d
+    compose down --remove-orphans 2>/dev/null || true
+    compose up -d
     sleep 5
-    ${DOCKER_CMD} compose restart amp-manager
+    compose restart amp-manager
     sleep 5
     
     if ! curl -sSf -o /dev/null "http://localhost:5555/nm/version" 2>/dev/null; then
@@ -53,12 +77,10 @@ if [[ "${DIRECT}" == "1" ]]; then
 else
     # Authnz mode: full stack with authnz
     echo "Starting full stack with authnz..."
-    ${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
-    ${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
-    ${DOCKER_CMD} compose up -d
-    ${DOCKER_CMD} compose -f testenv-compose.yml up -d
+    compose down --remove-orphans 2>/dev/null || true
+    compose up -d
     sleep 5
-    ${DOCKER_CMD} compose restart amp-manager
+    compose restart amp-manager
     sleep 5
     
     wait_for_url() {
@@ -77,7 +99,9 @@ else
     echo "authnz ready"
 
     # Fix htpasswd in the authnz container so test/welcome1 and admin/admin123 work.
-    printf 'test:$apr1$2zghinWB$72p5X2nRUcyVTrGOIq8dN/\\nadmin:$apr1$9ggw5TmZ$Gv36l7GlE8lP6zta9VySb.\\n' | docker exec -i anms-authnz-1 sh -c "cat > /etc/httpd/conf/htpasswd"
+    # Use compose exec (-T disables pseudo-tty so stdin can be piped) for Docker/Podman portability.
+    printf 'test:$apr1$2zghinWB$72p5X2nRUcyVTrGOIq8dN/\\nadmin:$apr1$9ggw5TmZ$Gv36l7GlE8lP6zta9VySb.\\n' | \
+        compose exec -T authnz sh -c "cat > /etc/httpd/conf/htpasswd"
     echo "htpasswd fixed"
 
     # Log in as both test and admin users
@@ -139,7 +163,7 @@ LOAD_PID=$!
 
 # Collect docker stats samples while load is running (and one after)
 for i in $(seq 1 15); do
-    docker stats --no-stream \
+    stats --no-stream \
         --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}|{{.NetIO}}|{{.BlockIO}}' \
         >> "$TMP_RAW" 2>/dev/null
     sleep 0.5
@@ -203,10 +227,10 @@ echo "[Phase H] Redis session performance"
 echo "═══════════════════════════════════════════════════════════"
 
 echo "  Checking Redis session backend..."
-redis_ping=$(docker exec anms-redis-1 redis-cli ping 2>/dev/null || echo "N/A")
+redis_ping=$(compose exec redis redis-cli ping 2>/dev/null || echo "N/A")
 echo "    Redis ping: ${redis_ping}"
 
-redis_info=$(docker exec anms-redis-1 redis-cli INFO memory 2>/dev/null || echo "N/A")
+redis_info=$(compose exec redis redis-cli INFO memory 2>/dev/null || echo "N/A")
 redis_mem=$(echo "$redis_info" | grep "used_memory_human" | cut -d: -f2 | tr -d '[:space:]')
 echo "    Redis used memory: ${redis_mem}"
 
@@ -215,21 +239,21 @@ echo ""
 echo "  Redis key counts (top 10 by type):"
 if [[ "${DIRECT}" == "1" ]]; then
     # In direct mode, Redis is still used for session by core app
-    redis_keys=$(docker exec anms-redis-1 redis-cli KEYS "*" 2>/dev/null | head -20)
+    redis_keys=$(compose exec redis redis-cli KEYS "*" 2>/dev/null | head -20)
     if [ -z "$redis_keys" ]; then
         echo "    (no keys found)"
     else
         echo "$redis_keys" | while read key; do
-            echo "    $key: $(docker exec anms-redis-1 redis-cli TYPE "$key" 2>/dev/null)"
+            echo "    $key: $(compose exec redis redis-cli TYPE "$key" 2>/dev/null)"
         done
     fi
 else
-    redis_keys=$(docker exec anms-redis-1 redis-cli KEYS "*" 2>/dev/null | head -20)
+    redis_keys=$(compose exec redis redis-cli KEYS "*" 2>/dev/null | head -20)
     if [ -z "$redis_keys" ]; then
         echo "    (no keys found)"
     else
         echo "$redis_keys" | while read key; do
-            echo "    $key: $(docker exec anms-redis-1 redis-cli TYPE "$key" 2>/dev/null)"
+            echo "    $key: $(compose exec redis redis-cli TYPE "$key" 2>/dev/null)"
         done
     fi
 fi
@@ -246,9 +270,3 @@ ls -la "$METRICS_DIR"/
 echo ""
 echo "Run with YOLO (unlimited): ./${0##*/}"
 echo "Run with caps: ./run-stress.sh ./${0##*/}"
-
-# Cleanup containers
-${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
-${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
-echo ""
-echo "Containers torn down."
