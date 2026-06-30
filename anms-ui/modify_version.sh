@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+set -e
 ##
 ## Copyright (c) 2023 The Johns Hopkins University Applied Physics
 ## Laboratory LLC.
@@ -19,13 +21,23 @@
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
-ORIGFILE="../anms-ui/public/app/shared/TEMPLATE_constants.js"
-OUTFILE="../anms-ui/public/app/shared/constants.js"
-TMPFILE=$(mktemp)
-UI_VERSION="$(git describe --tags)"
-sed "s/UI_VERSION/$UI_VERSION/" "${ORIGFILE}" > $OUTFILE
-if diff -q "${TMPFILE}" "${OUTFILE}" >/dev/null; then
-    mv "${TMPFILE}" "${OUTFILE}"
-else
-    rm "${TMPFILE}"
-fi
+
+# --------------------------------------------------------------------
+# Determine the UI version.
+#   - If BUILD_VERSION is defined in the environment, use it.
+#   - Otherwise, fall back to the result of `git describe --tags`.
+# --------------------------------------------------------------------
+UI_VERSION="${BUILD_VERSION:-$(git describe --tags)}"
+
+# Path to the file that contains the placeholder version.
+TARGET_FILE="./src/environments/environment.ts"
+
+# --------------------------------------------------------------------
+# In‑place replacement:
+#   The line in environment.ts looks like:
+#       UI_VERSION: 'unknown', // NOTE: Auto‑updated at build‑time …
+#   We replace whatever is between the single quotes with $UI_VERSION.
+# --------------------------------------------------------------------
+sed -i.bak -E "s/(UI_VERSION:[[:space:]]*')[^']*(')/\1${UI_VERSION}\2/" "$TARGET_FILE"
+
+echo "UI_VERSION updated to '${UI_VERSION}' in ${TARGET_FILE}"
