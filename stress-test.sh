@@ -17,9 +17,31 @@ set -a && . .env && set +a
 # Detect container runtime early (needed for cleanup)
 DOCKER_CMD=${DOCKER_CMD:-$(command -v docker 2>/dev/null || command -v podman 2>/dev/null || echo podman)}
 
+# Auto-apply podman override for docker-compose.yml and testenv-compose.yml
+# These files use Docker-specific driver_opts that podman rejects.
+# The override removes driver_opts while keeping network names and IPAM config.
+COMPOSE_FILES="-f docker-compose.yml -f testenv-compose.yml"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ "${DOCKER_CMD}" = "podman" ]; then
+    for override in docker-compose-podman-override.yml testenv-compose-podman-override.yml; do
+        if [ -f "${SCRIPT_DIR}/${override}" ]; then
+            COMPOSE_FILES="${COMPOSE_FILES} -f ${SCRIPT_DIR}/${override}"
+        fi
+    done
+fi
+
+# compose() wrapper — runs compose with auto-applied podman override
+compose() {
+    ${DOCKER_CMD} compose $COMPOSE_FILES "$@"
+}
+
+# stats() wrapper — runs stats for both compose stacks
+stats() {
+    ${DOCKER_CMD} stats "$@"
+}
+
 # Clean up any leftover containers from previous runs
-${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
-${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
+compose down --remove-orphans 2>/dev/null || true
 
 # Globals
 : "${AUTHNZ_PORT:=80}"
@@ -43,15 +65,13 @@ wait_for_url() {
 }
 
 # Startup
-DOCKER_CMD=${DOCKER_CMD:-$(command -v docker 2>/dev/null || command -v podman 2>/dev/null || echo podman)}
-${DOCKER_CMD} compose up -d
-${DOCKER_CMD} compose -f testenv-compose.yml up -d
+compose up -d
 
 # Restart amp-manager after compose up. Known issue: amp-manager does not
 # properly re-establish its connection to the Docker bridge network on its
 # first start after the stack comes up, so a restart is required.
 # amp-manager is defined in the main docker-compose.yml (not testenv).
-${DOCKER_CMD} compose restart amp-manager
+compose restart amp-manager
 sleep 5
 
 # Wait for UI
@@ -68,8 +88,7 @@ TMP_PEAK=$(mktemp)
 
 cleanup() {
   rm -f "$TMP_METRICS" "$TMP_RAW" "$TMP_PEAK" 2>/dev/null || true
-  ${DOCKER_CMD} compose -f testenv-compose.yml down --remove-orphans 2>/dev/null || true
-  ${DOCKER_CMD} compose down --remove-orphans 2>/dev/null || true
+  compose down --remove-orphans 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -112,7 +131,7 @@ with open('$TMP_METRICS','a') as f: f.write(json.dumps(m)+'\n')
 stats_and_run() {
   local outfile="$1"; shift
   # Snapshot before command
-  docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' > "$TMP_RAW" 2>/dev/null
+  stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' > "$TMP_RAW" 2>/dev/null
 
   # Run the command
   "$@" 2>&1
@@ -120,7 +139,7 @@ stats_and_run() {
   # Snapshot after (multiple samples to catch peak)
   local i
   for i in $(seq 1 10); do
-    docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' >> "$TMP_RAW" 2>/dev/null
+    stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' >> "$TMP_RAW" 2>/dev/null
     sleep 0.2
   done
 
