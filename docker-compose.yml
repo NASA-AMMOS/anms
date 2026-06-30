@@ -202,6 +202,8 @@ services:
       target: anms-ui
       args:
         INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
+        BUILD_VERSION: "${GIT_VERSION}"
+        BUILD_DATE: "${GIT_DATE}"
     restart: unless-stopped
     security_opt:
       - "label=type:anms-ui.process"

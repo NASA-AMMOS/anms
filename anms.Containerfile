@@ -111,6 +111,11 @@ FROM yarn-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ENV BUILD_VERSION=$BUILD_VERSION
+ENV BUILD_DATE=$BUILD_DATE
+
 # Install NodeJS Global Dependencies
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm install --global pm2
@@ -118,23 +123,26 @@ RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 
+
 # Install Angular UI and Server Dependencies
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
+COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
 WORKDIR ${APP_WORK_DIR}
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/server/package.json ${APP_WORK_DIR}/server/
+
+RUN ./modify_version.sh
+
+# TODO: Modify this to use 'npm ci'
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     cd ${APP_WORK_DIR}/server && \
     npm install --omit=dev
+
+# TODO: Restore 'npm ci' after fixing checked-in package-lock.json
+# NOTE: npm i line is provided for developer usage when updating package-lock.json
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm i
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
-    npm ci
+#RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+#    npm ci
 
 # Build Backend/Frontend
-# These copies do not overwrite node_modules
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm run build
 
