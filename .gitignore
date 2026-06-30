@@ -25,3 +25,14 @@ docker-compose.override.yml
 
 # Javascript and ESLint related content to be ignored
 node_modules
+
+# Playwright test artifacts
+**/test-results/
+**/playwright-report/
+**/playwright/.cache/
+
+
+# Test artifacts and spec-driven files
+anms-ui/integration_test/docker-compose-full-podman-override.yml
+anms-ui/integration_test/tests/spec-driven.test.ts
+
