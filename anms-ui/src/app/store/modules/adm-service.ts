@@ -84,6 +84,45 @@ export class AdmService {
       this.loadingSignal.set(false);
     }
   }
+  
+  /**
+   * Send load all default ADMs request from the API
+   */
+  public loadDefaultAdms() {
+    this.requestErrorSignal.set('');
+    this.uploadErrorsSignal.set([]);
+    this.uploadStatusSignal.set('');
+
+    return this.apiAdm.apiLoadDefaultAdms().pipe(
+      tap((res) => {
+        if (!res) {
+          throw new Error('Receiving no data from request');
+        }
+      }),
+
+      map((response: UploadResponse) => {
+        const message =
+          response?.data?.message ||
+          response?.message ||
+          'Update success';
+
+        this.uploadStatusSignal.set(message);
+        return message;
+      }),
+
+      catchError((error: HttpErrorResponse) => {
+        const response = error?.error as ErrorResponse;
+        const status = error?.status || 500;
+        const message = response?.message || error?.message || 'Internal server error';
+        const errors = response?.error_details || [];
+
+        this.requestErrorSignal.set(`${status}: ${message}`);
+        this.uploadErrorsSignal.set(errors);
+
+        return throwError(() => error);
+      }),
+    );
+  }
 
   /**
    * Upload an ADM file

@@ -20,6 +20,7 @@ export class Adms implements AfterViewInit {
 
   ngAfterViewInit(): void {
     if(!this.admService.hasAdms()) {
+      this.admService.loadDefaultAdms();
       this.admService.getAdms();
     }
   }

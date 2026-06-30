@@ -12,13 +12,19 @@ export class ApiAdmService {
   // private adm_url = Constants.BASE_API_URL + '/api/core/adms';
   private adm_url = '/api/core/adms';
 
+
   private createAuthenticationHeader(){
     return {
       Authorization: 'Bearer ' + Constants.USER_DETAILS.token
     };
   }
 
+  
   //Main API
+
+  public apiLoadDefaultAdms(): Observable<any> {
+    return this.http.post(this.adm_url + "/load_default", {headers: {accept: 'application/json'}});
+  }
   public apiGetAdms(): Observable<any> {
     return this.http.get(this.adm_url, {headers: {accept: 'application/json'}});
   }
