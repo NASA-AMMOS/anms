@@ -27,9 +27,9 @@ docker-compose.override.yml
 node_modules
 
 # Playwright test artifacts
-**/test-results/
-**/playwright-report/
-**/playwright/.cache/
+anms-ui/integration_test/test-results/
+anms-ui/integration_test/playwright-report/
+anms-ui/integration_test/playwright/.cache/
 
 
 # Test artifacts and spec-driven files
