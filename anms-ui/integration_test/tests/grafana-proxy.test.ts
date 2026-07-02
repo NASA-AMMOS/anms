@@ -8,6 +8,24 @@
 import { test, expect } from '@playwright/test';
 import { setupAuth } from './auth-setup';
 import { AUTHNZ_URL } from './config';
+import { waitForUrlHealthy } from '../utils/api-helpers';
+
+// Check if Grafana is reachable — skip if not available
+let grafanaAvailable = false;
+
+test.beforeEach(async ({ request }) => {
+  // Run Grafana health check once per suite
+  if (grafanaAvailable === false) {
+    try {
+      grafanaAvailable = await waitForUrlHealthy(AUTHNZ_URL + '/grafana/api/health', 3);
+    } catch {
+      grafanaAvailable = false;
+    }
+  }
+  if (!grafanaAvailable) {
+    test.skip(true, 'Grafana is not available');
+  }
+});
 
 test.describe('Grafana Proxy Endpoints', () => {
   test('Grafana root proxy returns 200 or redirect', async ({ request }) => {

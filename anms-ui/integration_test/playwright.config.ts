@@ -33,6 +33,7 @@ export default defineConfig({
   reporter: [
     ['html', { open: 'never', outputFolder: 'playwright-report' }],
     ['list'],
+    ['json', { outputFile: 'playwright-report/results.json' }],
   ],
   use: {
     baseURL: AUTHNZ_URL,

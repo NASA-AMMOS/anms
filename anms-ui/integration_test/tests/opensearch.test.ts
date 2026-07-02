@@ -14,8 +14,23 @@
  */
 
 import { test, expect } from '@playwright/test';
-
 import { OPENSEARCH_URL, OPENSEARCH_USER, OPENSEARCH_PASS, OPENSEARCH_DASH_URL } from './config';
+import { waitForUrlHealthy } from '../utils/api-helpers';
+
+let opensearchAvailable = false;
+
+test.beforeEach(async ({ request }) => {
+  if (opensearchAvailable === false) {
+    try {
+      opensearchAvailable = await waitForUrlHealthy(OPENSEARCH_URL + '/_cluster/health', 3);
+    } catch {
+      opensearchAvailable = false;
+    }
+  }
+  if (!opensearchAvailable) {
+    test.skip(true, 'OpenSearch is not available');
+  }
+});
 
 /** Build a Basic auth header string */
 function authHeader(user: string, pass: string): string {

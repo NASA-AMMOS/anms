@@ -6,10 +6,23 @@ import { test, expect } from '@playwright/test';
 import { setupAuth, getTestUsername } from './auth-setup';
 import { AUTHNZ_URL } from './config';
 import { getMetrics, logMetrics } from '../utils/metrics';
+import { waitForUrlHealthy } from '../utils/api-helpers';
+
+let grafanaAvailable = false;
 
 test.describe('Monitor Tab', () => {
   test.beforeEach(async ({ page }) => {
     await setupAuth(page);
+    if (grafanaAvailable === false) {
+      try {
+        grafanaAvailable = await waitForUrlHealthy(AUTHNZ_URL + '/grafana/api/health', 3);
+      } catch {
+        grafanaAvailable = false;
+      }
+    }
+    if (!grafanaAvailable) {
+      test.skip(true, 'Grafana is not available');
+    }
   });
 
   test('Monitor page loads with Grafana iframe', async ({ page }) => {

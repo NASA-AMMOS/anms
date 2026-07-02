@@ -5,7 +5,23 @@
 import { test, expect } from '@playwright/test';
 import { setupAuth } from './auth-setup';
 import { AUTHNZ_URL } from './config';
+import { waitForUrlHealthy } from '../utils/api-helpers';
 const GRAFANA_PROXY_URL = '/grafana';
+
+let grafanaAvailable = false;
+
+test.beforeEach(async ({ request }) => {
+  if (grafanaAvailable === false) {
+    try {
+      grafanaAvailable = await waitForUrlHealthy(AUTHNZ_URL + '/grafana/api/health', 3);
+    } catch {
+      grafanaAvailable = false;
+    }
+  }
+  if (!grafanaAvailable) {
+    test.skip(true, 'Grafana is not available');
+  }
+});
 
 test.describe('Grafana Live WebSocket Reconnection', () => {
   test.beforeEach(async ({ page }) => {
