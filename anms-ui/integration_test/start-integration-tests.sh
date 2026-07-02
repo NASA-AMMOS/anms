@@ -37,12 +37,12 @@ MODE="${1:-full}"
 # ─── Detect container runtime ──────────────────────────────────────────────
 if [ -n "${DOCKER_CMD:-}" ]; then
     echo "Using DOCKER_CMD=${DOCKER_CMD}"
-elif command -v docker &> /dev/null; then
-    DOCKER_CMD="docker"
-    echo "Detected: docker"
 elif command -v podman &> /dev/null; then
     DOCKER_CMD="podman"
     echo "Detected: podman"
+elif command -v docker &> /dev/null; then
+    DOCKER_CMD="docker"
+    echo "Detected: docker"
 else
     echo "ERROR: Neither docker nor podman is installed" >&2
     exit 1
@@ -82,6 +82,24 @@ echo ""
 echo "Starting services..."
 $DOCKER_CMD compose $COMPOSE_ARGS up -d
 
+# ─── Seed test data ──────────────────────────────────────────────────────
+echo ""
+echo "Seeding test data..."
+TEST_DIR_ABS="$(cd "$TEST_DIR" && pwd)"
+if [ -f "$TEST_DIR_ABS/tests/seed/seed_agents.py" ]; then
+    python3 "$TEST_DIR_ABS/tests/seed/seed_agents.py" --count 100 --reset || \
+        echo "WARNING: seed_agents.py failed" >&2
+else
+    echo "WARNING: seed_agents.py not found" >&2
+fi
+
+if [ -f "$TEST_DIR_ABS/tests/seed/seed_dashboard.py" ]; then
+    python3 "$TEST_DIR_ABS/tests/seed/seed_dashboard.py" --count 500 --reset || \
+        echo "WARNING: seed_dashboard.py failed" >&2
+else
+    echo "WARNING: seed_dashboard.py not found" >&2
+fi
+
 # ─── Wait for services ───────────────────────────────────────────────────
 echo ""
 echo "Waiting for services to be healthy..."
@@ -101,9 +119,12 @@ wait_for_url() {
 if [ "$MODE" = "testenv" ]; then
     wait_for_url "http://localhost:9031" "anms-ui" 30
 else
-    wait_for_url "http://localhost:8084" "authnz" 30
+    wait_for_url "http://localhost:80" "authnz" 30
+    wait_for_url "http://localhost:9030" "anms-ui" 30
     wait_for_url "http://localhost:9200" "opensearch" 60
     wait_for_url "http://localhost:3000" "grafana" 30
+    wait_for_url "http://localhost:80/nm/api/hello" "anms-core" 45
+    wait_for_url "http://localhost:80/nm/api/version" "amp-manager" 45
 fi
 
 # ─── Run Playwright tests ─────────────────────────────────────────────────
