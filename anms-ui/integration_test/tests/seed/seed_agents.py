@@ -23,8 +23,10 @@ import random
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-# Add anms-core to path
-sys.path.insert(0, '/home/greennm1/anms/anms-core')
+# Add anms-core to path (resolve relative to this script's location)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+anms_core_dir = os.path.join(script_dir, '..', '..', '..', '..', 'anms-core')
+sys.path.insert(0, anms_core_dir)
 
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
