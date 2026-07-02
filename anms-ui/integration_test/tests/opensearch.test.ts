@@ -14,36 +14,10 @@
  */
 
 import { test, expect } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
 
-const OPENSEARCH_URL = 'https://localhost:9200';
-const OPENSEARCH_USER = 'admin';
-
-/**
- * Read the OpenSearch admin password from the .env file in the anms root.
- * Falls back to a known default if the .env is not found.
- */
-function getOpenSearchPassword(): string {
-  const envPath = path.resolve(__dirname, '../../../.env');
-  try {
-    const envContent = fs.readFileSync(envPath, 'utf-8');
-    const match = envContent.match(/^OPENSEARCH_INITIAL_ADMIN_PASSWORD=(.+)$/m);
-    if (match) {
-      const pass = match[1].trim();
-      if (pass && pass !== '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}') {
-        console.log(`[opensearch] Password loaded from .env`);
-        return pass;
-      }
-    }
-  } catch {
-    // .env not found or unreadable
-  }
-  console.warn('[opensearch] WARNING: Could not read password from .env, using default');
-  return 'Str0ng!Pass#2026';
-}
-
-const OPENSEARCH_PASS = getOpenSearchPassword();
+const OPENSEARCH_URL = process.env.OPENSEARCH_URL || 'https://localhost:9200';
+const OPENSEARCH_USER = process.env.OPENSEARCH_USER || 'admin';
+const OPENSEARCH_PASS = process.env.OPENSEARCH_PASS || 'Str0ng!Pass#2026';
 
 /** Build a Basic auth header string */
 function authHeader(user: string, pass: string): string {
