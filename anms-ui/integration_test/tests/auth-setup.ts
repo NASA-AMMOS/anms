@@ -14,9 +14,7 @@
 
 import { chromium } from '@playwright/test';
 import type { BrowserContext, Page } from '@playwright/test';
-
-const TEST_USERNAME = process.env.TEST_USERNAME || 'test';
-const TEST_PASSWORD = process.env.TEST_PASSWORD || 'test';
+import { TEST_USERNAME, TEST_PASSWORD } from './config';
 
 /**
  * Log in through authnz's form-based authentication.

@@ -8,8 +8,7 @@
  */
 
 import { Page } from '@playwright/test';
-
-const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
+import { AUTHNZ_URL } from '../tests/config';
 
 /**
  * Wait for a URL to respond with a 200 status.
@@ -33,7 +32,7 @@ export async function waitForUrlHealthy(url: string, maxRetries = 30): Promise<b
  * Wait for the UI to be accessible.
  */
 export async function waitForUI(page: Page, maxRetries = 30): Promise<boolean> {
-  const healthUrl = `${BASE_URL}/`;
+  const healthUrl = `${AUTHNZ_URL}/`;
   for (let i = 0; i < maxRetries; i++) {
     try {
       const response = await page.goto(healthUrl, { waitUntil: 'domcontentloaded', timeout: 5000 });
@@ -74,7 +73,7 @@ export async function makeApiCall(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
   body?: any
 ): Promise<{ status: number; data: any }> {
-  const url = `${BASE_URL}${path}`;
+  const url = `${AUTHNZ_URL}${path}`;
   
   const options: RequestInit = {
     method,
@@ -112,7 +111,7 @@ export async function checkRouteAccessible(page: Page, route: string): Promise<{
   title?: string;
 }> {
   try {
-    const response = await page.goto(`${BASE_URL}${route}`, {
+    const response = await page.goto(`${AUTHNZ_URL}${route}`, {
       waitUntil: 'domcontentloaded',
       timeout: 10000,
     });

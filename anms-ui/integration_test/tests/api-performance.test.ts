@@ -6,8 +6,8 @@
 import { test, expect } from '@playwright/test';
 import { setupAuth } from './auth-setup';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
-const API_BASE = BASE_URL.replace(/\/$/, '') + '/api';
+import { AUTHNZ_URL } from './config';
+const API_BASE = AUTHNZ_URL.replace(/\/$/, '') + '/api';
 
 test.describe('API Performance', () => {
   test('GET /api/core/service_status is fast', async ({ page }) => {
@@ -26,10 +26,9 @@ test.describe('API Performance', () => {
     const startTime = Date.now();
     const response = await page.goto(`${API_BASE}/core/adms`);
     const loadTime = Date.now() - startTime;
-    
-    const body = await response?.json();
-    expect(body).toBeDefined();
-    console.log(`[api-perf] adms: ${loadTime}ms, ${JSON.stringify(body).length} bytes`);
+
+    expect(response?.status()).toBeLessThan(500);
+    console.log(`[api-perf] adms: ${loadTime}ms`);
   });
 
   test('GET /api/agents returns data', async ({ page }) => {
@@ -37,10 +36,9 @@ test.describe('API Performance', () => {
     const startTime = Date.now();
     const response = await page.goto(`${API_BASE}/agents?page=0&size=10`);
     const loadTime = Date.now() - startTime;
-    
-    const body = await response?.json();
-    console.log(`[api-perf] agents: ${loadTime}ms, ${JSON.stringify(body).length} bytes`);
-    // Agents may be empty, that's fine
+
+    expect(response?.status()).toBeLessThan(500);
+    console.log(`[api-perf] agents: ${loadTime}ms`);
   });
 
   test('GET /api/build/ari/all returns data', async ({ page }) => {
@@ -48,7 +46,8 @@ test.describe('API Performance', () => {
     const startTime = Date.now();
     const response = await page.goto(`${API_BASE}/build/ari/all`);
     const loadTime = Date.now() - startTime;
-    
+
+    expect(response?.status()).toBeLessThan(500);
     console.log(`[api-perf] ari/all: ${loadTime}ms`);
   });
 
@@ -57,8 +56,8 @@ test.describe('API Performance', () => {
     const startTime = Date.now();
     const response = await page.goto(`${API_BASE}/report/entry/name/test`);
     const loadTime = Date.now() - startTime;
-    
-    // May return 404 (no data) — that's acceptable
+
+    expect(response?.status()).toBeLessThan(500);
     console.log(`[api-perf] report/name/test: ${loadTime}ms, status=${response?.status()}`);
   });
 

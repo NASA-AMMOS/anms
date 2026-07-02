@@ -15,9 +15,7 @@
 
 import { test, expect } from '@playwright/test';
 
-const OPENSEARCH_URL = process.env.OPENSEARCH_URL || 'https://localhost:9200';
-const OPENSEARCH_USER = process.env.OPENSEARCH_USER || 'admin';
-const OPENSEARCH_PASS = process.env.OPENSEARCH_PASS || 'Str0ng!Pass#2026';
+import { OPENSEARCH_URL, OPENSEARCH_USER, OPENSEARCH_PASS, OPENSEARCH_DASH_URL } from './config';
 
 /** Build a Basic auth header string */
 function authHeader(user: string, pass: string): string {

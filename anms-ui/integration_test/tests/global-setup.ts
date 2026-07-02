@@ -18,11 +18,7 @@
 import { execSync } from 'node:child_process';
 import { waitForUrlHealthy } from '../utils/api-helpers';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
-const AUTHNZ_URL = process.env.AUTHNZ_URL || 'http://localhost:8084';
-const OPENSEARCH_URL = process.env.OPENSEARCH_URL || 'http://localhost:9200';
-const OPENSEARCH_DASH_URL = process.env.OPENSEARCH_DASH_URL || 'http://localhost:5601';
-const GRAFANA_URL = process.env.GRAFANA_URL || 'http://localhost:3000';
+import { AUTHNZ_URL, OPENSEARCH_URL, OPENSEARCH_DASH_URL, GRAFANA_URL } from './config';
 
 /**
  * Run a seed script from the tests/seed/ directory.
@@ -50,7 +46,7 @@ export default async function globalSetup() {
 
   // Wait for UI
   console.log('  -> UI (port 9030)...');
-  const uiReady = await waitForUrlHealthy(BASE_URL, 30);
+  const uiReady = await waitForUrlHealthy(AUTHNZ_URL, 30);
   console.log('  ' + (uiReady ? 'OK' : 'timeout (may not be started)'));
 
   // Wait for authnz

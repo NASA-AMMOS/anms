@@ -13,7 +13,7 @@
 
 import { test, expect } from '@playwright/test';
 
-const AUTHNZ_URL=process.env.AUTHNZ_URL || 'http://localhost:8084';
+import { AUTHNZ_URL } from './config';
 
 test.describe('Authnz Proxy', () => {
   test('authnz service responds on port 8084', async ({ request }) => {

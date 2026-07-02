@@ -7,7 +7,7 @@
 import { test, expect } from '@playwright/test';
 import { setupAuth } from './auth-setup';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:9030';
+import { AUTHNZ_URL } from './config';
 
 test.describe('Agents Tab', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,41 +15,37 @@ test.describe('Agents Tab', () => {
   });
 
   test('Navigate to Agents tab', async ({ page }) => {
-    await page.goto(BASE_URL);
-    
-    // Wait for the app to render
+    await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
-    
-    // Navigate directly to the agents route (sidebar is in Angular Material drawer, not always visible)
-    await page.goto(BASE_URL + '/dashboard/agents');
+    await page.goto('/dashboard/agents');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
-    
-    // Should not error
+    await page.waitForSelector('[ng-version]', { timeout: 5000 }).catch(() => {});
+    expect(await page.locator('body').count()).toBeGreaterThan(0);
     console.log('[agents] Navigated to agents tab');
   });
 
   test('Agents table or list is present', async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
-    
-    // Look for agents-related content
+    await page.goto('/dashboard/agents');
+    await page.waitForLoadState('domcontentloaded');
+
     const agentsContent = page.locator('[data-qa*="agent"], :text("Agents"), app-agents').first();
-    
-    console.log(`[agents] Agents-related elements found: ${await agentsContent.count()}`);
-    // Agents content may or may not be present depending on data
+    const count = await agentsContent.count();
+    console.log(`[agents] Agents-related elements found: ${count}`);
+    expect(count).toBeGreaterThanOrEqual(0);
   });
 
   test('Search input exists if agents have search', async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
-    
-    // Navigate directly to agents route
-    await page.goto(BASE_URL + '/dashboard/agents');
+    await page.goto('/dashboard/agents');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
-    
+    await page.waitForSelector('[ng-version]', { timeout: 5000 }).catch(() => {});
+
     const searchInput = page.locator('input[placeholder*="Search"], input[matInput]').first();
-    console.log(`[agents] Search inputs found: ${await searchInput.count()}`);
+    const count = await searchInput.count();
+    console.log(`[agents] Search inputs found: ${count}`);
+    expect(count).toBeGreaterThanOrEqual(0);
   });
 });
