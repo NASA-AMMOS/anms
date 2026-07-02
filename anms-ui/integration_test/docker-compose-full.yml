@@ -79,8 +79,8 @@ services:
     hostname: authnz
     restart: unless-stopped
     ports:
-      - "${AUTHNZ_PORT:-80}:80"
-      - "${AUTHNZ_HTTPS_PORT:-443}:443"
+      - "${AUTHNZ_PORT:-8084}:80"
+      - "${AUTHNZ_HTTPS_PORT:-8443}:443"
     environment:
       PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089 http://anms-ui:9030"
       DEMO_AUTH: "1"
@@ -138,7 +138,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
       POSTGRES_DB: ${DB_NAME:-amp_core}
     volumes:
-      - "postgres-data:/var/lib/postgresql/data"
+      - "postgres-data:/var/lib/postgresql"
     expose:
       - "5432"
     healthcheck:
