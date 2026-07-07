@@ -121,6 +121,8 @@ To start the system in the future, use `podman compose -f testenv-compose.yml up
 ## Manual Startup
 Choose the appropriate docker, podman, or podman-compose commands in the directions below as appropriate for your system.
 
+- Run `./update_env.sh` to copy `example.env` to `.env` and populate BUILD_VERSION env variables.
+  - It is also recommended to run `./githooks/install.sh` to install git hooks to automatically run this on any git commit/checkout/pull operation when updating in the future.
 - Edit `.env` file as appropriate.
   - Select appropriate profile(s) as desired. 
     - Core ANMS services are always started.

@@ -35,8 +35,8 @@ RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
     else \
         echo "⚙️  INTERNAL_CERT_URL not set – skipping internal CA import"; \
     fi
-
 # ---------------------------------------------------------------------------
+
 ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
 
@@ -111,6 +111,11 @@ FROM yarn-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ENV BUILD_VERSION=$BUILD_VERSION
+ENV BUILD_DATE=$BUILD_DATE
+
 # Install NodeJS Global Dependencies
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm install --global pm2
@@ -118,23 +123,26 @@ RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 
+
 # Install Angular UI and Server Dependencies
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
+COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
 WORKDIR ${APP_WORK_DIR}
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/server/package.json ${APP_WORK_DIR}/server/
+
+RUN ./modify_version.sh
+
+# TODO: Modify this to use 'npm ci'
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     cd ${APP_WORK_DIR}/server && \
     npm install --omit=dev
+
+# TODO: Restore 'npm ci' after fixing checked-in package-lock.json
+# NOTE: npm i line is provided for developer usage when updating package-lock.json
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm i
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
-    npm ci
+#RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+#    npm ci
 
 # Build Backend/Frontend
-# These copies do not overwrite node_modules
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm run build
 
@@ -249,6 +257,11 @@ CMD ["/usr/local/bin/docker-entrypoint.sh"]
 #
 FROM dtnma-acelib AS anms-core
 
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ENV BUILD_VERSION=$BUILD_VERSION
+ENV BUILD_DATE=$BUILD_DATE
+
 ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
@@ -279,7 +292,7 @@ CMD ["/usr/local/bin/docker-entrypoint.sh"]
 EXPOSE 5555/tcp
 
 HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
-    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/hello"]
+    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/version"]
 
 # for anms-core integration test
 FROM yarn-base AS anms-core-integration
