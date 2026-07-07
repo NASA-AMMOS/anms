@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2023 The Johns Hopkins University Applied Physics
+# Copyright (c) 2026 The Johns Hopkins University Applied Physics
 # Laboratory LLC.
 #
 # This file is part of the Asynchronous Network Management System (ANMS).
@@ -21,16 +21,31 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
-
+import os
 from fastapi import APIRouter
 from fastapi import status
 from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel
 
-router = APIRouter(tags=["Examples"])
+router = APIRouter(tags=["VERSION"])
+
+class VersionInfo(BaseModel):
+    # Build time version information
+    build_version: str
+    build_date: str
+    # Git version information (runtime, if available. If this doesn't match above, user may not have rebuilt)
+    git_version: str
+    git_date: str
 
 
-@router.get("", status_code=status.HTTP_200_OK)
-async def hello_world():
-    return PlainTextResponse(
-        content="Hello World", status_code=status.HTTP_200_OK
+
+# GET 	/version 	Return version information
+@router.get("/", response_model=VersionInfo, status_code=status.HTTP_200_OK)
+async def anms_get_version():
+    return VersionInfo(
+        build_version=os.getenv("BUILD_VERSION", "unknown"),
+        build_date=os.getenv("BUILD_DATE", "unknown"),
+
+        git_version=os.getenv("GIT_VERSION", "unknown"),
+        git_date=os.getenv("GIT_DATE", "unknown"),
     )
