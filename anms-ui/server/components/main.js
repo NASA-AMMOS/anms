@@ -36,12 +36,6 @@
   const userOmits = ['password', 'tokenSecret', 'otpSecret', 'otpSecretForgot'];
 
   exports.preMainPageHandler = function (req, res, next) {
-    // Integration test auth bypass: if x-remote-user header is set and req.user is not,
-    // create a minimal user object so the Angular app renders with a logged-in session.
-    const remoteUser = req.headers['x-remote-user'];
-    if (remoteUser && !req.user) {
-      req.user = { username: remoteUser };
-    }
     return next();
   };
 

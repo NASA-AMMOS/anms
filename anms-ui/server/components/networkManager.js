@@ -22,46 +22,40 @@
 (function () {
   'use strict';
 
+  const _ = require('lodash');
   const Boom = require('@hapi/boom');
   const logger = require('../shared/logger');
   const axios = require('axios');
+  const utils = require('../shared/utils');
 
-  // Base URL for amp-manager REST API
-  // Environment variables from docker-compose: ION_MGR_HOST=amp-manager, ION_MGR_PORT=8089
-  const nmBaseUrl = 'http://' + (process.env.ION_MGR_HOST || 'localhost') + ':' + (process.env.ION_MGR_PORT || '8089');
 
-  /**
-   * Get amp-manager version info
-   */
   exports.getVersion = async function (req, res, next) {
     try {
-      const url = nmBaseUrl + '/nm/api/version';
+      const url = utils.generateAnmsCoreUrl(['nm', 'version']);
       const version = await axios.get(url);
+      if (version === null) {
+        return res.status(404);
+      }
       return res.status(200).json(version.data);
     } catch (err) {
-      logger.error('nm getVersion failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Register a new agent
-   */
   exports.nm_register_agent = async function (req, res, next) {
     try {
-      const agentId = req.body;
-      const url = nmBaseUrl + '/nm/api/agents';
-      const response = await axios.post(url, agentId);
-      return res.status(201).json(response.data);
+      const agentId = req.body
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents']);
+      const manResponse = await axios.post(url, agentId);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_register_agent failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Send hex command to agent by IDX
-   */
   exports.nm_put_hex_idx = async function (req, res, next) {
     try {
       const agentId = req.params.idx;
@@ -69,18 +63,17 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent IDX'));
       }
-      const url = nmBaseUrl + '/nm/api/agents/idx/' + agentId + '/hex';
-      const response = await axios.put(url, hex);
-      return res.status(200).json(response.data);
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', 'idx', agentId, 'hex']);
+      const manResponse = await axios.put(url, hex);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_put_hex_idx failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Send hex command to agent by EID
-   */
   exports.nm_put_hex_eid = async function (req, res, next) {
     try {
       const agentId = req.params.eid;
@@ -88,161 +81,167 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent EID'));
       }
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/hex';
-      const response = await axios.put(url, hex);
-      return res.status(200).json(response.data);
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', 'eid', agentId, 'hex']);
+      const manResponse = await axios.put(url, hex);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_put_hex_eid failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Clear reports for an agent
-   */
   exports.nm_clear_reports = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/clear_reports';
-      const response = await axios.put(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'clear_reports']);
+      const manResponse = await axios.put(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_clear_reports failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Clear tables for an agent
-   */
   exports.nm_clear_tables = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/clear_tables';
-      const response = await axios.put(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'clear_tables']);
+      const manResponse = await axios.put(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_clear_tables failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Get agent reports in hex format
-   */
   exports.nm_get_reports_hex = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/reports/hex';
-      const response = await axios.get(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'hex']);
+      const manResponse = await axios.get(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_get_reports_hex failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Get agent reports
-   */
   exports.nm_get_reports = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/reports';
-      const response = await axios.get(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports']);
+      const manResponse = await axios.get(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_get_reports failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Get agent reports in text format
-   */
+
   exports.nm_get_reports_text = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/reports/text';
-      const response = await axios.get(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'text']);
+      const manResponse = await axios.get(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_get_reports_text failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Get agent reports in JSON format
-   */
   exports.nm_get_reports_json = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/reports/json';
-      const response = await axios.get(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'json']);
+      const manResponse = await axios.get(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_get_reports_json failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Get agent reports in debug format
-   */
   exports.nm_get_reports_debug = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/reports/debug';
-      const response = await axios.get(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'debug']);
+      const manResponse = await axios.get(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_get_reports_debug failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Get agent information
-   */
   exports.nm_get_agents_info = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId;
-      const response = await axios.get(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId]);
+      const manResponse = await axios.get(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_get_agents_info failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
 
-  /**
-   * Clear reports via PUT
-   */
   exports.nm_put_clear_reports = async function (req, res, next) {
     try {
-      const agentId = req.params.addr;
-      const url = nmBaseUrl + '/nm/api/agents/eid/' + agentId + '/reports/clear';
-      const response = await axios.put(url);
-      return res.status(200).json(response.data);
+      const agentId = "eid/" + req.params.addr;
+      if (!_.isString(agentId)) {
+        return next(Boom.badData('Invalid Agent ID'));
+      }
+      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'clear']);
+      const manResponse = await axios.put(url);
+      if (manResponse === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(manResponse.data);
     } catch (err) {
-      logger.error('nm_put_clear_reports failed:', err.message);
-      return next(Boom.badGateway('Error talking to NM', err));
-    }
-  };
-
-
-  /**
-   * List all agents (GET /nm/agents)
-   */
-  exports.nm_get_agents = async function (req, res, next) {
-    try {
-      const url = nmBaseUrl + '/nm/api/agents';
-      const response = await axios.get(url);
-      return res.status(200).json(response.data);
-    } catch (err) {
-      logger.error('nm_get_agents failed:', err.message);
       return next(Boom.badGateway('Error talking to NM', err));
     }
   };
