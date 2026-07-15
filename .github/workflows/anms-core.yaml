@@ -31,7 +31,7 @@ jobs:
         working-directory: anms-core
         run: |
           FAIL_SRC=0
-          flake8 src || FAIL_SRC=$?
+          flake8 . || FAIL_SRC=$?
   anms-core_integration-test:
     runs-on: ubuntu-24.04
     env:
