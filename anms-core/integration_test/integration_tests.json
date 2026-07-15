@@ -6812,12 +6812,12 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/hello",
+					"raw": "{{baseUrl}}/version",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
-						"hello"
+						"version"
 					]
 				}
 			},
@@ -6828,12 +6828,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/hello",
+							"raw": "{{baseUrl}}/version",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"hello"
+								"version"
 							]
 						}
 					},

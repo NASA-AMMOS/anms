@@ -30,4 +30,4 @@ jobs:
         working-directory: aricodec
         run: |
           FAIL_SRC=0
-          flake8 src || FAIL_SRC=$?
+          flake8 . || FAIL_SRC=$?
