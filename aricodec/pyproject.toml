@@ -1,19 +1,20 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=62.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "anms-aricodec"
 version = "0.0.0"
 authors = [
+  { name="JHU/APL", email="dtnma-support@jhuapl.edu" },
 ]
 description = "ARI CODEC service"
 #readme = "README.md"
-license = { file="LICENSE" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.9"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
@@ -31,6 +32,17 @@ test = [
   "pytest-cov ~=3.0.0",
   "coverage ~=6.5.0",
 ]
+flake8 = [
+  "flake8",
+  "flake8_pyproject",
+  "flake8_formatter_junit_xml",
+]
+
+[tool.autopep8]
+max_line_length = 160
+
+[tool.flake8]
+max-line-length=160
 
 [tool.setuptools.packages.find]
 where = ["src"]
