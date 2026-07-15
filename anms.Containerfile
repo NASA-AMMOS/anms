@@ -24,13 +24,19 @@
 #
 FROM registry.access.redhat.com/ubi9/ubi:9.2 AS anms-base
 
-# Optional APL network configuration from
-# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
-RUN ( \
-      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
-      update-ca-trust && \
-      echo "Root CA added" \
-    ) || true
+# ----- optional internal CA -------------------------------------------------
+ARG INTERNAL_CERT_URL           # <-- build‑time variable
+RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
+        echo "🔐 Pulling internal root‑CA from $INTERNAL_CERT_URL …" && \
+        curl -fsSL "$INTERNAL_CERT_URL" \
+          -o /etc/pki/ca-trust/source/anchors/internal-root-ca.crt && \
+        update-ca-trust && \
+        echo "✅ Internal root CA added"; \
+    else \
+        echo "⚙️  INTERNAL_CERT_URL not set – skipping internal CA import"; \
+    fi
+# ---------------------------------------------------------------------------
+
 ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
 
@@ -72,7 +78,7 @@ COPY deps/dtnma-adms /usr/src/dtnma-adms
 
 
 # This is a postgres stateful database with data definition startup SQL scripts
-FROM docker.io/library/postgres:14 AS anms-sql
+FROM docker.io/library/postgres:18 AS anms-sql
 
 # Grafana DB Creation (can't setup second DB via env variable)
 COPY grafana/create_grafana_db.sql /docker-entrypoint-initdb.d/
@@ -105,6 +111,11 @@ FROM yarn-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ENV BUILD_VERSION=$BUILD_VERSION
+ENV BUILD_DATE=$BUILD_DATE
+
 # Install NodeJS Global Dependencies
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm install --global pm2
@@ -112,23 +123,26 @@ RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
 # Remaining commands as this user
 USER ${APP_USER}:${APP_USER}
 
+
 # Install Angular UI and Server Dependencies
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/package.json anms-ui/package-lock.json ${APP_WORK_DIR}/
+COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
 WORKDIR ${APP_WORK_DIR}
-COPY --chown=${APP_USER}:${APP_USER} \
-    anms-ui/server/package.json ${APP_WORK_DIR}/server/
+
+RUN ./modify_version.sh
+
+# TODO: Modify this to use 'npm ci'
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     cd ${APP_WORK_DIR}/server && \
     npm install --omit=dev
+
+# TODO: Restore 'npm ci' after fixing checked-in package-lock.json
+# NOTE: npm i line is provided for developer usage when updating package-lock.json
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm i
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
-    npm ci
+#RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+#    npm ci
 
 # Build Backend/Frontend
-# These copies do not overwrite node_modules
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
     npm run build
 
@@ -155,14 +169,20 @@ HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
 #
 FROM docker.io/grafana/grafana:12.3.0 AS grafana
 
-# Optional APL network configuration from
-# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
 USER root
-RUN ( \
-      wget http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -O /usr/local/share/ca-certificates/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
-      update-ca-certificates && \
-      echo "Root CA added" \
-    ) || true
+# ----- optional internal CA -------------------------------------------------
+ARG INTERNAL_CERT_URL           # <-- build‑time variable
+RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
+        echo "🔐 Pulling internal root‑CA from $INTERNAL_CERT_URL …" && \
+        curl -fsSL "$INTERNAL_CERT_URL" \
+          -o /etc/pki/ca-trust/source/anchors/internal-root-ca.crt && \
+        update-ca-trust && \
+        echo "✅ Internal root CA added"; \
+    else \
+        echo "⚙️  INTERNAL_CERT_URL not set – skipping internal CA import"; \
+    fi
+# ---------------------------------------------------------------------------
+
 USER grafana
 
 COPY --chown=grafana grafana/provisioning /etc/grafana/provisioning
@@ -237,6 +257,11 @@ CMD ["/usr/local/bin/docker-entrypoint.sh"]
 #
 FROM dtnma-acelib AS anms-core
 
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ENV BUILD_VERSION=$BUILD_VERSION
+ENV BUILD_DATE=$BUILD_DATE
+
 ENV APP_WORK_DIR=/usr/src/anms-core
 
 # Requirement of main module
@@ -267,7 +292,7 @@ CMD ["/usr/local/bin/docker-entrypoint.sh"]
 EXPOSE 5555/tcp
 
 HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
-    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/hello"]
+    CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/version"]
 
 # for anms-core integration test
 FROM yarn-base AS anms-core-integration
@@ -284,13 +309,19 @@ CMD ["./run_test.sh"]
 # Run on RHEL UBI image
 FROM quay.io/centos/centos:stream9 AS reftools-buildenv-base
 
-# Optional APL network configuration from
-# https://aplprod.servicenowservices.com/sp?id=kb_article&sys_id=c0de6fe91b83d85071b143bae54bcb34
-RUN ( \
-      curl -sL http://apllinuxdepot.jhuapl.edu/linux/APL-root-cert/JHUAPL-MS-Root-CA-05-21-2038-B64-text.cer -o /etc/pki/ca-trust/source/anchors/JHUAPL-MS-Root-CA-05-21-2038-B64-text.crt && \
-      update-ca-trust && \
-      echo "Root CA added" \
-    ) || true
+# ----- optional internal CA -------------------------------------------------
+ARG INTERNAL_CERT_URL           # <-- build‑time variable
+RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
+        echo "🔐 Pulling internal root‑CA from $INTERNAL_CERT_URL …" && \
+        curl -fsSL "$INTERNAL_CERT_URL" \
+          -o /etc/pki/ca-trust/source/anchors/internal-root-ca.crt && \
+        update-ca-trust && \
+        echo "✅ Internal root CA added"; \
+    else \
+        echo "⚙️  INTERNAL_CERT_URL not set – skipping internal CA import"; \
+    fi
+
+# ---------------------------------------------------------------------------
 ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
 

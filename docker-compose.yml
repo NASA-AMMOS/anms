@@ -48,6 +48,8 @@ services:
     build:
       context: auth/${AUTHNZ_EMU}
       dockerfile: Dockerfile
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     hostname: authnz
     restart: unless-stopped
     security_opt:
@@ -122,6 +124,8 @@ services:
     build:
       dockerfile: anms.Containerfile
       target: anms-sql
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
@@ -130,7 +134,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - "postgres-data:/var/lib/postgresql/data"
+      - "postgres-data:/var/lib/postgresql"
     ports:
       - "${DB_PORT-5432}:5432"
 
@@ -142,6 +146,8 @@ services:
     build:
       dockerfile: anms.Containerfile
       target: mqtt-broker
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     restart: unless-stopped
     security_opt:
       - "label=type:mqtt-broker.process"
@@ -156,6 +162,8 @@ services:
     build:
       dockerfile: anms.Containerfile
       target: transcoder
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     restart: unless-stopped
     security_opt:
       - "label=type:transcoder.process"
@@ -171,6 +179,8 @@ services:
     build:
       dockerfile: anms.Containerfile
       target: aricodec
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     restart: unless-stopped
     security_opt:
       - "label=type:aricodec.process"
@@ -190,6 +200,10 @@ services:
     build:
       dockerfile: anms.Containerfile
       target: anms-ui
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
+        BUILD_VERSION: "${GIT_VERSION}"
+        BUILD_DATE: "${GIT_DATE}"
     restart: unless-stopped
     security_opt:
       - "label=type:anms-ui.process"
@@ -218,6 +232,8 @@ services:
       # NOTE: Custom image currently needed only for SSL-cert purposes
       dockerfile: anms.Containerfile
       target: grafana
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     restart: unless-stopped
     security_opt:
       - "label=type:grafana.process"
@@ -272,6 +288,10 @@ services:
     build:
       dockerfile: anms.Containerfile
       target: anms-core
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
+        BUILD_VERSION: "${GIT_VERSION}"
+        BUILD_DATE: "${GIT_DATE}"
     restart: unless-stopped
     security_opt:
       - "label=type:anms-core.process"
@@ -283,6 +303,8 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      GIT_VERSION: ${GIT_VERSION}
+      GIT_DATE: ${GIT_DATE}
     ports:
       - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
     depends_on:
@@ -297,6 +319,8 @@ services:
     build:
       dockerfile: anms.Containerfile
       target: amp-manager
+      args:
+        INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     ports:
       - "${ION_MGR_PORT:-8089}:8089/tcp"
     depends_on:

@@ -1,5 +1,5 @@
 export const environment = {
-  UI_VERSION: '2.0.0-11-g80a27c5', // FIXME: hardcoded for now, where should this be populated from? and should version bump?
+  UI_VERSION: 'unknown', // NOTE: Auto-updated at build-time by modify_version.sh
   VUE_APP_STATUS_REFRESH_RATE: 60000, // milliseconds
 
   BASE_API_URL: 'http://anms-test:8080',
