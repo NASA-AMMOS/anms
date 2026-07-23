@@ -92,7 +92,7 @@ export class ManageAgentsDialog implements OnInit {
           throw new Error('Transcoder log did not include CBOR');
         }
 
-        return this.sendRawCborRequest(cbor);
+        return this.sendRawCborRequest([cbor]);
       }),
     ).subscribe({
       next: () => {
