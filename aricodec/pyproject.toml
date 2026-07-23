@@ -38,7 +38,7 @@ flake8 = [
   "flake8_formatter_junit_xml",
 ]
 ruff = [
-  "ruff",
+  "ruff==0.15.22",
 ]
 
 [tool.autopep8]
