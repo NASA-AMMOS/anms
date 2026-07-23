@@ -7,7 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 export class NotificationService {
   constructor(private toastr: ToastrService) {}
 
-  success(message: string, title?: string, timeout = 10000, onClick: () => void = () => {} ) {
+  success(message: string, title?: string, timeout = 0, onClick: () => void = () => {} ) {
     const toast = this.toastr.success(message, title, {timeOut: timeout});
     if(onClick){
       toast.onTap.subscribe(() => onClick());
@@ -15,7 +15,7 @@ export class NotificationService {
     }
   }
 
-  error(message: string, title?: string, timeout = 10000, onClick: () => void = () => {} ) {
+  error(message: string, title?: string, timeout = 0, onClick: () => void = () => {} ) {
     const toast = this.toastr.error(message, title, {timeOut: timeout});
     if(onClick){
       toast.onTap.subscribe(() => onClick());
@@ -23,7 +23,7 @@ export class NotificationService {
     }
   }
 
-  warning(message: string, title?: string, timeout = 10000, onClick: () => void = () => {} ) {
+  warning(message: string, title?: string, timeout = 0, onClick: () => void = () => {} ) {
     const toast = this.toastr.warning(message, title, {timeOut: timeout});
     if(onClick){
       toast.onTap.subscribe(() => onClick());
@@ -32,7 +32,7 @@ export class NotificationService {
     }
   }
 
-  info(message: string, title?: string, timeout = 10000, onClick: () => void = () => {} ) {
+  info(message: string, title?: string, timeout = 0, onClick: () => void = () => {} ) {
     const toast = this.toastr.info(message, title, {timeOut: timeout});
     if(onClick){
       toast.onTap.subscribe(() => onClick());
