@@ -64,7 +64,7 @@ ENV PYTHON=python3
 ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} install --upgrade 'pip~=24.0' 'pip-tools~=7.5'
+    ${PIP} install --upgrade 'pip~=24.0' 'pip-tools==7.5.3'
 
 COPY deps/dtnma-ace /usr/src/dtnma-ace
 RUN --mount=type=cache,target=/root/.cache/pip \
