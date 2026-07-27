@@ -141,14 +141,11 @@ RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
 # TODO: Restore 'npm ci' after fixing checked-in package-lock.json
 # NOTE: npm i line is provided for developer usage when updating package-lock.json
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
-    npm i
+    npm i && \
+    npm run build && \
+    npm prune --omit=dev
 #RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
 #    npm ci
-
-# Build Backend/Frontend
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
-    npm run build
-
 
 # Clean any old release dir and copy Angular browser build into it
 RUN rm -rf ${APP_WORK_DIR}/server/release && \
