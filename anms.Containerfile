@@ -55,7 +55,9 @@ FROM anms-base AS dtnma-acelib
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install gcc-c++ python-devel python3-pip python3-wheel python3-setuptools iputils
+    dnf -y install --setopt=install_weak_deps=False \
+    gcc-c++ python-devel python3-pip python3-wheel python3-setuptools iputils && \
+    dnf clean all
 
 # Use specific OS python version
 ENV PIP=pip3
@@ -102,7 +104,8 @@ ENV NODE_OPTIONS=--use-openssl-ca
 # Yarn cannot be installed via RPM because of FIPS-mode restrictions
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y nodejs && \
+    dnf install -y --setopt=install_weak_deps=False nodejs && \
+    dnf clean all && \
     npm config set cafile ${PIP_CERT}
 
 
@@ -327,13 +330,15 @@ ENV PIP_DEFAULT_TIMEOUT=300
 
 
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y epel-release && \
-    crb enable
+    dnf install -y --setopt=install_weak_deps=False epel-release && \
+    crb enable && \
+    dnf clean all
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y \
+    dnf install -y --setopt=install_weak_deps=False \
         gcc g++ \
         cmake ninja-build ruby pkg-config \
         flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel && \
+    dnf clean all && \
     echo "/usr/local/lib64" >/etc/ld.so.conf.d/local.conf && \
     ldconfig
 
@@ -393,10 +398,11 @@ RUN cd /usr/local/src/nm && \
 FROM anms-base AS amp-manager
 
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    dnf install -y --setopt=install_weak_deps=False https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
     crb enable && \
-    dnf install -y \
-        pcre2 civetweb openssl-libs cjson libpq
+    dnf install -y --setopt=install_weak_deps=False \
+        pcre2 civetweb openssl-libs cjson libpq && \
+    dnf clean all
 
 COPY --from=reftools-buildenv-refdm /usr/local /usr/local
 RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
