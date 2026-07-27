@@ -5,6 +5,9 @@ on:
       - .github/workflows/transcoder.yaml
       - deps/**
       - transcoder/**
+  pull_request: {} # any target
+  schedule:
+    - cron: '0 0 * * 0' # weekly
 
 jobs:
   flake8:
