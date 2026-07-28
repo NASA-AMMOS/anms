@@ -99,6 +99,7 @@ COPY deps/dtnma-tools/cmake /usr/local/src/nm/cmake
 COPY deps/dtnma-tools/src /usr/local/src/nm/src
 COPY deps/dtnma-tools/CMakeLists.txt /usr/local/src/nm/
 RUN cd /usr/local/src/nm && \
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig && \
     cmake -S . -B build/default \
       -DCMAKE_BUILD_TYPE=Debug \
       -DBUILD_MANAGER=OFF \
