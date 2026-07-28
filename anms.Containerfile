@@ -42,8 +42,8 @@ ENV PIP_DEFAULT_TIMEOUT=300
 
 # Explicit User (top of file to avoid conflicts down the line with IDs)
 ENV APP_USER=anms
-RUN groupadd -r -g 9999 ${APP_USER} && \
-    useradd -m -r -g ${APP_USER} -u 9999 ${APP_USER}
+RUN groupadd -r -g 99 ${APP_USER} && \
+    useradd -m -r -g ${APP_USER} -u 99 ${APP_USER}
 
 
 # This image includes common libraries used by the aricodec and anms-core
@@ -117,7 +117,7 @@ ENV BUILD_VERSION=$BUILD_VERSION
 ENV BUILD_DATE=$BUILD_DATE
 
 # Install NodeJS Global Dependencies
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
     npm install --global pm2
 
 # Remaining commands as this user
@@ -131,19 +131,19 @@ WORKDIR ${APP_WORK_DIR}
 RUN ./modify_version.sh
 
 # TODO: Modify this to use 'npm ci'
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
     cd ${APP_WORK_DIR}/server && \
     npm install --omit=dev
 
 # TODO: Restore 'npm ci' after fixing checked-in package-lock.json
 # NOTE: npm i line is provided for developer usage when updating package-lock.json
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
     npm i
-#RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+#RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
 #    npm ci
 
 # Build Backend/Frontend
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
+RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
     npm run build
 
 
