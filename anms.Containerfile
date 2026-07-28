@@ -94,20 +94,18 @@ HEALTHCHECK --start-period=10s --interval=10s --timeout=5s --retries=5 \
     CMD ["pg_isready", "-U", "healthcheck"]
 
 
-# The yarn-base image is used by prep_packages script externally
-FROM anms-base AS yarn-base
+# The node-base image is used by prep_packages script externally
+FROM anms-base AS node-base
 ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
-# Yarn cannot be installed via RPM because of FIPS-mode restrictions
-RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y nodejs && \
+    dnf module install -y nodejs:22 && \
     npm config set cafile ${PIP_CERT}
 
 
 # Actual installation
-FROM yarn-base AS anms-ui
+FROM node-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
 ENV PM2_HOME=${APP_WORK_DIR}/.pm2
 
@@ -295,7 +293,7 @@ HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
     CMD ["curl", "-sq", "-o/dev/null", "http://localhost:5555/version"]
 
 # for anms-core integration test
-FROM yarn-base AS anms-core-integration
+FROM node-base AS anms-core-integration
 
 # Install node+yarn from upstream
 RUN npm install --ignore-scripts -g newman
