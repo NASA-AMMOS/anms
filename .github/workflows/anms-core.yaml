@@ -48,8 +48,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          submodules: recursive
+      - name: Submodules
+        run: |
+          git submodule update --init
+          cd deps/dtnma-tools/ && git submodule update --init
       - name: Set ENV
         run: ./update_env.sh
       - name: Build ANMS
