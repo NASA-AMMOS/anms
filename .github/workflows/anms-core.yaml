@@ -1,10 +1,8 @@
 name: Test anms-core
 on:
   push:
-    paths:
-      - .github/workflows/anms-core.yaml
-      - deps/**
-      - anms-core/**
+    branches:
+    - main
   pull_request: {} # any target
   schedule:
     - cron: '0 0 * * 0' # weekly
@@ -16,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          submodules: recursive
+          submodules: true
       - name: Set ENV
         run: ./update_env.sh
       - name: Set up Python
