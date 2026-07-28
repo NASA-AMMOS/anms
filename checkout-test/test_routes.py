@@ -322,7 +322,7 @@ class TestPrimaryRoutes(BaseTest):
     def test_refdm_access(self):
         # any API access
         resp = self._require_response(
-            url='/nm/nm/api/version',
+            url='/nm/api/version',
             resp_status=[200],
             resp_ctype=['application/json'],
         )
@@ -331,20 +331,21 @@ class TestPrimaryRoutes(BaseTest):
         # choice of agent is arbitrary
         agent_eid = 'ipn:2.6'
         eid_seg = quote(agent_eid, safe="")
-        agent_base = self._resolve(f'/nm/nm/api/agents/eid/{eid_seg}/')
+        agent_base = self._resolve(f'/nm/api/agents/eid/{eid_seg}/')
 
         # immediate need to register Agent endpoint
-        resp = self.httpsess.get(agent_base + 'reports?form=text')
+        resp = self.httpsess.head(agent_base)
         if resp.status_code == 404:
             resp = self._require_response(
-                url='/nm/nm/api/agents',
+                url='/nm/api/agents',
                 method='POST',
                 req_headers={
                     'content-type': 'text/plain',
                 },
                 req_data=f'{agent_eid}\r\n',
-                resp_status=[200],
+                resp_status=[201],
             )
+            self.assertEqual(agent_base, urljoin(resp.url, resp.headers['location']))
         else:
             resp = self._require_response(
                 url=(agent_base + 'clear_reports'),

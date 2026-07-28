@@ -11,7 +11,7 @@ then
 fi
 
 ACE="python3 -m ace.tools.ace_ari --log-level=warning --outform=cborhex --must-nickname"
-CURL="curl --silent --show-error -XPUT -H \"Content-Type: text/plain\" --data-binary @- http://localhost:8089/nm/api/agents/eid/${AGENT_EID}/hex"
+CURL="curl --silent --show-error -XPUT -H \"Content-Type: text/plain\" --data-binary @- http://localhost:8089/api/agents/eid/${AGENT_EID}/hex"
 
 while IFS="" read -r LINE || [ -n "$LINE" ]
 do

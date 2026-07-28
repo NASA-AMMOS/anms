@@ -128,7 +128,7 @@ class BaseConfig(AbstractConfig):
     # nm Settings
     NM_HOST = os.environ.get('NM_HOST',"amp-manager")
     NM_PORT = os.environ.get('NM_PORT', 8089)
-    NM_API_BASE ="/nm/api"
+    NM_API_BASE ="/api"
 
     # Relation DB Settings (MySQL)
     # DB_SCHEME = "mysql+pymysql"
