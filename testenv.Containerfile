@@ -86,8 +86,9 @@ COPY deps/dtnma-tools/deps/ion*.patch /usr/local/src/nm/deps/
 RUN cd /usr/local/src/nm/deps/ion && \
     patch -p1 <../ion-4.1.4-remove-nm.patch && \
     autoreconf -vif && \
-    export CFLAGS="-std=gnu99" && \
-    ./configure && \
+    export CC="gcc" CXX="g++" && \
+    export CFLAGS="-std=gnu99 -Wno-error=pedantic" && \
+    ./configure --disable-dtpc --disable-tc && \
     make -j$(nproc) && \
     make install && \
     make -j$(nproc) clean
