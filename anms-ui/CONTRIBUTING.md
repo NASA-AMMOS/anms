@@ -57,7 +57,7 @@ subcontract 1658085.
 
 ###### Python Code Style
 * Follow Pep8 with some exclusions as needed.
-* TBD: pylint and flake8 should be enabled in the future to verify this.
+* TBD: pylint and ruff should be enabled in the future to verify this.
 
 ###### Vue Code Style
 * VueJS code should adhere as best as possible to the following style guidelines:

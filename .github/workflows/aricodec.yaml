@@ -5,9 +5,12 @@ on:
       - .github/workflows/aricodec.yaml
       - deps/**
       - aricodec/**
+  pull_request: {} # any target
+  schedule:
+    - cron: '0 0 * * 0' # weekly
 
 jobs:
-  flake8:
+  ruff:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -23,11 +26,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install deps/dtnma-ace
-      - name: Install flake8
+      - name: Install ruff
         working-directory: aricodec
-        run: pip3 install -e '.[flake8]'
-      - name: Run flake8
+        run: pip3 install -e '.[ruff]'
+      - name: Run ruff check
         working-directory: aricodec
         run: |
           FAIL_SRC=0
-          flake8 . || FAIL_SRC=$?
+          ruff check . || FAIL_SRC=$?
+      - name: Run ruff format --check
+        working-directory: aricodec
+        run: |
+          FAIL_SRC=0
+          ruff format --check . || FAIL_SRC=$?

@@ -62,17 +62,18 @@ test = [
   "mock-alchemy ==0.2.5",
   "coverage ~=6.5.0",
 ]
-flake8 = [
-  "flake8",
-  "flake8_pyproject",
-  "flake8_formatter_junit_xml",
+ruff = [
+  "ruff==0.15.22",
 ]
 
 [tool.autopep8]
 max_line_length = 160
 
-[tool.flake8]
-max-line-length=160
+[tool.ruff]
+line-length = 160
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I"]
 
 [tool.setuptools]
 include-package-data = true
