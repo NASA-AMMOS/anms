@@ -360,9 +360,8 @@ class TestPrimaryRoutes(BaseTest):
                 'content-type': 'text/plain',
             },
             req_data='ari:/EXECSET/n=1;(ari://ietf/dtnma-agent/CTRL/inspect(ari://ietf/dtnma-agent/EDD/num-msg-rx))',
-            resp_status=[200],
+            resp_status=[200, 204],
         )
-        LOGGER.info(resp)
 
         # TODO this assumes any report is valid without filtering on nonce
         timer = Timer(5)

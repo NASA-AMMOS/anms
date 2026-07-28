@@ -34,7 +34,6 @@ from anms.models.relational import get_session
 from anms.components.schemas import TranscoderLog as TL
 from anms.models.relational import get_async_session, nm_url
 from anms.models.relational.transcoder_log import TranscoderLog
-
 from anms.shared.opensearch_logger import OpenSearchLogger
 from anms.shared.transmogrifier import TRANSMORGIFIER
 
@@ -207,7 +206,7 @@ def do_nm_put_hex_eid(eid: str, ari: str) -> int:
     logger.debug('post to nm manager %s with eid %s and data %s' % (url, eid, ari))
 
     try:
-        request = requests.post(
+        response = requests.post(
             url=url,
             data=ari,
             headers={'Content-Type': 'text/plain'},
@@ -217,7 +216,7 @@ def do_nm_put_hex_eid(eid: str, ari: str) -> int:
         raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="manager timeout")
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return request.status_code
+    return response.status_code
 
 
 # PUT 	/ui/incoming_send/str 	Body is str ARI to send to transcoder

@@ -22,18 +22,16 @@
 import io
 import json
 import re
-# from threading import *
 from threading import Lock
 
 from pydantic.main import BaseModel
 from sqlalchemy import select, insert
 from sqlalchemy.exc import IntegrityError, OperationalError
 
-# from anms.routes import transcoder
 import ace
 from anms.models.relational import get_session
 from anms.models.relational.agent_parameter import AgentParameter
-from anms.routes.network_manager import nm_put_hex_eid, Data
+from anms.routes.transcoder import do_nm_put_hex_eid
 from anms.shared.ace_runner import get_adms
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
@@ -236,7 +234,7 @@ class AgentParam:
         # send hex to manager
         if cbors:
             for cbor in cbors:
-                nm_put_hex_eid(agent_EID, Data(data=cbor))
+                do_nm_put_hex_eid(agent_EID, cbor)
             return None, None
         else:
             return ari, err

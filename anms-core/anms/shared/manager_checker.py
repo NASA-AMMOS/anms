@@ -21,10 +21,11 @@
 #
 
 import json
+import requests
 from threading import Lock
-from anms.routes.network_manager import nm_get_agents
-from anms.routes.ARIs.agents import all_registered_agents
 
+from anms.routes.ARIs.agents import all_registered_agents
+from anms.models.relational import nm_url
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
 
@@ -94,22 +95,18 @@ class ManagerChecker:
             try:
                 # TODO enhancement compare manager known agents vs database known agents 
                 logger.info('checking agents list')
-                agents = nm_get_agents()
-                if agents == -1:  # counlnt connect to manager
-                    if self.manager_connect:
-                        curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
-                                                    "msg": f"failed to reach manager", "visible": True}
-                        self.curr_id = self.curr_id + 1
-                        logger.error("could not reach nm manager")
-                        self.manager_connect = False
-                    agents = []
-                else:
-                    if not self.manager_connect:  # if manager was disconnected alert for reconnect
-                        curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
-                                                    "msg": f"reconnected to manager", "visible": True}
-                        self.curr_id = self.curr_id + 1
-                        self.manager_connect = True
-                    agents = agents["agents"]
+                url = nm_url + "/agents"
+                response = requests.get(url)
+                if not response.ok:
+                    raise RuntimeError('no valid resonse')
+
+                if not self.manager_connect:  # if manager was disconnected alert for reconnect
+                    curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
+                                                "msg": f"reconnected to manager", "visible": True}
+                    self.curr_id = self.curr_id + 1
+                    self.manager_connect = True
+                agents = agents["agents"]
+
             except Exception as e:
                 if self.manager_connect:
                     curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
