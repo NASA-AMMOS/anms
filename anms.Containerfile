@@ -327,7 +327,7 @@ ENV PIP_DEFAULT_TIMEOUT=300
 
 
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y --setopt=install_weak_deps=False epel-release && \
+    dnf install -y --setopt=install_weak_deps=False epel-release 'dnf-command(config-manager)' && \
     crb enable && \
     dnf clean all
 RUN --mount=type=cache,target=/var/cache/yum \
