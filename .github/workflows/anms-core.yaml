@@ -38,6 +38,7 @@ jobs:
         run: |
           FAIL_SRC=0
           ruff format --check . || FAIL_SRC=$?
+
   anms-core_integration-test:
     runs-on: ubuntu-24.04
     env:
@@ -48,10 +49,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Submodules
-        run: |
-          git submodule update --init
-          cd deps/dtnma-tools/ && git submodule update --init
+        with:
+          submodules: true
+      - name: Secondary submodules
+        working-directory: deps/dtnma-tools
+        run: git submodule update --init
       - name: Set ENV
         run: ./update_env.sh
       - name: Build ANMS
