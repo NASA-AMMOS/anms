@@ -100,6 +100,8 @@ ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/var/cache/yum \
+    dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    crb enable && \
     dnf module install -y nodejs:22 && \
     npm config set cafile ${PIP_CERT}
 
