@@ -19,8 +19,12 @@ else
     echo "GIT_DATE=${GIT_DATE}" >> .env
 fi
 
+source "$(dirname "$0")/gen_password.sh"
+
 # Add OPENSEARCH_INITIAL_ADMIN_PASSWORD if missing.
 if ! grep -q '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env; then
-    password="$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20)"
+    password=$(generate_password)
     echo "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${password}" >> .env
 fi
+
+
