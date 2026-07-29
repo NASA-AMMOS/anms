@@ -31,6 +31,7 @@ shuffle() {
     done
 
     printf '%s' "${a[@]}"
+    return 0
 }
 # --------------------------------------------------------------------
 
@@ -39,28 +40,29 @@ shuffle() {
 # --------------------------------------------------------------------
 generate_password() {
     # ---- configuration ------------------------------------------------
-    local MIN_LEN=8
-    local DEFAULT_LEN=20
+    local min_len=8
+    local default_len=20
     # A set of specials that are safe to pass to `tr -dc`.  All of them
     # are escaped for the `tr` character class (dash is first, brackets are last).
-    local DEFAULT_SPECIAL='!@#$%^&*()-_=+[]{}<>?,.;:'
+    local default_special='!@#$%^&*()-_=+[]{}<>?,.;:'
 
     # ---- arguments ----------------------------------------------------
-    local len=${1:-$DEFAULT_LEN}                 # requested length
-    local special="${2:-$DEFAULT_SPECIAL}"       # custom specials (optional)
+    local len=${1:-$default_len}                 # requested length
+    local special="${2:-$default_special}"       # custom specials (optional)
 
     # ---- sanity --------------------------------------------------------
-    if (( len < MIN_LEN )); then
-        echo "Error: length $len < minimum $MIN_LEN required by policy." >&2
+    if (( len < min_len )); then
+        echo "Error: length $len < minimum $min_len required by policy." >&2
         return 1
     fi
 
     # ---- tiny helper: pick ONE random char from a class using openssl ----
     # $1 – character class for `tr -dc` (e.g. 'A-Z' or '0-9')
     _pick_one_class() {
+        local set=$1
         # We request a few extra random bytes so that after filtering we
         # still have at least one character.
-        openssl rand -base64 6 | tr -dc "$1" | head -c1
+        openssl rand -base64 6 | tr -dc "${set}" | head -c1
     }
 
     # ---- pick ONE special character **without** using tr ---------------
@@ -95,6 +97,7 @@ generate_password() {
 
     # ---- shuffle (pure Bash) --------------------------------------------
     shuffle "$combined"
+    return 0
 }
 # --------------------------------------------------------------------
 
@@ -116,5 +119,5 @@ generate_password() {
 # echo "$pw1" | grep -q '[A-Z]' && echo "  Uppercase OK"
 # echo "$pw1" | grep -q '[a-z]' && echo "  Lowercase OK"
 # echo "$pw1" | grep -q '[0-9]' && echo "  Digit OK"
-# echo "$pw1" | grep -q "[${DEFAULT_SPECIAL}]" && echo "  Special OK"
+# echo "$pw1" | grep -q "[${default_special}]" && echo "  Special OK"
 # --------------------------------------------------------------------
