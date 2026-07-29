@@ -63,6 +63,7 @@ generate_password() {
         # We request a few extra random bytes so that after filtering we
         # still have at least one character.
         openssl rand -base64 6 | tr -dc "${set}" | head -c1
+        return 0
     }
 
     # ---- pick ONE special character **without** using tr ---------------
@@ -71,6 +72,7 @@ generate_password() {
         local set=$1
         local idx=$(( RANDOM % ${#set} ))
         echo "${set:idx:1}"
+        return 0
     }
 
     # ---- guarantee each required class ---------------------------------
