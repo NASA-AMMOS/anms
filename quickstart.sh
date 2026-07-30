@@ -31,6 +31,9 @@
 # Note: This script was created with assistance from openai/gpt-oss-120b
 set -e
 
+# Update or create .env file as appropriate
+./update_env.sh
+
 # Determine base command (docker or podman)
 if [ -n "$DOCKER_CMD" ]; then
     echo "Using defined DOCKER_CMD=${DOCKER_CMD}"

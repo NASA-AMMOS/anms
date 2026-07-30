@@ -135,7 +135,7 @@ async def load_default_adm():
     return response
 
 @router.post("/", status_code=status.HTTP_201_CREATED,
-             responses={400: {"model": RequestError}, 405: {"model": UpdateAdmError}, 500: {"model": RequestError}})
+             responses={200: {}, 400: {"model": RequestError}, 405: {"model": UpdateAdmError}, 500: {"model": RequestError}})
 async def update_adm(file: UploadFile, request: Request):
     response = None
     status_code = status.HTTP_201_CREATED

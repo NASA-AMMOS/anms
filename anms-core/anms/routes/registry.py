@@ -25,12 +25,11 @@ from typing import Dict
 
 from fastapi import APIRouter
 
-from anms.routes import hello, main, network_manager, logging, transcoder, system_status, user, alerts
+from anms.routes import main, network_manager, logging, transcoder, system_status, user, alerts
 from anms.routes.ARIs import agents, \
     ari,  reports
 from anms.routes.adms import adm
 from anms.routes.mappings import RoutesMapper
-from anms.shared.manager_checker import MANAGER_CHECKER
 
 
 class RoutesRegistry(object):
@@ -43,7 +42,7 @@ class RoutesRegistry(object):
         # Router Path Order Matters https://fastapi.tiangolo.com/tutorial/path-params/#order-matters
 
         # Other API Mounts
-        self.routing_table[RoutesMapper.hello_api_prefix] = hello.router
+        self.routing_table[RoutesMapper.version_api_prefix] = version.router
         self.routing_table[RoutesMapper.agents_api_prefix] = agents.router
 
         self.routing_table[RoutesMapper.logging_api_prefix] = logging.router
@@ -65,7 +64,6 @@ class RoutesRegistry(object):
         self.routing_table[RoutesMapper.base_prefix] = main.router
         # TODO https://fastapi.tiangolo.com/advanced/path-operation-advanced-configuration/#using-the-path-operation-function-name-as-the-operationid
 
-        # MANAGER_CHECKER.test()
     @property
     def table(self) -> Dict[RoutesMapper, APIRouter]:
         return self.routing_table

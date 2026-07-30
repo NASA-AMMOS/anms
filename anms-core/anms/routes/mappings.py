@@ -34,7 +34,7 @@ class RoutesMapper(str, Enum):
     base_prefix = posixpath.join("/", config['SERVER_CHROOT']).rstrip("/") + "/"
 
     # Route Paths
-    hello_api_prefix = posixpath.join(base_prefix, "hello") + "/"
+    version_api_prefix = posixpath.join(base_prefix, "version") + "/"
     agents_api_prefix = posixpath.join(base_prefix, "agents") + "/"
 
     ari_api_prefix = posixpath.join(base_prefix, "ari") + "/"
