@@ -87,7 +87,7 @@ def get_containers_status():
       except requests.RequestException as err:
         logger.warning("%s: URL %s failed to reach with error %s", name, url, err)
         statuses[name] = "not-running"
-
+        
     elif "tcp_port" in container:
       port = container['tcp_port']
       try:

@@ -32,4 +32,3 @@ from .user import (MinUserBase, User, UserBase, UserExternCreate, UserInDB,
 from .network_manager import NMBase
 from anms.components.schemas.ARIs.registered_agent import (RegisteredAgent, RegisteredAgentBase, RegisteredAgentInDB, RegisteredAgentInDBBase)
 from  anms.components.schemas.transcoder_log import (TranscoderLog, TranscoderLogBase, TranscoderLogInDB, TranscoderLogInDBBase )
-from anms.components.schemas.agent_parameter import (AgentParameterBase, AgentParameterReceivedBase)

@@ -27,7 +27,7 @@ from anms.routes.ARIs.agents import all_registered_agents
 
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
-
+from anms.shared import alerts
 logger = OpenSearchLogger(__name__).logger
 
 config = ConfigBuilder.get_config()
@@ -42,18 +42,8 @@ class ManagerChecker:
         self.manager_connect = True  # tracks manager connection status so doesnt repeat alerts of disconnect
         self.curr_id = 0  # tracking the alert id for acknowledging
         self.alerts = {}  # store new alerts right now alerts for added new agents or removed agents
-        self.check_list()
-        # TODO switch back to daemon when pushing alerts instead of waiting for request
-        # checking_child = Thread(target=self._check_list)
-        # checking_child.daemon = True
-        # checking_child.start()
-
+    
     # TODO improvements listening to database for alerts
-    # # listen to the the database for new entrys in the AgentParameterReceived table
-    # @event.listens_for(AgentParameterReceived, 'after_insert')
-    # def _check_parameter_received(self, _, target):
-    #     process_command(target.agent_parameter_id, ast.literal_eval(target.command_parameters),
-    #                     AGENT_PARAMETER.get_agent())
     def clear_alerts(self):
         self.alerts = {}
 
@@ -85,7 +75,7 @@ class ManagerChecker:
                 logger.error(e)
         return data
 
-    def check_list(self):
+    async def check_list(self):
         now_know = []  # for tracking new agents
         # get the current list of agents from manager
         # if new one is added or removed then send alert
@@ -98,22 +88,25 @@ class ManagerChecker:
                 if agents == -1:  # counlnt connect to manager
                     if self.manager_connect:
                         curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
-                                                    "msg": f"failed to reach manager", "visible": True}
+                                                    "msg": "failed to reach manager", "visible": True}
                         self.curr_id = self.curr_id + 1
                         logger.error("could not reach nm manager")
                         self.manager_connect = False
+                        await alerts.store_alert("manager_error", "40", "ailed to reach manager")
                     agents = []
                 else:
                     if not self.manager_connect:  # if manager was disconnected alert for reconnect
                         curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
-                                                    "msg": f"reconnected to manager", "visible": True}
+                                                    "msg": "reconnected to manager", "visible": True}
+                        await alerts.store_alert("manager_reconnect", "20", "reconnected to manager")
                         self.curr_id = self.curr_id + 1
                         self.manager_connect = True
                     agents = agents["agents"]
             except Exception as e:
                 if self.manager_connect:
                     curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
-                                                "msg": f"failed to reach manager", "visible": True}
+                                                "msg": "failed to reach manager", "visible": True}                    
+                    await alerts.store_alert("manager_error", "40", "failed to reach manager")
                     self.curr_id = self.curr_id + 1
                     logger.error("could not reach nm manager")
                     self.manager_connect = False
@@ -127,27 +120,24 @@ class ManagerChecker:
                 if curr_name not in self.known_agents:
                     curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "new_agent", "type": "info",
                                                 "msg": f"{curr_name} added", "visible": True}
+                    await alerts.store_alert("new_agent", "20", f"{curr_name} added")
                     self.known_agents[curr_name] = agent
                     self.curr_id = self.curr_id + 1
 
             # check if any agents were removed
             missing = self.known_agents.keys() - now_know
             for miss in missing:
+                # write new entry into DB
                 curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "removed_agent", "type": "warning",
                                             "msg": f"{miss} removed", "visible": True}
+                await alerts.store_alert("removed_agent", "30", f"{miss} removed")
                 self.curr_id = self.curr_id + 1
                 self.known_agents.pop(miss)
+            
             #last step write back alerts 
+            
             with open(self.alert_file, 'w') as f:
                 json.dump(curr_alerts, f)
 
-        # TODO Reworks so alerts are pushed to UI server and the front end instead of frontend requesting alerts
-        # send alerts to UI
-        # if self.alerts:
-        #     logger.info(self.alerts)
-        #     url = self.ui_url + "alerts/incoming"
-        #     # logger.info
-        #     # logger.info(requests.put(url=url, data={"data": self.alerts}))
 
-
-MANAGER_CECKER = ManagerChecker(config)
+MANAGER_CHECKER = ManagerChecker(config)

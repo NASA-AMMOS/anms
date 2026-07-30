@@ -264,7 +264,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-adms /usr/local/share/ace/adms
-COPY anms-core/anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
+
+RUN mkdir -p /usr/local/share/anms
 RUN touch /usr/local/share/anms/alerts.json
 RUN chmod go+w  /usr/local/share/anms/alerts.json
 

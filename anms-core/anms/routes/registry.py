@@ -25,12 +25,12 @@ from typing import Dict
 
 from fastapi import APIRouter
 
-from anms.routes import hello, main, network_manager, logging, transcoder, system_status, user, agent_parameter
-from anms.routes.ARIs import agents, actual_objects, formal_parameter, formal_objects, \
-    ari, actual_parameter, reports, alerts
+from anms.routes import hello, main, network_manager, logging, transcoder, system_status, user, alerts
+from anms.routes.ARIs import agents, \
+    ari,  reports
 from anms.routes.adms import adm
 from anms.routes.mappings import RoutesMapper
-from anms.shared.manager_checker import MANAGER_CECKER
+from anms.shared.manager_checker import MANAGER_CHECKER
 
 
 class RoutesRegistry(object):
@@ -45,7 +45,6 @@ class RoutesRegistry(object):
         # Other API Mounts
         self.routing_table[RoutesMapper.hello_api_prefix] = hello.router
         self.routing_table[RoutesMapper.agents_api_prefix] = agents.router
-        self.routing_table[RoutesMapper.parameter_api_prefix] = agent_parameter.router
 
         self.routing_table[RoutesMapper.logging_api_prefix] = logging.router
 
@@ -55,11 +54,6 @@ class RoutesRegistry(object):
 
         self.routing_table[RoutesMapper.ari_api_prefix] = ari.router
 
-        self.routing_table[RoutesMapper.actual_objects_api_prefix] = actual_objects.router
-        self.routing_table[RoutesMapper.formal_objects_api_prefix] = formal_objects.router
-
-        self.routing_table[RoutesMapper.actual_parameter_api_prefix] = actual_parameter.router
-        self.routing_table[RoutesMapper.formal_parameter_api_prefix] = formal_parameter.router
         
         self.routing_table[RoutesMapper.reports_api_prefix] = reports.router
 
@@ -71,7 +65,7 @@ class RoutesRegistry(object):
         self.routing_table[RoutesMapper.base_prefix] = main.router
         # TODO https://fastapi.tiangolo.com/advanced/path-operation-advanced-configuration/#using-the-path-operation-function-name-as-the-operationid
 
-        # MANAGER_CECKER.test()
+        # MANAGER_CHECKER.test()
     @property
     def table(self) -> Dict[RoutesMapper, APIRouter]:
         return self.routing_table
