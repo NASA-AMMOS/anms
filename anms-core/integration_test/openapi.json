@@ -6,13 +6,13 @@
         "version": "0.1.0"
     },
     "paths": {
-        "/hello": {
+        "/version": {
             "get": {
                 "tags": [
                     "Examples"
                 ],
                 "summary": "Hello World",
-                "operationId": "hello_world_hello_get",
+                "operationId": "hello_world_version_get",
                 "responses": {
                     "200": {
                         "description": "Successful Response",
