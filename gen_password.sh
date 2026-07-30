@@ -3,14 +3,14 @@
 # generate_password_demo_no_shuf.sh
 #   Inline password generator that always meets the policy:
 #       • ≥ 8 characters (default 20)
-#       • at least one upper‑case, one lower‑case, one digit
+#       • at least one upper-case, one lower-case, one digit
 #       • at least one *special* character (from a safe list)
-#   No external `shuf` binary is required – a pure‑Bash Fisher‑Yates
+#   No external `shuf` binary is required – a pure-Bash Fisher-Yates
 #   shuffle is used instead.
 # --------------------------------------------------------------------
 
 # --------------------------------------------------------------------
-# 1️⃣  Pure‑Bash Fisher‑Yates shuffle (works on any Bash ≥ 3)
+#  Pure Bash Fisher Yates shuffle (works on any Bash ≥ 3)
 # --------------------------------------------------------------------
 # Usage: shuffled=$(shuffle "string")
 shuffle() {
@@ -36,7 +36,7 @@ shuffle() {
 # --------------------------------------------------------------------
 
 # --------------------------------------------------------------------
-# 2️⃣  Password‑generation function (inline, no external shuf)
+#  Password generation function (inline, no external shuf)
 # --------------------------------------------------------------------
 generate_password() {
     # ---- configuration ------------------------------------------------
@@ -104,14 +104,14 @@ generate_password() {
 # --------------------------------------------------------------------
 
 # --------------------------------------------------------------------
-# 3️⃣  Example usage – call the function from the same script
+# Example usage – call the function from the same script
 # --------------------------------------------------------------------
 #echo "=== Demo: default password (20 chars, default specials) ==="
 #pw1=$(generate_password)            # defaults to 20 chars
 #echo "Generated: $pw1"
 
 #echo
-#echo "=== Demo: 12‑char password, custom specials *$#@! ==="
+#echo "=== Demo: 12-char password, custom specials *$#@! ==="
 #pw2=$(generate_password 12 '*$#@!')
 #echo "Generated: $pw2"
 
