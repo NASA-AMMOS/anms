@@ -51,7 +51,7 @@ status_cfg = [
   {"name": "authnz", "url": "http://authnz/authn/login.html"},
   {"name": "grafana", "tcp_port": 3000},
   {"name": "grafana-image-renderer", "url": "http://grafana-image-renderer:8081"},
-  {"name": "amp-manager", "url": "http://amp-manager:8089/api/version"},
+  {"name": "amp-manager", "url": "http://amp-manager:8089/nm/api/version"},
   {"name": "mqtt-broker"},
   {"name": "postgres", "tcp_port": 5432},
   {"name": "redis"},

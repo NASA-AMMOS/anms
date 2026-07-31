@@ -331,27 +331,24 @@ class TestPrimaryRoutes(BaseTest):
         # choice of agent is arbitrary
         agent_eid = 'ipn:2.6'
         eid_seg = quote(agent_eid, safe="")
-        agent_base = self._resolve(f'/nm/api/agents/eid/{eid_seg}/')
 
-        # immediate need to register Agent endpoint
-        resp = self.httpsess.head(agent_base)
-        if resp.status_code == 404:
-            resp = self._require_response(
-                url='/nm/api/agents',
-                method='POST',
-                req_headers={
-                    'content-type': 'text/plain',
-                },
-                req_data=f'{agent_eid}\r\n',
-                resp_status=[201],
-            )
-            self.assertEqual(agent_base, urljoin(resp.url, resp.headers['location']))
-        else:
-            resp = self._require_response(
-                url=(agent_base + 'clear_reports'),
-                method='POST',
-                resp_status=[200, 204],
-            )
+        # get or register Agent endpoint
+        resp = self._require_response(
+            url='/nm/api/agents',
+            method='POST',
+            req_headers={
+                'content-type': 'text/plain',
+            },
+            req_data=f'{agent_eid}\r\n',
+            resp_status=[201, 303],
+        )
+        agent_base = urljoin(resp.url, resp.headers['location'])
+
+        resp = self._require_response(
+            url=(agent_base + 'clear_reports'),
+            method='POST',
+            resp_status=[200, 204],
+        )
 
         resp = self._require_response(
             url=(agent_base + 'send?form=text'),
