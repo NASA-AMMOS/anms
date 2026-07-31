@@ -202,7 +202,7 @@ def _transcoder_put_str(input_ari: str):
 def do_nm_put_hex_eid(eid: str, ari: str) -> int:
     """Send an execution set to the manager daemon.
     """
-    url = nm_url + "/agents/eid/{}/send?form=hex".format(quote(strip(eid)))
+    url = nm_url + "/agents/eid/{}/send?form=cborhex".format(quote(strip(eid)))
     logger.debug('post to nm manager %s with eid %s and data %s' % (url, eid, ari))
 
     try:

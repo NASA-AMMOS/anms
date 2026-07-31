@@ -351,7 +351,7 @@ class TestPrimaryRoutes(BaseTest):
         )
 
         resp = self._require_response(
-            url=(agent_base + 'send?form=text'),
+            url=(agent_base + 'send?form=uri'),
             method='POST',
             req_headers={
                 'content-type': 'text/plain',
@@ -364,7 +364,7 @@ class TestPrimaryRoutes(BaseTest):
         timer = Timer(5)
         while timer:
             timer.sleep(0.1)
-            resp = self.httpsess.get(agent_base + 'reports?form=text')
+            resp = self.httpsess.get(agent_base + 'reports?form=uri')
             # response 204 just means continue waiting
             self.assertIn(resp.status_code, {200, 204})
             if resp.status_code == 200:
