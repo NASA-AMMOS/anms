@@ -15,7 +15,7 @@ import {NotificationService} from '../../shared/notification.service';
 })
 export class Adms implements AfterViewInit {
   protected admService = inject(AdmService);
-  protected file: any = null;
+  protected files: File[] = [];
   protected notificationService = inject(NotificationService);
 
   ngAfterViewInit(): void {
@@ -24,31 +24,46 @@ export class Adms implements AfterViewInit {
     }
   }
 
-  protected hasValidFile() {
-    return (!_.isNull(this.file) );
+  protected hasValidFile(): boolean {
+    return this.files.length > 0;
   }
 
-  protected onFileChange(event: any){
-    this.file = event.target.files[0];
+  protected onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const selectedFiles = input.files;
+
+    if (!selectedFiles || selectedFiles.length === 0) {
+      this.files = [];
+      return;
+    }
+
+    // Convert FileList -> File[]
+    this.files = Array.from(selectedFiles);
   }
+
 
   protected async uploadFile() {
-    if (!this.file) {
+    if (this.files.length < 1) {
       this.notificationService.error('No .yang file selected');
       return;
     }
-    const yangFile = this.file;
-    this.file = null;
 
-    this.admService.uploadAdm(yangFile).subscribe({
-      next: (message) => {
-        this.notificationService.success(message);
-        this.admService.getAdms();
-      },
-      error: () => {
-        this.notificationService.error(this.admService.requestError());
-      },
+
+
+    this.files.forEach((yangFile) => {
+      this.admService.uploadAdm(yangFile).subscribe({
+        next: (message) => {
+          this.notificationService.success(message);
+          // Refresh ADMs after each successful upload
+          this.admService.getAdms();
+        },
+        error: () => {
+          this.notificationService.error(this.admService.requestError());
+        },
+      });
     });
+
+    this.files = [];
   }
 
   protected downloadFile(adm: any): void {
