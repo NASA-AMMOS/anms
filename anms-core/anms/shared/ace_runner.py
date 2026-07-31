@@ -36,7 +36,7 @@ LOCALDATA = threading.local()
 
 def get_adms():
     if not hasattr(LOCALDATA, 'adms'):
-        LOCALDATA.adms = ace.AdmSet(cache_dir=False)
+        LOCALDATA.adms = ace.AdmSet(cache_dir=False,errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"])
         LOCALDATA.adms.load_default_dirs()
         _adm_reload(None)
     return LOCALDATA.adms

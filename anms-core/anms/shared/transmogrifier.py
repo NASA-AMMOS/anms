@@ -51,6 +51,10 @@ class Transmorgifier:
         self.adm_data = adm_data.AdmData
         self.data_model = data_model_view.DataModel
         if config.Transcoder == "Internal":
+
+            self.errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"]
+            self._dec = ace.ari_cbor.Decoder()
+
             db_uri = f"postgresql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}/{config.DB_CHROOT}"
             LOGGER.info(f"Connecting to SQL DB at {db_uri}")
             self._dbeng = sqlalchemy.create_engine(db_uri)
@@ -137,7 +141,7 @@ class Transmorgifier:
         return []
 
     async def load_default_adms(self):
-        admset = ace.AdmSet(cache_dir=False)
+        admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
         admset.load_default_dirs()
         issues = ace.Checker(admset.db_session()).check()
         for iss in issues:
@@ -174,7 +178,7 @@ class Transmorgifier:
         return ari
 
     def _ace_transcode_just_cbor(self, input):
-        dec = ace.ari_cbor.Decoder()
+        dec = self._dec
 
         in_text = input.strip()
         in_bytes = ace.cborutil.from_hexstr(in_text)
@@ -190,7 +194,7 @@ class Transmorgifier:
         res_obj = {}
         res_obj["uri"] = ""
         res_obj["cbor"] = ""
-        adms = ace.AdmSet()
+        adms = ace.AdmSet(errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"])
         try:
             LOGGER.info(f"Request {input}")
             in_text = input.strip()
@@ -205,7 +209,7 @@ class Transmorgifier:
                 # using ACE to create ARI object from CBOR
                 try:
                     in_bytes = ace.cborutil.from_hexstr(in_text)
-                    dec = ace.ari_cbor.Decoder()
+                    dec = self._dec
                     ari_no_nn = dec.decode(io.BytesIO(in_bytes))
                     LOGGER.debug(f"decoded as ARI {ari_no_nn}")
                     ari = ace.nickname.Converter(
@@ -335,7 +339,7 @@ FROM adm_data
         # LOGGER.info(data.tos())
 
         io_buffer = io.StringIO(data.tobytes().decode("utf-8"))
-        adms = ace.AdmSet()
+        adms = ace.AdmSet(errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"])
         adms.load_from_data(io_buffer)
         LOGGER.info("Handling finished")
         LOGGER.info("ADMS present for: %s", adms.names())

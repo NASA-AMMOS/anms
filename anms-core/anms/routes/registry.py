@@ -25,7 +25,7 @@ from typing import Dict
 
 from fastapi import APIRouter
 
-from anms.routes import main, network_manager, logging, transcoder, system_status, user, alerts
+from anms.routes import main, network_manager, logging, transcoder, system_status, user, alerts, version
 from anms.routes.ARIs import agents, \
     ari,  reports
 from anms.routes.adms import adm
