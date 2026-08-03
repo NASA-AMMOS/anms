@@ -5,9 +5,12 @@ on:
       - .github/workflows/anms-core.yaml
       - deps/**
       - anms-core/**
+  pull_request: {} # any target
+  schedule:
+    - cron: '0 0 * * 0' # weekly
 
 jobs:
-  flake8:
+  ruff:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -24,14 +27,19 @@ jobs:
         run: |
           pip3 install deps/dtnma-ace
           pip3 install deps/dtnma-camp
-      - name: Install flake8
+      - name: Install ruff
         working-directory: anms-core
-        run: pip3 install -e '.[flake8]'
-      - name: Run flake8
+        run: pip3 install -e '.[ruff]'
+      - name: Run ruff check
         working-directory: anms-core
         run: |
           FAIL_SRC=0
-          flake8 src || FAIL_SRC=$?
+          ruff check . || FAIL_SRC=$?
+      - name: Run ruff format --check
+        working-directory: anms-core
+        run: |
+          FAIL_SRC=0
+          ruff format --check . || FAIL_SRC=$?
   anms-core_integration-test:
     runs-on: ubuntu-24.04
     env:

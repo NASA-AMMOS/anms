@@ -55,7 +55,9 @@ FROM anms-base AS dtnma-acelib
 
 # Install System Level Dependencies
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf -y install gcc-c++ python-devel python3-pip python3-wheel python3-setuptools iputils
+    dnf -y install --setopt=install_weak_deps=False \
+    gcc-c++ python-devel python3-pip python3-wheel python3-setuptools iputils && \
+    dnf clean all
 
 # Use specific OS python version
 ENV PIP=pip3
@@ -64,7 +66,7 @@ ENV PYTHON=python3
 ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} install --upgrade 'pip~=24.0' 'pip-tools~=7.5'
+    ${PIP} install --upgrade 'pip~=24.0' 'pip-tools==7.5.3'
 
 COPY deps/dtnma-ace /usr/src/dtnma-ace
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -102,7 +104,8 @@ ENV NODE_OPTIONS=--use-openssl-ca
 # Yarn cannot be installed via RPM because of FIPS-mode restrictions
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y nodejs && \
+    dnf install -y --setopt=install_weak_deps=False nodejs && \
+    dnf clean all && \
     npm config set cafile ${PIP_CERT}
 
 
@@ -138,14 +141,11 @@ RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
 # TODO: Restore 'npm ci' after fixing checked-in package-lock.json
 # NOTE: npm i line is provided for developer usage when updating package-lock.json
 RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
-    npm i
+    npm i && \
+    npm run build && \
+    npm prune --omit=dev
 #RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
 #    npm ci
-
-# Build Backend/Frontend
-RUN --mount=type=cache,uid=9999,gid=9999,target=/home/${APP_USER}/.npm \
-    npm run build
-
 
 # Clean any old release dir and copy Angular browser build into it
 RUN rm -rf ${APP_WORK_DIR}/server/release && \
@@ -328,13 +328,15 @@ ENV PIP_DEFAULT_TIMEOUT=300
 
 
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y epel-release && \
-    crb enable
+    dnf install -y --setopt=install_weak_deps=False epel-release 'dnf-command(config-manager)' && \
+    crb enable && \
+    dnf clean all
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y \
+    dnf install -y --setopt=install_weak_deps=False \
         gcc g++ \
         cmake ninja-build ruby pkg-config \
         flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel && \
+    dnf clean all && \
     echo "/usr/local/lib64" >/etc/ld.so.conf.d/local.conf && \
     ldconfig
 
@@ -394,10 +396,11 @@ RUN cd /usr/local/src/nm && \
 FROM anms-base AS amp-manager
 
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf install -y https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    dnf install -y --setopt=install_weak_deps=False https://download.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
     crb enable && \
-    dnf install -y \
-        pcre2 civetweb openssl-libs cjson libpq
+    dnf install -y --setopt=install_weak_deps=False \
+        pcre2 civetweb openssl-libs cjson libpq && \
+    dnf clean all
 
 COPY --from=reftools-buildenv-refdm /usr/local /usr/local
 RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
