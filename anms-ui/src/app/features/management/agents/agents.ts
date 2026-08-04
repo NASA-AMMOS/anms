@@ -91,6 +91,7 @@ export class Agents implements AfterViewInit {
   protected onClick(nodes: string) {
     let nodeList = nodes.split(",");
     nodeList.forEach((node) => {
+      console.info("Adding agent to node: "+node);
       this.apiService
         .apiPostAgent(node.trim())
         .subscribe({next: (response) => {
