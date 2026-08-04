@@ -142,13 +142,6 @@ export class ApiService {
     return this.http.get(`/api/report/entry/name/${agentId}`);
   }
 
-  public apiEntriesForOperations(agentId: any): Observable<any> { // get the names of crude operations
-    return this.http.get(`/api/agents/parameter/name/${agentId}`);
-  }
-
-  public apiPutCRUD(agentId: any, optId: any, params: any): Observable<any> {
-    return this.http.put(`/api/agents/parameter/send/${agentId}/${optId}`, params);
-  }
 
   public apiBuildControl(nodeEID: any): Observable<any> {
     return this.http.put('/api/nm/agents', nodeEID, {headers: {},});

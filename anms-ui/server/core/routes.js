@@ -110,8 +110,6 @@
       router.get('/agents', agents.getAgentsPaged);
       router.get('/agents/id/:id', agents.getAgentById);
       router.get('/agents/search/:query', agents.getAgentsPagedBySearch);
-      router.get('/agents/parameter/name/:id', agents.getAgentsOperations);
-      router.put('/agents/parameter/send/:id/:optId', agents.putAgentsOperations);
 
       // alerts
       const alerts = require('../components/alerts');

@@ -21,14 +21,14 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
-from .jinja import (AppLoginTemplate, AppMainTemplate, AppTemplateErrors,
-                    AppUISettings)
-from .session import SessionSchema
-from .smtp import SMTPOptions
-from .token import OAuth2Token, OpenIDToken, Token, TokenPayload
-from .user import (MinUserBase, User, UserBase, UserExternCreate, UserInDB,
-                   UserInDBBase, UserInternalCreate, UserPasswordReset, UserUpdateBase,
-                   UserUpdatePassword)
-from .network_manager import NMBase
-from anms.components.schemas.ARIs.registered_agent import (RegisteredAgent, RegisteredAgentBase, RegisteredAgentInDB, RegisteredAgentInDBBase)
-from  anms.components.schemas.transcoder_log import (TranscoderLog, TranscoderLogBase, TranscoderLogInDB, TranscoderLogInDBBase )
+
+from anms.shared.anms_ws import MANAGER
+from anms.shared.opensearch_logger import OpenSearchLogger
+
+logger = OpenSearchLogger(__name__, log_console=True)
+
+
+async def new_alert(alert):
+    """Receive new alert from manager and emit to all connected clients."""
+    logger.info(f"Sending new alert from core: {alert}")
+    await MANAGER.broadcast(alert)

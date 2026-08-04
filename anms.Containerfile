@@ -174,9 +174,10 @@ USER root
 ARG INTERNAL_CERT_URL           # <-- build‑time variable
 RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
         echo "🔐 Pulling internal root‑CA from $INTERNAL_CERT_URL …" && \
-        curl -fsSL "$INTERNAL_CERT_URL" \
-          -o /etc/pki/ca-trust/source/anchors/internal-root-ca.crt && \
-        update-ca-trust && \
+        mkdir -p /usr/local/share/ca-certificates && \
+        curl -fSL "$INTERNAL_CERT_URL" \
+          -o /usr/local/share/ca-certificates/internal-root-ca.crt && \
+        update-ca-certificates && \
         echo "✅ Internal root CA added"; \
     else \
         echo "⚙️  INTERNAL_CERT_URL not set – skipping internal CA import"; \
@@ -277,7 +278,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-adms /usr/local/share/ace/adms
-COPY anms-core/anms/agent_parameter.json /usr/local/share/anms/agent_parameter.json
+
+RUN mkdir -p /usr/local/share/anms
 RUN touch /usr/local/share/anms/alerts.json
 RUN chmod go+w  /usr/local/share/anms/alerts.json
 

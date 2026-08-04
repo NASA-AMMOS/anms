@@ -86,14 +86,6 @@ export class AgentsService {
         }
       });
 
-
-      this.api.apiEntriesForOperations(registered_agents_id).pipe(first()).subscribe({
-        next: ores => this.operations.set(ores),
-        error: err => {
-          console.error("get agent CRUD operations error", err);
-          this.operations.set([]);
-        }
-      });
       this.agent.set(res);
     });
   }
