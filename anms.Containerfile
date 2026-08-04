@@ -174,9 +174,10 @@ USER root
 ARG INTERNAL_CERT_URL           # <-- build‑time variable
 RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
         echo "🔐 Pulling internal root‑CA from $INTERNAL_CERT_URL …" && \
-        curl -fsSL "$INTERNAL_CERT_URL" \
-          -o /etc/pki/ca-trust/source/anchors/internal-root-ca.crt && \
-        update-ca-trust && \
+        mkdir -p /usr/local/share/ca-certificates && \
+        curl -fSL "$INTERNAL_CERT_URL" \
+          -o /usr/local/share/ca-certificates/internal-root-ca.crt && \
+        update-ca-certificates && \
         echo "✅ Internal root CA added"; \
     else \
         echo "⚙️  INTERNAL_CERT_URL not set – skipping internal CA import"; \

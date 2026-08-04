@@ -194,7 +194,7 @@ class Transmorgifier:
         res_obj = {}
         res_obj["uri"] = ""
         res_obj["cbor"] = ""
-        adms = ace.AdmSet(errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"])
+        adms = ace.AdmSet()
         try:
             LOGGER.info(f"Request {input}")
             in_text = input.strip()
@@ -336,10 +336,9 @@ FROM adm_data
     def _handle_adm(self, adm_name, timestamp, data):
         LOGGER.info(f"Handling ADM:{adm_name}")
         LOGGER.info(type(data))
-        # LOGGER.info(data.tos())
 
         io_buffer = io.StringIO(data.tobytes().decode("utf-8"))
-        adms = ace.AdmSet(errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"])
+        adms = ace.AdmSet()
         adms.load_from_data(io_buffer)
         LOGGER.info("Handling finished")
         LOGGER.info("ADMS present for: %s", adms.names())

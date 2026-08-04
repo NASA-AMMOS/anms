@@ -20,14 +20,15 @@
 # subcontract 1658085.
 #
 
+import io
 import json
 from threading import Lock
-from anms.routes.network_manager import nm_get_agents
-from anms.routes.ARIs.agents import all_registered_agents
 
+from anms.routes.network_manager import nm_get_agents
+from anms.shared import alerts
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
-from anms.shared import alerts
+
 logger = OpenSearchLogger(__name__).logger
 
 config = ConfigBuilder.get_config()
@@ -37,7 +38,7 @@ class ManagerChecker:
     def __init__(self, config):
         self.known_agents = {}
         self.lock = Lock()
-        self.alert_file = config['ALERT_FILE']
+        self.alert_file = io.StringIO()
         self.ui_url = "http://" + config['UI_HOST'] + ":" + str(config['UI_PORT']) + config['UI_API_BASE']
         self.manager_connect = True  # tracks manager connection status so doesnt repeat alerts of disconnect
         self.curr_id = 0  # tracking the alert id for acknowledging
@@ -133,11 +134,6 @@ class ManagerChecker:
                 await alerts.store_alert("removed_agent", "30", f"{miss} removed")
                 self.curr_id = self.curr_id + 1
                 self.known_agents.pop(miss)
-            
-            #last step write back alerts 
-            
-            with open(self.alert_file, 'w') as f:
-                json.dump(curr_alerts, f)
 
 
 MANAGER_CHECKER = ManagerChecker(config)
