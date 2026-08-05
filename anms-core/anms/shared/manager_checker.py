@@ -94,7 +94,7 @@ class ManagerChecker:
                 if not self.manager_connect:  # if manager was disconnected alert for reconnect
                     curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
                                                 "msg": "reconnected to manager", "visible": True}
-                        await alerts.store_alert("manager_reconnect", "20", "reconnected to manager")
+                    await alerts.store_alert("manager_reconnect", "20", "reconnected to manager")
                     self.curr_id = self.curr_id + 1
                     self.manager_connect = True
                 agents = agents["agents"]
