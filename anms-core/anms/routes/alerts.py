@@ -23,21 +23,22 @@
 #
 from fastapi import APIRouter, status
 
+
 from anms.shared.opensearch_logger import OpenSearchLogger
-from anms.shared.manager_checker import MANAGER_CECKER
+from anms.shared.manager_checker import MANAGER_CHECKER
 
 router = APIRouter(tags=["alerts"])
 logger = OpenSearchLogger(__name__, log_console=True)
 
 
 @router.get("/incoming", status_code=status.HTTP_200_OK)
-def alerts_get():
-    MANAGER_CECKER.check_list()
-    alerts = MANAGER_CECKER.get_alerts()
+async def alerts_get():
+    await MANAGER_CHECKER.check_list()
+    alerts = MANAGER_CHECKER.get_alerts()
     return list(alerts.values())
 
 
 @router.put("/acknowledge/{index}", status_code=status.HTTP_200_OK)
-def alerts_get(index: int):
-    MANAGER_CECKER.acknowledge(index)
+def alerts_acknowledge(index: int):
+    MANAGER_CHECKER.acknowledge(index)
     return status.HTTP_200_OK

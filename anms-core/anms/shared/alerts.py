@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2023 The Johns Hopkins University Applied Physics
 # Laboratory LLC.
@@ -20,14 +18,33 @@
 # Institute of Technology, sponsored by the United States Government under
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
-#
-from .jinja import (AppLoginTemplate, AppMainTemplate, AppTemplateErrors,
-                    AppUISettings)
-from .session import SessionSchema
-from .smtp import SMTPOptions
-from .token import OAuth2Token, OpenIDToken, Token, TokenPayload
-from .user import (MinUserBase, User, UserBase, UserExternCreate, UserInDB,
-                   UserInDBBase, UserInternalCreate, UserPasswordReset, UserUpdateBase,
-                   UserUpdatePassword)
-from anms.components.schemas.ARIs.registered_agent import (RegisteredAgent, RegisteredAgentBase, RegisteredAgentInDB, RegisteredAgentInDBBase)
-from  anms.components.schemas.transcoder_log import (TranscoderLog, TranscoderLogBase, TranscoderLogInDB, TranscoderLogInDBBase )
+
+"""
+Store new alerts into the database 
+"""
+
+from anms.shared.config import ConfigBuilder
+from datetime import datetime
+from anms.shared.opensearch_logger import OpenSearchLogger
+from anms.models.relational import get_session
+
+from anms.models.relational.alert import Alert
+from anms.routes import alerts_ws
+
+config = ConfigBuilder.get_config()
+LOGGER = OpenSearchLogger(__name__, log_console=True).logger
+
+async def store_alert(title: str, status: int, message: str):
+    
+    with get_session() as session:
+    # insert new alert into the database 
+        now = datetime.now()
+        in_stm = Alert(title=title, status=status, message=message, created_at=now , updated_at=now)    
+        session.add(in_stm)
+        session.commit()
+    
+    # emit new websocket alert
+    await alerts_ws.new_alert({"title":title, "status":status, "message":message, "created_at":now })
+
+                
+            

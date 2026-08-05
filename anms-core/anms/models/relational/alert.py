@@ -21,39 +21,36 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
+from typing import Any
+from typing import Dict
 
 
-from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, validator
-import  json
+from anms.models.relational import Model
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import DateTime
+from anms.shared.opensearch_logger import OpenSearchLogger
 
-class AgentParameterBase(BaseModel):
-    agent_parameter_id: Optional[int] = None
-    command_name: Optional[str] = None
-    command_parameters: Optional[list] = None
+logger = OpenSearchLogger(__name__).logger
 
-    @validator("command_parameters", pre=True, each_item=True)
-    def proccess_list(cls, input_str):
-        new_list = str.split(input_str,',')
-        return new_list
+class Alert(Model):
+    __tablename__ = 'alert'
 
-    class Config:
-        orm_mode = True
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    status = Column(Integer)
+    message = Column(String)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
 
 
-class AgentParameterReceivedBase(BaseModel):
-    ts: Optional[int] = None
-    agent_parameter_received_id: Optional[int] = None
-    manager_id: Optional[int] = None
-    registered_agents_id: Optional[int] = None
-    agent_parameter_id: Optional[int] = None
-    command_parameters: Optional[dict] = None
+    def __repr__(self) -> str:
+        return self.as_dict().__repr__()
 
-    @validator("command_parameters", pre=True, each_item=True)
-    def proccess_list(cls, input_str):
-        new_list = json.loads(input_str)
-        return new_list
+    def as_dict(self) -> Dict[str, Any]:
+        dict_obj = {
+            c.name: getattr(self, c.name) for c in self.__table__.columns
+        }
 
-    class Config:
-        orm_mode = True
+        return dict_obj

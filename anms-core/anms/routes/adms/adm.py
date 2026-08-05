@@ -148,7 +148,7 @@ async def update_adm(file: UploadFile, request: Request):
         logger.error(message)
     else:
         # Reading json file and check if it is a validated adm description
-        admset = ace.AdmSet(cache_dir=False)
+        admset = ace.AdmSet(cache_dir=False,errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"])
         comp = AdmCompare(admset)
         try:
             adm_file_contents = await file.read()
@@ -184,7 +184,7 @@ async def update_adm(file: UploadFile, request: Request):
                         await remove_adm(adm_file.enum)
                         # reload adm_set
                         admset.db_session().close()
-                        admset = ace.AdmSet(cache_dir=False)
+                        admset = ace.AdmSet(cache_dir=False,errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"])
                         adm_file = admset.load_from_data(io.StringIO(adm_file_contents.decode('utf-8')), del_dupe=False)
                     else: # if its the same nothing else to be done
                         logger.warning("Duplicate ADM add attempted")

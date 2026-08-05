@@ -6,7 +6,6 @@ import {FormsModule} from '@angular/forms';
 export interface Operation {
   command_name: string;
   command_parameters: string[];
-  agent_parameter_id: number | string;
   // any other fields you may have
 }
 
@@ -58,18 +57,5 @@ export class Crud {
     this.params.forEach((param) => {
       this.finalValues[param.name] = param.value;
     });
-
-    this.apiService
-      .apiPutCRUD(this.agentId, this.selected.agent_parameter_id, this.finalValues)
-      .subscribe({
-        next: (response: any) => {
-          this.toastr.success(`${response.statusText} ${response.data}`);
-          this.selected = -1;
-          this.params = [];
-        }, error: (error: any) => {
-          console.error('crud error', error);
-          this.toastr.error(error);
-        }
-      });
   }
 }

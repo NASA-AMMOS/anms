@@ -37,7 +37,7 @@ from anms.models.relational.registered_agent import RegisteredAgent
 from anms.shared.opensearch_logger import OpenSearchLogger
 
 logger = OpenSearchLogger(__name__, log_console=True)
-router = APIRouter(tags=["ARIs"])
+router = APIRouter(tags=["Agents"])
 
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=Page[ARIs.RegisteredAgent])

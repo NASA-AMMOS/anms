@@ -21,13 +21,13 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
-from .jinja import (AppLoginTemplate, AppMainTemplate, AppTemplateErrors,
-                    AppUISettings)
-from .session import SessionSchema
-from .smtp import SMTPOptions
-from .token import OAuth2Token, OpenIDToken, Token, TokenPayload
-from .user import (MinUserBase, User, UserBase, UserExternCreate, UserInDB,
-                   UserInDBBase, UserInternalCreate, UserPasswordReset, UserUpdateBase,
-                   UserUpdatePassword)
-from anms.components.schemas.ARIs.registered_agent import (RegisteredAgent, RegisteredAgentBase, RegisteredAgentInDB, RegisteredAgentInDBBase)
-from  anms.components.schemas.transcoder_log import (TranscoderLog, TranscoderLogBase, TranscoderLogInDB, TranscoderLogInDBBase )
+
+from pydantic import BaseModel
+
+class Alert(BaseModel):
+    id: int
+    title: str
+    status: int
+    message: str
+    created_at: str
+    updated_at: str

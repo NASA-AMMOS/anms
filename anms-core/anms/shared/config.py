@@ -187,7 +187,6 @@ class BaseConfig(AbstractConfig):
     )  # 1 days
 
     # JSON for agent parameters
-    AGENT_PARAMETER = os.environ.get('AGENT_PARAMETER', '/usr/local/share/anms/agent_parameter.json')
     AGENT_EID = os.environ.get('MANAGER_EID', 'ipn:1.6')
 
     # UI parameters
@@ -217,4 +216,3 @@ class LocalConfig(BaseConfig):
     MQTT_HOST = "localhost"
     NM_HOST = "localhost"
     OPENSEARCH_HOST = "localhost"
-    AGENT_PARAMETER = "anms/agent_parameter.json"
