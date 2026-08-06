@@ -168,7 +168,6 @@ export class ApiService {
   }
 
   public apiPostAgent(node: string): Observable<any> {
-    console.info("apiPostAgent: ", node);
     return this.http.post('/api/nm/agents', {node});
   }
 

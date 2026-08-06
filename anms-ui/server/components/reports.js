@@ -47,7 +47,7 @@ const { response } = require('express');
   exports.getReportEntriesByAgent = async function(req,res,next){
     try {
       let obj_agent_id = req.params.obj_agent_id
-      let source_cbors = req.body.data
+      let source_cbors = req.body
       let body = {"agent_idxs": [obj_agent_id],"source_cbors": source_cbors}
       const url = utils.generateAnmsCoreUrl(['report','dictionary', 'search', 'idx']); 
       await axios.post(url, body).then(response => {return res.status(200).json(response.data)});

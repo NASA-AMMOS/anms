@@ -91,11 +91,10 @@ export class Agents implements AfterViewInit {
   protected onClick(nodes: string) {
     let nodeList = nodes.split(",");
     nodeList.forEach((node) => {
-      console.info("Adding agent to node: "+node);
       this.apiService
         .apiPostAgent(node.trim())
         .subscribe({next: (response) => {
-          const results = response.status + " " + response.statusText;
+          const results = response;
           this.notificationService.success(results);
         },
           error: (err: any) => {

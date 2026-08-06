@@ -136,11 +136,9 @@
       router.post('/nm/agents', networkManager.nm_register_agent);
       router.put('/nm/agents/eid/:eid/hex', networkManager.nm_put_hex_eid);
       router.put('/nm/agents/eid/:addr/clear_reports', networkManager.nm_clear_reports);
-      router.put('/nm/agents/eid/:addr/clear_tables ', networkManager.nm_clear_tables);
       router.get('/nm/agents/eid/:addr/reports/hex', networkManager.nm_get_reports_hex);
       router.get('/nm/agents/eid/:addr/reports', networkManager.nm_get_reports);
       router.get('/nm/agents/eid/:addr/reports/text', networkManager.nm_get_reports_text);
-      router.get('/nm/agents/eid/:addr/reports/json', networkManager.nm_get_reports_json);
       router.get('/nm/agents/eid/:addr/reports/debug', networkManager.nm_get_reports_debug);
       router.get('/nm/agents/eid/:addr', networkManager.nm_get_agents_info);
       router.put('/nm/agents/eid/:addr/reports/clear', networkManager.nm_put_clear_reports);

@@ -46,10 +46,11 @@
   exports.nm_register_agent = async function (req, res, next) {
     try {
       const agentId = req.body.node
-      console.log(req)
-      console.log("Registering agent with ID: " + agentId);
       const url = utils.generateNMUrl(['nm','api','agents']);
-      const manResponse = await axios.post(url, {agentId});
+      const manResponse = await axios.post(url, agentId, {
+        headers: {
+        "Content-Type": "text/plain",
+        },});
       if (manResponse === null) {
         return res.status(404);
       }
@@ -66,8 +67,9 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent IDX'));
       }
-      const url = utils.generateNMUrl(['nm','api','agents', 'idx', agentId, 'hex']);
-      const manResponse = await axios.put(url, hex);
+      let url = utils.generateNMUrl(['nm','api','agents', 'idx', agentId, 'send']);
+      url = url + '?form=cborhex';
+      const manResponse = await axios.post(url, hex);
       if (manResponse === null) {
         return res.status(404);
       }
@@ -84,8 +86,9 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent EID'));
       }
-      const url = utils.generateNMUrl(['nm','api','agents', 'eid', agentId, 'hex']);
-      const manResponse = await axios.put(url, hex);
+      let url = utils.generateNMUrl(['nm','api','agents', 'eid', agentId, 'send']);
+      url = url + '?form=cborhex';
+      const manResponse = await axios.post(url, hex);
       if (manResponse === null) {
         return res.status(404);
       }
@@ -102,23 +105,6 @@
         return next(Boom.badData('Invalid Agent ID'));
       }
       const url = utils.generateNMUrl(['nm','api','agents', agentId, 'clear_reports']);
-      const manResponse = await axios.put(url);
-      if (manResponse === null) {
-        return res.status(404);
-      }
-      return res.status(200).json(manResponse.data);
-    } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
-    }
-  };
-
-  exports.nm_clear_tables = async function (req, res, next) {
-    try {
-      const agentId = "eid/" + req.params.addr;
-      if (!_.isString(agentId)) {
-        return next(Boom.badData('Invalid Agent ID'));
-      }
-      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'clear_tables']);
       const manResponse = await axios.put(url);
       if (manResponse === null) {
         return res.status(404);
@@ -171,23 +157,6 @@
         return next(Boom.badData('Invalid Agent ID'));
       }
       const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'text']);
-      const manResponse = await axios.get(url);
-      if (manResponse === null) {
-        return res.status(404);
-      }
-      return res.status(200).json(manResponse.data);
-    } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
-    }
-  };
-
-  exports.nm_get_reports_json = async function (req, res, next) {
-    try {
-      const agentId = "eid/" + req.params.addr;
-      if (!_.isString(agentId)) {
-        return next(Boom.badData('Invalid Agent ID'));
-      }
-      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'json']);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
         return res.status(404);

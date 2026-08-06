@@ -22,8 +22,9 @@
 
 import io
 import json
-import requests
 from threading import Lock
+
+import httpx
 
 from anms.models.relational import nm_url
 from anms.shared import alerts
@@ -44,7 +45,6 @@ class ManagerChecker:
         self.manager_connect = True  # tracks manager connection status so doesnt repeat alerts of disconnect
         self.curr_id = 0  # tracking the alert id for acknowledging
         self.alerts = {}  # store new alerts right now alerts for added new agents or removed agents
-    
     # TODO improvements listening to database for alerts
     def clear_alerts(self):
         self.alerts = {}
@@ -65,14 +65,13 @@ class ManagerChecker:
                     json.dump(alerts, f)
             except (FileNotFoundError, json.JSONDecodeError):
                 logger.error("ERROR reading alert.json")
-                
     def get_alerts(self):
         data = {}
         with self.lock:
             try:
                 with open(self.alert_file, 'r') as f:
                     data = json.load(f)
-                return data 
+                return data
             except Exception as e:
                 logger.error(e)
         return data
@@ -87,7 +86,8 @@ class ManagerChecker:
                 # TODO enhancement compare manager known agents vs database known agents 
                 logger.info('checking agents list')
                 url = nm_url + "/agents"
-                response = requests.get(url)
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(url)
                 if not response.ok:
                     raise RuntimeError('no valid resonse')
 
