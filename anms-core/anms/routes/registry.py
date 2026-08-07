@@ -25,7 +25,7 @@ from typing import Dict
 
 from fastapi import APIRouter
 
-from anms.routes import main, network_manager, logging, transcoder, system_status, user, alerts, version
+from anms.routes import main, logging, transcoder, system_status, user, alerts, version
 from anms.routes.ARIs import agents, \
     ari,  reports
 from anms.routes.adms import adm
@@ -47,7 +47,6 @@ class RoutesRegistry(object):
 
         self.routing_table[RoutesMapper.logging_api_prefix] = logging.router
 
-        self.routing_table[RoutesMapper.network_manager_api_prefix] = network_manager.router
         self.routing_table[RoutesMapper.system_status_api_prefix] = system_status.router
         self.routing_table[RoutesMapper.user_api_prefix] = user.router
 

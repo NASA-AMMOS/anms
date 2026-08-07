@@ -31,7 +31,8 @@
 
   exports.getVersion = async function (req, res, next) {
     try {
-      const url = utils.generateAnmsCoreUrl(['nm', 'version']);
+
+      const url = utils.generateNMUrl(['nm','api','version']);
       const version = await axios.get(url);
       if (version === null) {
         return res.status(404);
@@ -44,9 +45,12 @@
 
   exports.nm_register_agent = async function (req, res, next) {
     try {
-      const agentId = req.body
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents']);
-      const manResponse = await axios.post(url, agentId);
+      const agentId = req.body.node
+      const url = utils.generateNMUrl(['nm','api','agents']);
+      const manResponse = await axios.post(url, agentId, {
+        headers: {
+        "Content-Type": "text/plain",
+        },});
       if (manResponse === null) {
         return res.status(404);
       }
@@ -63,8 +67,9 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent IDX'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', 'idx', agentId, 'hex']);
-      const manResponse = await axios.put(url, hex);
+      let url = utils.generateNMUrl(['nm','api','agents', 'idx', agentId, 'send']);
+      url = url + '?form=cborhex';
+      const manResponse = await axios.post(url, hex);
       if (manResponse === null) {
         return res.status(404);
       }
@@ -81,8 +86,9 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent EID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', 'eid', agentId, 'hex']);
-      const manResponse = await axios.put(url, hex);
+      let url = utils.generateNMUrl(['nm','api','agents', 'eid', agentId, 'send']);
+      url = url + '?form=cborhex';
+      const manResponse = await axios.post(url, hex);
       if (manResponse === null) {
         return res.status(404);
       }
@@ -98,24 +104,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'clear_reports']);
-      const manResponse = await axios.put(url);
-      if (manResponse === null) {
-        return res.status(404);
-      }
-      return res.status(200).json(manResponse.data);
-    } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
-    }
-  };
-
-  exports.nm_clear_tables = async function (req, res, next) {
-    try {
-      const agentId = "eid/" + req.params.addr;
-      if (!_.isString(agentId)) {
-        return next(Boom.badData('Invalid Agent ID'));
-      }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'clear_tables']);
+      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'clear_reports']);
       const manResponse = await axios.put(url);
       if (manResponse === null) {
         return res.status(404);
@@ -132,7 +121,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'hex']);
+      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'hex']);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
         return res.status(404);
@@ -149,7 +138,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports']);
+      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports']);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
         return res.status(404);
@@ -167,24 +156,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'text']);
-      const manResponse = await axios.get(url);
-      if (manResponse === null) {
-        return res.status(404);
-      }
-      return res.status(200).json(manResponse.data);
-    } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
-    }
-  };
-
-  exports.nm_get_reports_json = async function (req, res, next) {
-    try {
-      const agentId = "eid/" + req.params.addr;
-      if (!_.isString(agentId)) {
-        return next(Boom.badData('Invalid Agent ID'));
-      }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'json']);
+      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'text']);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
         return res.status(404);
@@ -201,7 +173,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'debug']);
+      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'debug']);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
         return res.status(404);
@@ -218,7 +190,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId]);
+      const url = utils.generateNMUrl(['nm','api','agents', agentId]);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
         return res.status(404);
@@ -235,7 +207,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateAnmsCoreUrl(['nm', 'agents', agentId, 'reports', 'clear']);
+      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'clear']);
       const manResponse = await axios.put(url);
       if (manResponse === null) {
         return res.status(404);
