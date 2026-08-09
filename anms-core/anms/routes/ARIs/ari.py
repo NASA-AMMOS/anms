@@ -22,7 +22,7 @@
 # subcontract 1658085.
 #
 import asyncio
-from typing import List
+from typing import List, Optional
 
 from fastapi import Depends, APIRouter
 from fastapi import status
@@ -157,9 +157,11 @@ async def all_ARI():
 
 
 @router.get("/all/display", status_code=status.HTTP_200_OK, response_model=List[ARIs.ARIDisplayAndParams])
-async def all_ARI_display():
+async def all_ARI_display(type: Optional[str] = None):
     ret = []
     stmt = select(ARI)
+    if type:
+        stmt = stmt.where(ARI.type_name == type)
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         for ari in result.all():
