@@ -222,7 +222,6 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ENV_UI_VERSION: ${ANMS_VERSION}
       NET_BIND_INTERFACE: "0.0.0.0"
       DB_HOST: postgres
       DB_USER: ${DB_USER}
@@ -304,7 +303,6 @@ services:
     cap_add:
       - NET_RAW
     environment:
-      ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}

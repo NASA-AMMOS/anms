@@ -2,9 +2,8 @@
 
 set -e
 
-GITTAG=$(git describe --always --tags --dirty)
-export ANMS_VERSION=${ANMS_VERSION:=${GITTAG}}
-export DOCKER_IMAGE_TAG=${ANMS_VERSION}
+GIT_VERSION=$(git describe --always --tags --dirty)
+export DOCKER_IMAGE_TAG=${GIT_VERSION}
 OUTFILE="anms-${ANMS_VERSION}-images.tar.gz"
 
 if command -v podman-compose &> /dev/null; then
