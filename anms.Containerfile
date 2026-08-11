@@ -99,9 +99,8 @@ FROM anms-base AS node-base
 ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
+RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 RUN --mount=type=cache,target=/var/cache/yum \
-    dnf module disable -y nodejs && \
-    dnf module enable -y nodejs:22 && \
     dnf install -y nodejs npm && \
     dnf clean all && \
     npm config set cafile ${PIP_CERT}
