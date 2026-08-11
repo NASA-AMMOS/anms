@@ -128,7 +128,7 @@ export class ManageAgentsDialog implements OnInit {
         ),
 
       error: (err) =>
-        this.notificationService.error(err, 'Error sending CBOR'),
+        this.notificationService.error(err.message, 'Error sending CBOR'),
     });
   }
 
