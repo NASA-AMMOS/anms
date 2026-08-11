@@ -67,9 +67,13 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent IDX'));
       }
-      let url = utils.generateNMUrl(['nm','api','agents', 'idx', agentId, 'send']);
-      url = url + '?form=cborhex';
-      const manResponse = await axios.post(url, hex);
+      const params =  {'form':'cborhex'};
+      const url = utils.generateNMUrl(['nm','api','agents', 'idx', agentId, 'send'], params);
+      const manResponse = await axios.post(url, hex, {
+        headers: {
+          'Content-Type': 'text/plain'
+        }
+      });
       if (manResponse === null) {
         return res.status(404);
       }
@@ -86,9 +90,12 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent EID'));
       }
-      let url = utils.generateNMUrl(['nm','api','agents', 'eid', agentId, 'send']);
-      url = url + '?form=cborhex';
-      const manResponse = await axios.post(url, hex);
+      const params =  {'form':'cborhex'};
+      const url = utils.generateNMUrl(['nm','api','agents', 'eid', agentId, 'send'], params);
+      const manResponse = await axios.post(url, hex, {
+        headers: {
+          'Content-Type': 'text/plain'
+        }});
       if (manResponse === null) {
         return res.status(404);
       }
@@ -138,6 +145,7 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
+      
       const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports']);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
@@ -156,7 +164,8 @@
       if (!_.isString(agentId)) {
         return next(Boom.badData('Invalid Agent ID'));
       }
-      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'text']);
+      const params = {'form': 'uri'}
+      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports'], params);
       const manResponse = await axios.get(url);
       if (manResponse === null) {
         return res.status(404);
@@ -167,22 +176,6 @@
     }
   };
 
-  exports.nm_get_reports_debug = async function (req, res, next) {
-    try {
-      const agentId = "eid/" + req.params.addr;
-      if (!_.isString(agentId)) {
-        return next(Boom.badData('Invalid Agent ID'));
-      }
-      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'debug']);
-      const manResponse = await axios.get(url);
-      if (manResponse === null) {
-        return res.status(404);
-      }
-      return res.status(200).json(manResponse.data);
-    } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
-    }
-  };
 
   exports.nm_get_agents_info = async function (req, res, next) {
     try {
@@ -201,20 +194,4 @@
     }
   };
 
-  exports.nm_put_clear_reports = async function (req, res, next) {
-    try {
-      const agentId = "eid/" + req.params.addr;
-      if (!_.isString(agentId)) {
-        return next(Boom.badData('Invalid Agent ID'));
-      }
-      const url = utils.generateNMUrl(['nm','api','agents', agentId, 'reports', 'clear']);
-      const manResponse = await axios.put(url);
-      if (manResponse === null) {
-        return res.status(404);
-      }
-      return res.status(200).json(manResponse.data);
-    } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
-    }
-  };
 })();

@@ -139,9 +139,8 @@
       router.get('/nm/agents/eid/:addr/reports/hex', networkManager.nm_get_reports_hex);
       router.get('/nm/agents/eid/:addr/reports', networkManager.nm_get_reports);
       router.get('/nm/agents/eid/:addr/reports/text', networkManager.nm_get_reports_text);
-      router.get('/nm/agents/eid/:addr/reports/debug', networkManager.nm_get_reports_debug);
       router.get('/nm/agents/eid/:addr', networkManager.nm_get_agents_info);
-      router.put('/nm/agents/eid/:addr/reports/clear', networkManager.nm_put_clear_reports);
+      router.put('/nm/agents/eid/:addr/reports/clear', networkManager.nm_clear_reports);
 
       // --Reports Routes -- //
       const reports = require('../components/reports')
