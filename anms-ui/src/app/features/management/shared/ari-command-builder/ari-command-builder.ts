@@ -176,7 +176,7 @@ export class AriCommandBuilder implements OnInit {
 
     // Also check for type-specific AC, e.g. "CONST/AC", "CTRL/AC"
     const parts = type.split('/');
-    const firstNonEmpty = parts.find(p => p);
+    const firstNonEmpty = parts.find(Boolean);
     if (firstNonEmpty && ARI_TYPE_NAMES.includes(firstNonEmpty as AriTypeName) &&
         (parts.includes('AC') || parts.includes('EXECSET'))) {
       return 'ari-list';
@@ -191,7 +191,7 @@ export class AriCommandBuilder implements OnInit {
    */
   private getTypeFilterFromParamType(type: string): AriTypeName | null {
     const parts = type.split('/');
-    const firstNonEmpty = parts.find(p => p);
+    const firstNonEmpty = parts.find(Boolean);
 
     if (
       firstNonEmpty &&

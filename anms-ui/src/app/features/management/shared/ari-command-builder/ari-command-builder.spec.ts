@@ -103,7 +103,7 @@ describe('AriCommandBuilder', () => {
   describe('filterAris (main dropdown text search)', () => {
     it('filters by substring match on display (case-insensitive)', () => {
       c(component).filterAris('const');
-      expect(c(component).filteredAris.length).toBe(1);
+      expect(c(component).filteredAris).toHaveLength(1);
       expect(c(component).filteredAris[0].name).toBe('agentId');
     });
 
@@ -114,22 +114,22 @@ describe('AriCommandBuilder', () => {
       expect(names).toContain('uptime');
       expect(names).toContain('reportTable');
       expect(names).toContain('setUptime');
-      expect(c(component).filteredAris.length).toBe(4);
+      expect(c(component).filteredAris).toHaveLength(4);
     });
 
     it('returns empty list for non-matching search', () => {
       c(component).filterAris('zzzznotfound');
-      expect(c(component).filteredAris.length).toBe(0);
+      expect(c(component).filteredAris).toHaveLength(0);
     });
 
     it('returns all ARIs for empty search', () => {
       c(component).filterAris('');
-      expect(c(component).filteredAris.length).toBe(allMockAris.length);
+      expect(c(component).filteredAris).toHaveLength(allMockAris.length);
     });
 
     it('handles null value gracefully', () => {
       c(component).filterAris(null);
-      expect(c(component).filteredAris.length).toBe(allMockAris.length);
+      expect(c(component).filteredAris).toHaveLength(allMockAris.length);
     });
 
     it('handles Ari object value gracefully', () => {
@@ -160,13 +160,13 @@ describe('AriCommandBuilder', () => {
       c(component).onTypeFilterChange({value: 'CONST'});
       c(component).onTypeFilterChange({value: 'ALL'});
       expect(apiSpy).toHaveBeenCalledWith(undefined);
-      expect(c(component).filteredAris.length).toBe(allMockAris.length);
+      expect(c(component).filteredAris).toHaveLength(allMockAris.length);
     });
 
     it('combines server type filter with client text search', () => {
       c(component).onTypeFilterChange({value: 'OPER'});
       c(component).filterAris('restart');
-      expect(c(component).filteredAris.length).toBe(1);
+      expect(c(component).filteredAris).toHaveLength(1);
       expect(c(component).filteredAris[0].name).toBe('restart');
     });
 
@@ -180,7 +180,7 @@ describe('AriCommandBuilder', () => {
 
     it('returns empty when no ARIs match the selected type', () => {
       c(component).onTypeFilterChange({value: 'IDENT'});
-      expect(c(component).filteredAris.length).toBe(0);
+      expect(c(component).filteredAris).toHaveLength(0);
     });
   });
 
@@ -194,7 +194,7 @@ describe('AriCommandBuilder', () => {
       const param = c(component).ariParams[0];
       param.searchText = 'const';
       c(component).filterParamAris(0);
-      expect(param.filteredAris.length).toBe(1);
+      expect(param.filteredAris).toHaveLength(1);
       expect(param.filteredAris[0].name).toBe('agentId');
     });
 
@@ -202,7 +202,7 @@ describe('AriCommandBuilder', () => {
       const param = c(component).ariParams[0];
       param.searchText = '';
       c(component).filterParamAris(0);
-      expect(param.filteredAris.length).toBe(allMockAris.length);
+      expect(param.filteredAris).toHaveLength(allMockAris.length);
     });
   });
 
@@ -229,7 +229,7 @@ describe('AriCommandBuilder', () => {
     it('builds param states for the selected ARI', () => {
       const ari = allMockAris[2]; // setUptime with one param
       c(component).onAriSelected(ari);
-      expect(c(component).ariParams.length).toBe(1);
+      expect(c(component).ariParams).toHaveLength(1);
       expect(c(component).ariParams[0].name).toBe('duration');
       expect(c(component).ariParams[0].kind).toBe('text');
     });
@@ -323,7 +323,7 @@ describe('AriCommandBuilder', () => {
       const param = c(component).ariParams[0];
       param.searchText = 'agent';
       c(component).filterParamAris(0);
-      expect(param.filteredAris.length).toBe(1);
+      expect(param.filteredAris).toHaveLength(1);
       expect(param.filteredAris[0].type_name).toBe('CONST');
     });
   });
@@ -331,7 +331,7 @@ describe('AriCommandBuilder', () => {
   describe('validation', () => {
     it('passes when no selected ARI', () => {
       expect(c(component).validate()).toBe(true);
-      expect(c(component).validationErrors.length).toBe(0);
+      expect(c(component).validationErrors).toHaveLength(0);
     });
 
     it('passes when all param ARI types match', () => {
@@ -390,7 +390,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(0);
+      expect(emitted).toHaveLength(0);
     });
 
     it('emits when validation passes', () => {
@@ -399,7 +399,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(1);
+      expect(emitted).toHaveLength(1);
       expect(emitted[0].mode).toBe('builder');
     });
   });
