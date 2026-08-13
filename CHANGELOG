@@ -1,168 +1,84 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Some notable changes to this project will be documented in this file. The full
+changelog will be on the ANMS GitHub wiki: https://github.com/NASA-AMMOS/anms/wiki/ANMS-Changelog.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project uses [SemVer/semantic versioning](https://semver.org/).
-
-Numbers with a "#" prefix refer to Issue and Pull Request numbers on the
-ANMS GitHub page: https://github.com/NASA-AMMOS/anms.
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
 ### Added
-- Tag-based GHCR image publishing (#300)
-- Improved initial default ADM load process with dedicated route (#323)
-- REST API error handling improvements with correct HTTP status codes and dtnma-tools SQL concurrency fix (#322)
-- `/version` REST API endpoint (#365)
-- Toast notification system with persistent alerts (#366, #371)
-- Multi-file ADM upload support (#371)
-- ARI column in the builder table (#371)
+- Angular port of frontend UI, replacing Vue
+- OpenSearch containers
+- `/version` REST API
+- Multi-file ADM upload and toast notification system
+- Tag-based GHCR image publishing
 
 ### Changed
-- Production configuration moved into Puppet module parameters (#328)
-- ResourceCache replaced with LFU cache for improved memory management (#351)
-- CI migrated to Podman v5 (#359)
-- Complete Angular port of frontend UI, replacing Vue (#353):
-  - Agents page with management dialog and CRUD operations
-  - Build tab with ARI builder and "send to agents" functionality
-  - Report viewing with new report route integration
-  - Logout redirect, version number in header
-  - Toastr notification service, locally sourced fonts
-  - Node.js upgraded from v16 to v22
-- PostgreSQL upgraded from v14 to v18 (#364)
-- Enterprise SSL Proxy Certificate installation refactored to use parameterized source URL (#363)
-- OpenSearch containers as replacement for legacy search backend (#367)
-- Core routes cleanup and consolidation (#380)
-- Container build size optimization (#374)
-- Build tests now use ruff linter (#372)
-- Smarter password generation in setup script to meet updated OpenSearch requirements (#379)
+- PostgreSQL upgraded from v14 to v18
+- ResourceCache replaced with LFU cache
+- CI migrated to Podman v5
+- Enterprise SSL certificate installation refactored
+- Core routes consolidated and cleaned up
+- Improved REST API error handling and SQL concurrency
 
 ### Fixed
-- OpenAPI definition for `/adms/` route corrected (#360)
-- Hello test endpoint (#370)
-- Bug in ARI builder (#371)
-- UID values exceeding SYS_UID_MAX (#378)
-
----
-
-## [3.0.0-pre-alpha-1] - 2025-12-19
-
-### Added
-- Internal ARI transcoder (`_ace_transcode`) with configurable profile, replacing external `aricodec` dependency (#295)
-- Grafana upgrade to v12 with PostgreSQL internal database, consolidated dashboard/widget definitions via text provisioning (#282, #283)
-- Infinity-datasource Grafana plugin with example panels
-- Prototype Help page and 404 Not Found page handler in UI
-- amp-manager status indicator on UI Status page
-- Automatic GHCR image creation on tag events, supplementing formal releases
-
-### Changed
-- Core `/services` REST API now returns JSON instead of plain text
-- Core REST API detects timeouts and resolves overloaded `status` variable conflicts
-- Updated `btable` id for report headers (#277)
-- Grafana authentication/demo websocket proxy configuration fixes
-- Grafana database password moved to environment variable
-- Default ADM initialization logic moved into transcoder service
-- REFDA startup added to allow IPN-scheme managers full access
-
-### Fixed
-- Default database warning in Grafana
-- Threading and database issues in internal transcoder
-- GHCR image naming when triggered by tag
-
-### Removed
-- Services related to transcoder from default startup configuration
-
----
+- UID values exceeding SYS_UID_MAX
+- ARI builder bugs
 
 ## [2.0.0] - 2025-10-30
 
 ### Added
-- Light compose profile for reduced-footprint deployments (#205)
-- Parallel light compose configuration (#196)
-- GHCR container publishing pipeline (#251)
-- Quickstart script for streamlined developer onboarding (#242)
-- SonarQube/SonarCloud CI integration for static analysis (#208-#212, #244)
-- Time-based rule and control creation in the build tab (#198)
-- EDDS ARI selection on the build tab (#194)
-- Manual refresh button on data tables, replacing unreliable auto-refresh (#197)
-- CODEOWNERS file for automated PR review assignment (#195)
-- CAMP repository migration groundwork (#191)
+- Light compose profile for reduced-footprint deployments
+- GHCR container publishing pipeline
+- Quickstart developer onboarding script
+- SonarQube/SonarCloud CI integration
+- Time-based and state-based rule creation in the build tab
+- EDDS ARI selection on the build tab
+- Grafana v12 with PostgreSQL internal database and text-provisioned dashboards
+- Internal ARI transcoder, replacing external dependency
+- Help page and 404 page handler
 
 ### Changed
-- All npm packages updated to latest stable versions (#160)
-- ARI display streamlined: reference parameters removed from display, compute logic simplified (#163)
-- ACE and ADM updated to new bp-agent version (#165)
-- ACE and ADM Dockerfiles renamed and restructured (#159)
-- Podman support added alongside Docker (#178)
-- Docker Compose configuration fixes and updates (#183)
-- NGINX completely removed from the stack (#189)
-- Unneeded core routes removed (#223)
-- Unused SSL configuration removed (#221)
-- Core route for translating and sending ARI consolidated into single endpoint (#204)
-- Workflow CI jobs combined using matrix strategy (#234)
-- ContainerFiles combined to eliminate intermediate images (#233)
-- Dockerfiles migrated to common base image (#243)
-- Submodules updated (#203, #249)
-- Latest dtnma-tools and SQL schema adopted (#249)
-- Environment variable override for amp-manager port restored (#257)
-- CI image tags now use only safe characters (#124)
-- Release script updated for public repository workflow
+- NGINX removed from the stack
+- ION removed from ANMS images
+- Podman support added alongside Docker
+- ContainerFiles combined to eliminate intermediate images
+- Core ARI translation and sending route consolidated
+- Latest dtnma-tools and SQL schema adopted
 
 ### Fixed
-- CI deploy issues (#170)
-- Puppet-lint CI and identified lint issues (#179)
-- CI jobs stability (#230)
-- Healthcheck SQL role restored (#229)
-- Correlator nonce misbehavior - duplicate nonce generation resolved (#232)
-- YANG file upload failures (#236)
-- Bad input handling on ADM routes (#256)
-- Transcoder log table navigation misbehavior (#260)
-- Ping output suppressed from anms-core status page to reduce log noise (#262)
-- Invalid use of ARI text prefix for binary form of values (#269)
-- Dependency upgrades addressing Dependabot critical and high alerts (#136, #137, #157, #158, #162, #273)
-- Built-image tag and base-image qualified name fixes (#276)
-
----
+- Correlator nonce misbehavior
+- YANG file upload failures
+- Transcoder log table navigation
+- Overly permissive regex security issue
+- Numerous CI stability and dependency upgrades
 
 ## [1.1.0] - 2024-08-26
 
 ### Added
-- Agent details modal (#64)
-- Agent management modal with full CRUD (#78)
-- Received reports display with missing reports support (#72)
-- Report generation and report displays in the build tab (#120)
-- State-based rule and control creation (#122)
-- Navigation filtering on the exploration build tab (#5, #88, #123)
-- GitLab CI pipeline (#6)
-- Puppet-lint SARIF reporting for code scanning (#75)
-- PKIX certificate installation in CI and deployment (#80)
+- Agent details and management modals
+- Received reports display with missing reports support
+- Report generation and display in the build tab
+- Navigation filtering on the exploration build tab
+- GitLab CI pipeline
 
 ### Changed
+- RHEL version updated for AMMOS compatibility
+- ION switched to dtnma-tools backend
 - Build script updated for image tar release
-- RHEL version updated for AMMOS compatibility (#67)
-- CI jobs relocated (#70)
-- Manual docker-compose package install in Puppet (#76)
-- ION switched to dtnma-tools backend (#79)
-- Latest dtnma-tools main branch adopted (#83)
-- Latest ION submodule for TV fix (#101)
 
 ### Fixed
-- Overly permissive regular expression range - security fix (#63)
-- Rate limiters added to GET requests and routes, resolving code scanning issues (#62)
-- ION NM failure on hex strings containing blank spaces (#69)
-- Received reports: max vector limit in ION avoided, table reload fixed, dead code removed (#72)
-- Report database: agent parameter handling corrected, UI rule generation fixes (#82)
-- Footer formatting overflow when content exceeds viewport (#102)
-
----
+- Report database agent parameter handling
+- ION hex string handling with blank spaces
+- Rate limiter and code scanning issues
+- Footer formatting overflow
 
 ## [1.0.0] - 2023-08-31
 
 ### Added
 - Initial public release of ANMS v1.0, imported from private source repository
-
----
 
 ## [0.2.0] - 2022-06-10
 
