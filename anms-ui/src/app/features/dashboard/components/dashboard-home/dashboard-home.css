@@ -4,6 +4,19 @@
   justify-content: space-between;
 }
 
+.card-title-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
+}
+
+.card-title-link:hover {
+  opacity: 0.7;
+}
+
 .card-dimensions {
   width: 500px;
   height: 230px;
