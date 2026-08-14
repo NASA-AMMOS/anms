@@ -29,6 +29,5 @@ from .token import OAuth2Token, OpenIDToken, Token, TokenPayload
 from .user import (MinUserBase, User, UserBase, UserExternCreate, UserInDB,
                    UserInDBBase, UserInternalCreate, UserPasswordReset, UserUpdateBase,
                    UserUpdatePassword)
-from .network_manager import NMBase
 from anms.components.schemas.ARIs.registered_agent import (RegisteredAgent, RegisteredAgentBase, RegisteredAgentInDB, RegisteredAgentInDBBase)
 from  anms.components.schemas.transcoder_log import (TranscoderLog, TranscoderLogBase, TranscoderLogInDB, TranscoderLogInDBBase )

@@ -64,7 +64,7 @@ services:
       AGENT_NAME: ${CAM_AGENT_NAME}
       AGENT_PASSWORD: ${CAM_AGENT_PASSWORD}
       CAM_GW_URL: "https://${ANMS_GW_FQDN}:443/"
-      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089 http://anms-ui:9030 opensearch,http://opensearch:9200 dashboards,http://opensearch-dashboards:5601/dashboards"
+      PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089/nm http://anms-ui:9030 opensearch,http://opensearch:9200 dashboards,http://opensearch-dashboards:5601/dashboards"
     volumes:
       - ammos-tls:/ammos/etc/pki/tls:ro
 
@@ -222,7 +222,6 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ENV_UI_VERSION: ${ANMS_VERSION}
       NET_BIND_INTERFACE: "0.0.0.0"
       DB_HOST: postgres
       DB_USER: ${DB_USER}
@@ -304,7 +303,6 @@ services:
     cap_add:
       - NET_RAW
     environment:
-      ANMS_VERSION: ${ANMS_VERSION}
       DB_HOST: postgres
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}

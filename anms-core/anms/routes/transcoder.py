@@ -19,8 +19,10 @@
 # the prime contract 80NM0018D0004 between the Caltech and NASA under
 # subcontract 1658085.
 #
+import requests
 import time
 import asyncio
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi_pagination import Page, Params
@@ -30,12 +32,10 @@ from sqlalchemy import select, or_, desc
 from anms.models.relational import get_session
 
 from anms.components.schemas import TranscoderLog as TL
-from anms.models.relational import get_async_session
+from anms.models.relational import get_async_session, nm_url
 from anms.models.relational.transcoder_log import TranscoderLog
-
 from anms.shared.opensearch_logger import OpenSearchLogger
 from anms.shared.transmogrifier import TRANSMORGIFIER
-from anms.routes.network_manager import do_nm_put_hex_eid
 
 router = APIRouter(tags=["Transcoder"])
 logger = OpenSearchLogger(__name__, log_console=True)
@@ -199,6 +199,26 @@ def _transcoder_put_str(input_ari: str):
     return {"id": transcoder_log_id, "status": state}
 
 
+def do_nm_put_hex_eid(eid: str, ari: str) -> int:
+    """Send an execution set to the manager daemon.
+    """
+    url = nm_url + "/agents/eid/{}/send?form=cborhex".format(quote(strip(eid)))
+    logger.debug('post to nm manager %s with eid %s and data %s' % (url, eid, ari))
+
+    try:
+        response = requests.post(
+            url=url,
+            data=ari,
+            headers={'Content-Type': 'text/plain'},
+            timeout=(2.0, 8.0) # 2s for manager to connect, 8s for it to respond
+        )
+    except (requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout, requests.exceptions.Timeout):
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="manager timeout")
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return response.status_code
+
+
 # PUT 	/ui/incoming_send/str 	Body is str ARI to send to transcoder
 @router.put(
     "/ui/incoming_send/str",
@@ -243,8 +263,8 @@ async def transcoder_send_ari_str(eid: str, ari: str):
             )
 
         # Publish
-        state = do_nm_put_hex_eid(eid, info.cbor)
-        return {"idinfo": idinfo, "info": info, "status": state}
+        status = do_nm_put_hex_eid(eid, info.cbor)
+        return {"idinfo": idinfo, "info": info, "status": status}
     except HTTPException as e:
         e.detail = {"idinfo": idinfo, "info": info, "status": e.status_code}
         raise e

@@ -24,7 +24,9 @@ import io
 import json
 from threading import Lock
 
-from anms.routes.network_manager import nm_get_agents
+import httpx
+
+from anms.models.relational import nm_url
 from anms.shared import alerts
 from anms.shared.config_utils import ConfigBuilder
 from anms.shared.opensearch_logger import OpenSearchLogger
@@ -43,7 +45,6 @@ class ManagerChecker:
         self.manager_connect = True  # tracks manager connection status so doesnt repeat alerts of disconnect
         self.curr_id = 0  # tracking the alert id for acknowledging
         self.alerts = {}  # store new alerts right now alerts for added new agents or removed agents
-    
     # TODO improvements listening to database for alerts
     def clear_alerts(self):
         self.alerts = {}
@@ -64,14 +65,13 @@ class ManagerChecker:
                     json.dump(alerts, f)
             except (FileNotFoundError, json.JSONDecodeError):
                 logger.error("ERROR reading alert.json")
-                
     def get_alerts(self):
         data = {}
         with self.lock:
             try:
                 with open(self.alert_file, 'r') as f:
                     data = json.load(f)
-                return data 
+                return data
             except Exception as e:
                 logger.error(e)
         return data
@@ -85,28 +85,24 @@ class ManagerChecker:
             try:
                 # TODO enhancement compare manager known agents vs database known agents 
                 logger.info('checking agents list')
-                agents = nm_get_agents()
-                if agents == -1:  # counlnt connect to manager
-                    if self.manager_connect:
-                        curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
-                                                    "msg": "failed to reach manager", "visible": True}
-                        self.curr_id = self.curr_id + 1
-                        logger.error("could not reach nm manager")
-                        self.manager_connect = False
-                        await alerts.store_alert("manager_error", "40", "ailed to reach manager")
-                    agents = []
-                else:
-                    if not self.manager_connect:  # if manager was disconnected alert for reconnect
-                        curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
-                                                    "msg": "reconnected to manager", "visible": True}
-                        await alerts.store_alert("manager_reconnect", "20", "reconnected to manager")
-                        self.curr_id = self.curr_id + 1
-                        self.manager_connect = True
-                    agents = agents["agents"]
+                url = nm_url + "/agents"
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(url)
+                if not response.ok:
+                    raise RuntimeError('no valid resonse')
+
+                if not self.manager_connect:  # if manager was disconnected alert for reconnect
+                    curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_reconnect", "type": "info",
+                                                "msg": "reconnected to manager", "visible": True}
+                    await alerts.store_alert("manager_reconnect", "20", "reconnected to manager")
+                    self.curr_id = self.curr_id + 1
+                    self.manager_connect = True
+                agents = agents["agents"]
+
             except Exception as e:
                 if self.manager_connect:
                     curr_alerts[self.curr_id] = {"id": self.curr_id, "name": "manager_error", "type": "danger",
-                                                "msg": "failed to reach manager", "visible": True}                    
+                                                "msg": "failed to reach manager", "visible": True}
                     await alerts.store_alert("manager_error", "40", "failed to reach manager")
                     self.curr_id = self.curr_id + 1
                     logger.error("could not reach nm manager")

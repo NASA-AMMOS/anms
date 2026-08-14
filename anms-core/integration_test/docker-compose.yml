@@ -26,7 +26,6 @@ name: anms-integration-test
 networks:
   anms:
     external: true
-      
 
 services:
   test-runner:
@@ -38,7 +37,7 @@ services:
     networks:
       - anms
     depends_on:  {}
-    
+
   test-transport:
     hostname: test-transport
     build:
