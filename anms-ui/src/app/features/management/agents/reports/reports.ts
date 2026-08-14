@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, Input, OnInit, signal } from '@angular/core';
+import { Component, inject, Input, OnInit, signal } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { ApiService } from '../../../../shared/api.service';
 import { FormsModule } from '@angular/forms';
