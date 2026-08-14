@@ -43,6 +43,7 @@
     snakeCaseObject: snakeCaseObject,
     camelCaseObject: camelCaseObject,
     generateAnmsCoreUrl: generateAnmsCoreUrl,
+    generateNMUrl: generateNMUrl,
     createAuthenticationHeader: createAuthenticationHeader
   };
 
@@ -127,6 +128,16 @@
       _.set(coreUrlObject, 'query', params);
     }
     return url.format(coreUrlObject);
+  }
+
+  function generateNMUrl(pathParts, params) {
+    let nmUrlObject = _.cloneDeepWith(config.nm.uri);
+    let path = _.join(pathParts, '/');
+    _.set(nmUrlObject, 'pathname', path);
+    if(!_.isUndefined(params)){
+      _.set(nmUrlObject, 'query', params);
+    }
+    return url.format(nmUrlObject);
   }
 
   function createAuthenticationHeader(req) {

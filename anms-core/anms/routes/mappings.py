@@ -44,8 +44,6 @@ class RoutesMapper(str, Enum):
 
     logging_api_prefix = posixpath.join(base_prefix, "logging") + "/"
 
-    network_manager_api_prefix = posixpath.join(base_prefix, "nm") + "/"
-
     transcoder_api_prefix = posixpath.join(base_prefix, "transcoder") + "/"
 
     system_status_api_prefix = posixpath.join(base_prefix, "sys_status") + "/"

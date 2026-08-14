@@ -138,7 +138,7 @@ export class ApiService {
   }
 
   public apiEntriesForReport(obj_agent_id: any, cbor: any): Observable<any> {
-    return this.http.post(`/api/report/entries/table/${obj_agent_id}`, {'data':cbor});
+    return this.http.post(`/api/report/entries/table/${obj_agent_id}`, cbor);
   }
 
   public apiEntriesForReportTemplate(agentId: any): Observable<any> {
@@ -151,7 +151,7 @@ export class ApiService {
   }
 
   public apiSendRawCommand(nodeEID: any, command: any): Observable<any> {
-    return this.http.put('/api/nm/agents/eid/' + nodeEID + '/hex', {"data": command});
+    return this.http.put('/api/nm/agents/eid/' + nodeEID + '/hex',  command);
   }
 
   public apiPrintAgentReports(nodeEID: any): Observable<any> {
@@ -170,8 +170,8 @@ export class ApiService {
     return this.http.get('nm/agents', nodeEID);
   }
 
-  public apiPostAgent(node: any): Observable<any> {
-    return this.http.post('/api/nm/agents', {'data': node});
+  public apiPostAgent(node: string): Observable<any> {
+    return this.http.post('/api/nm/agents', {node});
   }
 
   public apiGetAgents(): Observable<any> {

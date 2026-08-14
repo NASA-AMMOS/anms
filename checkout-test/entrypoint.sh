@@ -56,7 +56,7 @@ done
 echo
 
 echo "Running tests..."
-TESTARGS="--verbose"
+TESTARGS="--verbose --log-level=info"
 if [ -n "${XUNIT_OUTFILE}" ]; then
     TESTARGS="${TESTARGS} --junitxml=${XUNIT_OUTFILE}"
 fi

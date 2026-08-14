@@ -19,6 +19,7 @@ else
     echo "GIT_DATE=${GIT_DATE}" >> .env
 fi
 
+
 source "$(dirname "$0")/gen_password.sh"
 
 # Add OPENSEARCH_INITIAL_ADMIN_PASSWORD if missing.

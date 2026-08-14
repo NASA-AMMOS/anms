@@ -37,7 +37,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          submodules: recursive
+          submodules: true
+      - name: Secondary submodules
+        working-directory: deps/dtnma-tools
+        run: git submodule update --init
       - name: Tag name env
         run: |
           DOCKER_IMAGE_TAG=${{ github.sha }}

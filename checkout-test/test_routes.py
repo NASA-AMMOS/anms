@@ -322,7 +322,7 @@ class TestPrimaryRoutes(BaseTest):
     def test_refdm_access(self):
         # any API access
         resp = self._require_response(
-            url='/nm/nm/api/version',
+            url='/nm/api/version',
             resp_status=[200],
             resp_ctype=['application/json'],
         )
@@ -331,43 +331,40 @@ class TestPrimaryRoutes(BaseTest):
         # choice of agent is arbitrary
         agent_eid = 'ipn:2.6'
         eid_seg = quote(agent_eid, safe="")
-        agent_base = self._resolve(f'/nm/nm/api/agents/eid/{eid_seg}/')
 
-        # immediate need to register Agent endpoint
-        resp = self.httpsess.get(agent_base + 'reports?form=text')
-        if resp.status_code == 404:
-            resp = self._require_response(
-                url='/nm/nm/api/agents',
-                method='POST',
-                req_headers={
-                    'content-type': 'text/plain',
-                },
-                req_data=f'{agent_eid}\r\n',
-                resp_status=[200],
-            )
-        else:
-            resp = self._require_response(
-                url=(agent_base + 'clear_reports'),
-                method='POST',
-                resp_status=[200, 204],
-            )
+        # get or register Agent endpoint
+        resp = self._require_response(
+            url='/nm/api/agents',
+            method='POST',
+            req_headers={
+                'content-type': 'text/plain',
+            },
+            req_data=f'{agent_eid}\r\n',
+            resp_status=[201, 303],
+        )
+        agent_base = urljoin(resp.url, resp.headers['location'])
 
         resp = self._require_response(
-            url=(agent_base + 'send?form=text'),
+            url=(agent_base + 'clear_reports'),
+            method='POST',
+            resp_status=[200, 204],
+        )
+
+        resp = self._require_response(
+            url=(agent_base + 'send?form=uri'),
             method='POST',
             req_headers={
                 'content-type': 'text/plain',
             },
             req_data='ari:/EXECSET/n=1;(ari://ietf/dtnma-agent/CTRL/inspect(ari://ietf/dtnma-agent/EDD/num-msg-rx))',
-            resp_status=[200],
+            resp_status=[200, 204],
         )
-        LOGGER.info(resp)
 
         # TODO this assumes any report is valid without filtering on nonce
         timer = Timer(5)
         while timer:
             timer.sleep(0.1)
-            resp = self.httpsess.get(agent_base + 'reports?form=text')
+            resp = self.httpsess.get(agent_base + 'reports?form=uri')
             # response 204 just means continue waiting
             self.assertIn(resp.status_code, {200, 204})
             if resp.status_code == 200:

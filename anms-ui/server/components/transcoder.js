@@ -110,9 +110,7 @@
       }
       const params = {'page': req.query.page, 'size': req.query.size };
       const url = utils.generateAnmsCoreUrl(['transcoder', 'db', 'search', encodeURIComponent(transcoderQuery)], params);
-      console.log("[getTranscoderPagedBySearch]: url");
       const transcoderLog = await axios.get(url);
-      console.log("[getTranscoderPagedBySearch]: transcoderLog.data");
       return res.status(200).json(transcoderLog.data);
     }
     catch (err) {

@@ -84,12 +84,11 @@ RUN dnf install -y \
 COPY deps/dtnma-tools/deps/ion /usr/local/src/nm/deps/ion
 COPY deps/dtnma-tools/deps/ion*.patch /usr/local/src/nm/deps/
 RUN cd /usr/local/src/nm/deps/ion && \
-    patch -p1 <../ion-4.1.2-remove-nm.patch && \
-    patch -p1 <../ion-4.1.2-local-deliver.patch && \
-    patch -p1 <../ion-4.1.2-private-headers.patch && \
+    patch -p1 <../ion-4.1.4-remove-nm.patch && \
     autoreconf -vif && \
-    export CFLAGS="-std=gnu99" && \
-    ./configure && \
+    export CC="gcc" CXX="g++" && \
+    export CFLAGS="-std=gnu99 -Wno-error=pedantic" && \
+    ./configure --disable-dtpc --disable-tc && \
     make -j$(nproc) && \
     make install && \
     make -j$(nproc) clean
@@ -100,6 +99,7 @@ COPY deps/dtnma-tools/cmake /usr/local/src/nm/cmake
 COPY deps/dtnma-tools/src /usr/local/src/nm/src
 COPY deps/dtnma-tools/CMakeLists.txt /usr/local/src/nm/
 RUN cd /usr/local/src/nm && \
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig && \
     cmake -S . -B build/default \
       -DCMAKE_BUILD_TYPE=Debug \
       -DBUILD_MANAGER=OFF \

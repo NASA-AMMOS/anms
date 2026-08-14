@@ -94,7 +94,7 @@ export class Agents implements AfterViewInit {
       this.apiService
         .apiPostAgent(node.trim())
         .subscribe({next: (response) => {
-          const results = response.status + " " + response.statusText;
+          const results = response;
           this.notificationService.success(results);
         },
           error: (err: any) => {

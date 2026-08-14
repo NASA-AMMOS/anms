@@ -106,6 +106,15 @@
       },
       parsedUri: null
     },
+    nm:{
+      uri: {
+        protocol: 'http',
+        hostname: configEnvParser.getFromFileCfg('NM_HOSTNAME', 'amp-manager'),
+        port: configEnvParser.getFromFileCfg('NM_PORT', '8089'),
+        pathname: '/'
+      },
+      parsedUri: null
+    },
     auth: {
       rateLimiter: true,
       requestLimitWindow: 60 * 60 * 1000, // 1 hour window
