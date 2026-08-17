@@ -44,8 +44,8 @@ export class Agents implements AfterViewInit {
     this.apiService.apiAmpVersion().subscribe(
       {
         next: (response: any) => {
-          if (response.build_date != null) {
-            this.info = response.build_date + " " + response.build_time;
+          if (response.amp_version != null) {
+            this.info = response.amp_version + ", " + response.ari_version;
           }
         },
         error: (err: any) => {
