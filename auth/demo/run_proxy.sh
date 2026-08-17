@@ -2,7 +2,7 @@
 
 PROXY_CONFIG=/etc/httpd/site.conf.d/anms_proxy.conf
 
-if [ -z "$PROXY_URLS" ]; then
+if [[ -z "$PROXY_URLS" ]]; then
   echo "ERROR: PROXY_URLS is missing."
   exit 1
 fi
@@ -24,7 +24,7 @@ for url in $PROXY_URLS; do
     # If the endpoint differs from the backend path, track a redirect rewrite rule.
     # E.g., core/docs -> http://anms-core:5555/docs: when anms-core redirects /docs -> /docs/,
     # rewrite the Location header to /core/docs/ so the browser stays under /core/.
-    if [ -n "$backend_path" ] && [ "$endpoint" != "$backend_path" ]; then
+    if [[ -n "$backend_path" ]] && [[ "$endpoint" != "$backend_path" ]]; then
       REWRITE_BACKEND+=("/$backend_path")
       REWRITE_FRONTEND+=("/$endpoint")
     fi
@@ -39,7 +39,7 @@ done
 
 # Add Location header rewrite rules for backend redirects
 # These rewrite e.g. "Location: /docs/" -> "Location: /core/docs/" in proxied responses
-if [ ${#REWRITE_BACKEND[@]} -gt 0 ]; then
+if [[ ${#REWRITE_BACKEND[@]} -gt 0 ]]; then
   echo "# Rewrite backend redirect Location headers to frontend paths" >> $PROXY_CONFIG
   for i in "${!REWRITE_BACKEND[@]}"; do
     echo "Header edit Location \"${REWRITE_BACKEND[$i]}\" \"${REWRITE_FRONTEND[$i]}\"" >> $PROXY_CONFIG
