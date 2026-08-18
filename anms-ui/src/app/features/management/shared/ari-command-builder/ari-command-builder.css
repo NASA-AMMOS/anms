@@ -141,3 +141,34 @@
   max-width: 300px;
   margin-top: 0.75rem;
 }
+
+.ari-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.type-filter-field {
+  width: 100%;
+  max-width: 250px;
+}
+
+.validation-errors {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+}
+
+.validation-errors h6 {
+  margin: 0 0 0.25rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.validation-error {
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+}
