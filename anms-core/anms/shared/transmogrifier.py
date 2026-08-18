@@ -141,7 +141,7 @@ class Transmorgifier:
         return []
 
     async def load_default_adms(self):
-        admset = ace.AdmSet(cache_dir=False)
+        admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
         admset.load_default_dirs()
         issues = ace.Checker(admset.db_session()).check()
         for iss in issues:
