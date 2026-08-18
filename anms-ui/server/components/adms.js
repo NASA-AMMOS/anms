@@ -54,24 +54,6 @@
     } catch (err) {
       return next(Boom.badGateway('Error talking to CORE', err));
     }
-    // try {
-    //   const usersReqHeader = utils.createAuthenticationHeader(req);
-    //     let requestUrl = utils.generateAnmsCoreUrl(["adms"]);
-    //     logger.info("Sending get all adm request to: ", requestUrl);
-    //   return axios.get(requestUrl).then(function(admObj) {
-    //     logger.info("Resolving response")
-    //     logger.info(admObj)
-    //       return res.status(200).json(admObj);
-    //   }).catch(function(error) {
-    //     logger.error("Request error: ", error);
-    //     return next(Boom.internal(error.message));
-    //   });
-    
-
-    // } catch (error) {
-    //   logger.error("Function error: ",error.message);
-    //   return next(Boom.badGateway(error.message, error));
-    // }
   };
   exports.getOne = async function (req, res, next) {
     try {
@@ -91,65 +73,65 @@
   };
 
   exports.upload = async function (req, res, next) {
-      const usersReqHeader = utils.createAuthenticationHeader(req);
-      const file = req.file;
-      
-      if (!_.isNull(file) && file.mimetype != ACCEPTED_ADM_TYPE) {
-        return res.status(415).json({"message": `Not support this ${file.mimetype}`});
-      }
-      let requestUrl = utils.generateAnmsCoreUrl(["adms"]);
-      console.info("Upload requestUrl: ", requestUrl);
-     
-      const formData = new FormData();
-      //Reference: https://maximorlov.com/send-a-file-with-axios-in-nodejs/
+    const usersReqHeader = utils.createAuthenticationHeader(req);
+    const file = req.file;
 
-      //Here we have file data is a buffer or stream,
-      //Therefore, we need to add filename at the end
-      //Normal formData append function only takes into 2 arguments
-      formData.append('file', file.buffer, file.originalname);
-      const headers = {
-          ...usersReqHeader,
-          'Content-Type': 'multipart/form-data'
-      };
-      const response = await axios.post(requestUrl,
-        formData,
-          {
-              headers
-          }
-      ).catch(function (error) {
-        console.error("Upload file error: ", error.response.statusText)
-        return error.response
-      });
-      if (_.isNil(response) || _.isNil(response.data) || _.isNil(response.data.message)) {
-        response.status = 500;
-        console.error(response);
-        response.data = {"message": "Internal Server Error"};
+    if (!_.isNull(file) && file.mimetype != ACCEPTED_ADM_TYPE) {
+      return res.status(415).json({ "message": `Not support this ${file.mimetype}` });
+    }
+    let requestUrl = utils.generateAnmsCoreUrl(["adms"]);
+    console.info("Upload requestUrl: ", requestUrl);
+
+    const formData = new FormData();
+    //Reference: https://maximorlov.com/send-a-file-with-axios-in-nodejs/
+
+    //Here we have file data is a buffer or stream,
+    //Therefore, we need to add filename at the end
+    //Normal formData append function only takes into 2 arguments
+    formData.append('file', file.buffer, file.originalname);
+    const headers = {
+      ...usersReqHeader,
+      'Content-Type': 'multipart/form-data'
+    };
+    const response = await axios.post(requestUrl,
+      formData,
+      {
+        headers
       }
-      return res.status(response.status).json(response.data);
+    ).catch(function (error) {
+      console.error("Upload file error: ", error.response.statusText)
+      return error.response
+    });
+    if (_.isNil(response) || _.isNil(response.data) || _.isNil(response.data.message)) {
+      response.status = 500;
+      console.error(response);
+      response.data = { "message": "Internal Server Error" };
+    }
+    return res.status(response.status).json(response.data);
   };
   exports.loadDefault = async function (req, res, next) {
-      const usersReqHeader = utils.createAuthenticationHeader(req);
-      let requestUrl = utils.generateAnmsCoreUrl(["adms","load_default"]);
-      console.info("loadDefault requestUrl: ", requestUrl);
-     
-      const headers = {
-          ...usersReqHeader,
-          'Content-Type': 'multipart/form-data'
-      };
-      const response = await axios.post(requestUrl,
-          {
-              headers
-          }
-      ).catch(function (error) {
-        console.error("Upload file error: ", error.response.statusText)
-        return error.response
-      });
-      if (_.isNil(response) || _.isNil(response.data) || _.isNil(response.data.message)) {
-        response.status = 500;
-        console.error(response);
-        response.data = {"message": "Internal Server Error"};
+    const usersReqHeader = utils.createAuthenticationHeader(req);
+    let requestUrl = utils.generateAnmsCoreUrl(["adms", "load_default"]);
+    console.info("loadDefault requestUrl: ", requestUrl);
+
+    const headers = {
+      ...usersReqHeader,
+      'Content-Type': 'multipart/form-data'
+    };
+    const response = await axios.post(requestUrl,
+      {
+        headers
       }
-      return res.status(response.status).json(response.data);
+    ).catch(function (error) {
+      console.error("Upload file error: ", error.response.statusText)
+      return error.response
+    });
+    if (_.isNil(response) || _.isNil(response.data) || _.isNil(response.data.message)) {
+      response.status = 500;
+      console.error(response);
+      response.data = { "message": "Internal Server Error" };
+    }
+    return res.status(response.status).json(response.data);
   };
 
 })();
