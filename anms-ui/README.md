@@ -38,6 +38,12 @@ Environment setup is done with `src/environments` `environment.ts` for deploymen
 - Run anms-ui with `ng serve`
   - Open web app in a browser `localhost:4200`
 
+## Testing
+Run the Angular unit test suite (Vitest):
+```
+npm test -- --runner=vitest --no-watch
+```
+
 ## Build and Deploy
 Build application for deployment with `ng build`  
 The deployment ready output `dist/anms-ui` Copy the content to deployment directory of a web app server. For example, if using tomcat, then `webapps/anms-ui`.

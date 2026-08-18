@@ -44,7 +44,11 @@
 
   exports.getARIs = async function (req, res, next) {
     try {
-      const url = utils.generateAnmsCoreUrl(['ari','all','display']);
+      const params = {};
+      if (req.query.type && req.query.type !== 'ALL') {
+        params['type'] = req.query.type;
+      }
+      const url = utils.generateAnmsCoreUrl(['ari', 'all', 'display'], params);
       const aris = await axios.get(url);
       return res.status(200).json(aris.data);
     } catch (err) {
