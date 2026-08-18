@@ -143,36 +143,39 @@ class FastApiApp(object):
         # Swagger UI (served at /docs - no trailing-slash redirect to work under any proxy)
         @self.app.get("/docs", include_in_schema=False)
         async def custom_swagger_ui_html() -> HTMLResponse:
+            # Build all URLs dynamically via JS so this works at any proxy prefix (/core/docs, /docs, etc.)
             # get_swagger_ui_html hardcodes oauth2RedirectUrl as window.location.origin + '/docs/oauth2-redirect'
-            # which breaks under proxy prefixes like /core/docs. Build HTML with relative URLs instead.
+            # which breaks under proxy prefixes. Use dynamic JS to construct everything.
             return HTMLResponse(
-                '<!DOCTYPE html>\n'
-                '<html>\n<head>\n'
-                '<link type="text/css" rel="stylesheet" href="../release/assets/fastapi/swagger-ui-dist/swagger-ui.css">\n'
-                '<link rel="shortcut icon" href="../release/favicon.png">\n'
-                '<title>AMMOS-ANMS - Swagger UI</title>\n'
-                '</head>\n<body>\n'
-                '<div id="swagger-ui"></div>\n'
-                '<script src="../release/assets/fastapi/swagger-ui-dist/swagger-ui-bundle.js"></script>\n'
-                '<script src="../release/assets/fastapi/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>\n'
-                '<script>\n'
-                'window.onload = function() {\n'
-                '  SwaggerUIBundle({\n'
-                "    url: '../openapi.json',\n"
-                "    dom_id: '#swagger-ui',\n"
-                "    layout: 'BaseLayout',\n"
-                '    deepLinking: true,\n'
-                '    showExtensions: true,\n'
-                '    showCommonExtensions: true,\n'
-                "    oauth2RedirectUrl: window.location.pathname + '/oauth2-redirect',\n"
-                '    presets: [\n'
-                '      SwaggerUIBundle.presets.apis,\n'
-                '      SwaggerUIBundle.SwaggerUIStandalonePreset\n'
-                '    ]\n'
-                '  });\n'
-                '};\n'
-                '</script>\n'
-                '</body>\n</html>'
+                '<!DOCTYPE html>'
+                '<html><head>'
+                '<meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width, initial-scale=1">'
+                '<title>Swagger UI</title>'
+                '<style>body{margin:0}#swagger-ui .topbar{display:none}</style>'
+                '<script>'
+                '(function(){'
+                'var b=window.location.pathname.replace(/\\/docs$/,"");'
+                'var c=document.createElement("link");'
+                'c.rel="stylesheet";c.href=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui.css";'
+                'document.head.appendChild(c);'
+                'var f=document.createElement("link");'
+                'f.rel="icon";f.href=b+"/release/favicon.png";'
+                'document.head.appendChild(f);'
+                'var s=document.createElement("script");'
+                's.src=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui-bundle.js";'
+                's.onload=function(){'
+                'var p=document.createElement("script");'
+                'p.src=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui-standalone-preset.js";'
+                'p.onload=function(){'
+                'SwaggerUIBundle({url:b+"/openapi.json",dom_id:"#swagger-ui",'
+                'layout:"BaseLayout",deepLinking:true,showExtensions:true,showCommonExtensions:true,'
+                'oauth2RedirectUrl:window.location.pathname+"/oauth2-redirect",presets:['
+                'SwaggerUIBundle.presets.apis,SwaggerUIBundle.SwaggerUIStandalonePreset]});};'
+                'document.head.appendChild(p);};'
+                'document.head.appendChild(s);})();'
+                '</script>'
+                '</head><body><div id="swagger-ui"></div></body></html>'
             )
 
         # ReDoc (served at /redoc - no trailing-slash redirect to work under any proxy)
