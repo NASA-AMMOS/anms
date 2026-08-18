@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ANMS Quick Start Script for first-time users
 #
-# WARNING: This script is NOT intended for usage in production environments.  See README and/or Product Guide for details.
+# WARNING: This script is NOT intended for usage in production environments.
+# See README and/or Product Guide for details.
 #
 # NOTE: If using podman, this script will automatically uncomment the
 # #AUTHNZ_*PORT lines in .env to avoid permission issues binding to
@@ -20,13 +21,15 @@
 # built and started. This is the default behavior. To disable, specify
 #   USE_TESTEENV=n ./quickstart.sh
 #
-#
 # USE_ALT_HTTP_PORT=[y|n] If 'y', or if using rootless podman and 'n'
 # is not specified the #AUTHNZ_* lines in .env will be uncommented to
 # use ports that do not require root permissions.
 #
 # FORCE_BUILD=y  If 'y', all ANMS-specific containers will be built locally.
 #    Otherwise, prebuilt containers will be pulled from ghcr for quicker startup.
+#
+# INTERNAL_CERT_URL, if non-empty, causes the URI value to be downloaded and
+# installed within the base container root certification authority (CA) store.
 #
 # Note: This script was created with assistance from openai/gpt-oss-120b
 set -e
