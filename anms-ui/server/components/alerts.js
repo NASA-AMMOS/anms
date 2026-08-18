@@ -28,7 +28,6 @@
   const logger = require('../shared/logger');
   const axios = require('axios');
   const utils = require('../shared/utils');
-  let request = require('request');
   
   const config = require('../shared/config');
   request = request.defaults({
@@ -48,23 +47,33 @@ exports.acknowledgeAlert = async function(req, res, next){
   }
 };
 exports.getAlerts = async function(req, res, next){
-  return new Promise(function (resolve, reject) {
-    request.get({url: '/alerts/incoming'}, function (error, response, body) {
-      logger.info(JSON.stringify(response));
-      if (error) {
-        logger.err("error sending request to core:", error);
-        reject(error);
-      } else if (response.statusCode >= 400 && response.statusCode < 500) {
-        return next(Boom.badGateway('Error talking to core'));
-      } else {
-        resolve(body);
+    try {
+
+  const json =  await axios.get('/alerts/incoming');
+   if (json === null) {
+        return res.status(404);
       }
-    });
-  }).then(function(statusObj) {
-    return res.json(statusObj);
-  }).catch(function(errObj) {
-    return next(Boom.badGateway(errObj));
-  });
+      return res.status(200).json(json.data);
+    } catch (err) {
+      return next(Boom.badGateway('Error talking to CORE', err));
+    }
+  // return new Promise(function (resolve, reject) {
+  //   request.get({url: '/alerts/incoming'}, function (error, response, body) {
+  //     logger.info(JSON.stringify(response));
+  //     if (error) {
+  //       logger.err("error sending request to core:", error);
+  //       reject(error);
+  //     } else if (response.statusCode >= 400 && response.statusCode < 500) {
+  //       return next(Boom.badGateway('Error talking to core'));
+  //     } else {
+  //       resolve(body);
+  //     }
+  //   });
+  // }).then(function(statusObj) {
+  //   return res.json(statusObj);
+  // }).catch(function(errObj) {
+  //   return next(Boom.badGateway(errObj));
+  // });
 } 
 exports.putAlerts = async function (req, res, next) {
     try {

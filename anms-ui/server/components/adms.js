@@ -26,7 +26,6 @@
   const _ = require('lodash');
   const Boom = require('@hapi/boom');
   let logger = require('../shared/logger');
-  let request = require('request');
   const url = require('url');
   const utils = require('../shared/utils');
 
@@ -42,40 +41,37 @@
 
   exports.getAll = async function (req, res, next) {
     try {
-      const usersReqHeader = utils.createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        let requestUrl = utils.generateAnmsCoreUrl(["adms"]);
-        logger.info("Sending get all adm request to: ", requestUrl);
-        request({
-          method: 'Get',
-          url: requestUrl,
-          headers: usersReqHeader,
-          json: true,
-          timeout: requestTimeOut
-        }, function (error, response, body) {
-          logger.info("Receive response")
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400) {
-            let boomObj = utilities.errorCodeLookup(response.statusCode);
-            next(boomObj);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(admObj) {
-        logger.info("Resolving response")
-        logger.info(admObj)
-          return res.status(200).json(admObj);
-      }).catch(function(error) {
-        logger.error("Request error: ", error);
-        return next(Boom.internal(error.message));
-      });
-    } catch (error) {
-      logger.error("Function error: ",error.message);
-      return next(Boom.badGateway(error.message, error));
+      const adm_enm = req.params.adm_enum;
+      const adm_namespace = req.params.namespace;
+
+      const url = utils.generateAnmsCoreUrl(["adms"]);
+
+      const json = await axios.get(url);
+      if (json === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(json.data);
+    } catch (err) {
+      return next(Boom.badGateway('Error talking to CORE', err));
     }
+    // try {
+    //   const usersReqHeader = utils.createAuthenticationHeader(req);
+    //     let requestUrl = utils.generateAnmsCoreUrl(["adms"]);
+    //     logger.info("Sending get all adm request to: ", requestUrl);
+    //   return axios.get(requestUrl).then(function(admObj) {
+    //     logger.info("Resolving response")
+    //     logger.info(admObj)
+    //       return res.status(200).json(admObj);
+    //   }).catch(function(error) {
+    //     logger.error("Request error: ", error);
+    //     return next(Boom.internal(error.message));
+    //   });
+    
+
+    // } catch (error) {
+    //   logger.error("Function error: ",error.message);
+    //   return next(Boom.badGateway(error.message, error));
+    // }
   };
   exports.getOne = async function (req, res, next) {
     try {
