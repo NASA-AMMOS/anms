@@ -32,6 +32,7 @@
 
   exports.getHello = async function(req, res, next) {
     try {
+      const url = utils.generateAnmsCoreUrl(['version']);
       const json = await axios.get('/version');
       if (json === null) {
         return res.status(404);

@@ -44,6 +44,7 @@
   exports.getAlerts = async function (req, res, next) {
     try {
 
+      const url = utils.generateAnmsCoreUrl(['alerts', 'incoming']);
       const json = await axios.get('/alerts/incoming');
       if (json === null) {
         return res.status(404);

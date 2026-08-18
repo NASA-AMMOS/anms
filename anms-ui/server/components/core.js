@@ -35,7 +35,8 @@ const { ReplyError } = require('redis');
 
   exports.getServiceStatus = async function(req, res, next) {
     try {
-      const json = await axios.get('/sys_status/services');
+      const url = utils.generateAnmsCoreUrl(['sys_status', 'services']);
+      const json = await axios.get(url);
       if (json === null) {
         return res.status(404);
       }
