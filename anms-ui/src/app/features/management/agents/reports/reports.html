@@ -1,6 +1,5 @@
 <div>
   <h5>Reports sent:</h5>
-
   <!-- Loading spinner -->
   @if (loading) {
   <div class="spinner-border text-primary" role="status">
@@ -21,12 +20,12 @@
   </div>
 
   <!-- Tables -->
- @for (_ of tableItems; track _; let index = $index) {
+ @for (_ of tableItems(); track _; let index = $index) {
       <div class="spacing-table">
         <table class="table table-bordered">
           <thead class="">
           <tr>
-            @for (header of tableHeaders[index]; track header) {
+            @for (header of tableHeaders()[index]; track header) {
               <th>
                 {{ header }}
               </th>
@@ -34,7 +33,7 @@
           </tr>
           </thead>
           <tbody>
-            @for (row of tableItems[index]; track row) {
+            @for (row of tableItems()[index]; track row) {
               <tr>
                 <!-- {{ row }}   -->
                 @for (cell of row; track cell) {

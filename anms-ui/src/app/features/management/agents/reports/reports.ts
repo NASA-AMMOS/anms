@@ -1,7 +1,7 @@
-import {Component, inject, Input, OnInit} from '@angular/core';
-import {ToastrService} from 'ngx-toastr';
-import {ApiService} from '../../../../shared/api.service';
-import {FormsModule} from '@angular/forms';
+import { Component, inject, Input, OnInit, signal } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
+import { ApiService } from '../../../../shared/api.service';
+import { FormsModule } from '@angular/forms';
 
 export interface ReportOption {
   ari: string;
@@ -26,15 +26,16 @@ export class Reports implements OnInit {
   toastr = inject(ToastrService);
 
   selected?: ReportOption;
-  tableHeaders: string[][] = [];
-  tableItems: any[][][] = [];
+
+  tableItems = signal<any[][][]>([]);
+  tableHeaders = signal<string[][]>([]);
   title = '';
   reports: Record<string, any> = {};
   reportsHeader: Record<string, any> = {};
   loading = true;
 
-  constructor() {
-  }
+  constructor(
+  ) { }
 
   ngOnInit(): void {
     this.loading = true;
@@ -46,7 +47,7 @@ export class Reports implements OnInit {
         .subscribe({
           next: (res: any) => {
             this.reports[index] = res;
-            
+
           }, error: (error: any) => {
             console.error('reports error', error);
           }
@@ -65,35 +66,49 @@ export class Reports implements OnInit {
     }
 
     this.loading = true;
-    this.tableHeaders = [];
-    this.tableItems = [];
+    this.tableHeaders = signal<string[][]>([]);
+    this.tableItems = signal<any[][][]>([]);
 
     const nonce_cbor = this.selected.cbor;
-
-    try {
-      this.apiService.apiEntriesForReport(
-        this.registeredAgentsId,
-        nonce_cbor
-      ).subscribe((res) => {
+    this.apiService.apiEntriesForReport(
+      this.registeredAgentsId,
+      nonce_cbor
+    ).subscribe({
+      next: (res) => {
         this.processReport(res);
 
         const key = JSON.stringify(this.selected);
-        this.reports[key] = this.tableItems;
-        this.reportsHeader[key] = this.tableHeaders;
-      });
-    } catch (error: any) {
-      console.error('reports error', error);
-      this.toastr.error('reports error: ' + error);
-    } finally {
-      this.loading = false;
-    }
+
+        this.reports[key] = this.tableItems();
+        this.reportsHeader[key] = this.tableHeaders();
+      },
+      error: (error) => {
+        console.error('reports error', error);
+        this.toastr.error('reports error: ' + error);
+        this.loading = false;
+      },
+      complete: () => {
+        this.loading = false;
+      }
+    });
   }
 
   private processReport(report: any): void {
-    let rpt: any[] = [];
-    if(report.length >0 ){
-      this.tableItems.push(report[0].reports.flat().map((obj: { [s: string]: unknown; } | ArrayLike<unknown>) => Object.values(obj)));
+    if (report.length > 0 && report[0].reports?.flat().length > 0) {
+      const flatReports = report[0].reports.flat();
+
+      this.tableItems.update(items => [
+        ...items,
+        flatReports.map(
+          (obj: { [s: string]: unknown } | ArrayLike<unknown>) =>
+            Object.values(obj)
+        )
+      ]);
+
+      this.tableHeaders.update(headers => [
+        ...headers,
+        Object.keys(flatReports[0])
+      ]);
     }
-    this.tableHeaders.push(Object.keys(report[0].reports.flat()[0]));
   }
 }

@@ -1,5 +1,7 @@
 .spacing-table {
   margin: 16px 0;
+  max-height: 500px;
+  overflow: auto;
 }
 
 .select-max-width {
@@ -9,4 +11,22 @@
 .scrollable-div {
   max-height: 500px;
   overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+th,
+td {
+  padding: 8px 12px;
+  white-space: nowrap;
 }
