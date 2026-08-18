@@ -1,8 +1,91 @@
+# Changelog
+
+Some notable changes to this project will be documented in this file. The full
+changelog will be on the ANMS GitHub wiki: https://github.com/NASA-AMMOS/anms/wiki/ANMS-Changelog.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [3.0.0] - Unreleased
+
+### Added
+- Angular port of frontend UI, replacing Vue
+- OpenSearch containers
+- `/version` REST API
+- Multi-file ADM upload and toast notification system
+- Tag-based GHCR image publishing
+
+### Changed
+- PostgreSQL upgraded from v14 to v18
+- ResourceCache replaced with LFU cache
+- CI migrated to Podman v5
+- Enterprise SSL certificate installation refactored
+- Core routes consolidated and cleaned up
+- Improved REST API error handling and SQL concurrency
+
+### Fixed
+- UID values exceeding SYS_UID_MAX
+- ARI builder bugs
+
+## [2.0.0] - 2025-10-30
+
+### Added
+- Light compose profile for reduced-footprint deployments
+- GHCR container publishing pipeline
+- Quickstart developer onboarding script
+- SonarQube/SonarCloud CI integration
+- Time-based and state-based rule creation in the build tab
+- EDDS ARI selection on the build tab
+- Grafana v12 with PostgreSQL internal database and text-provisioned dashboards
+- Internal ARI transcoder, replacing external dependency
+- Help page and 404 page handler
+
+### Changed
+- NGINX removed from the stack
+- ION removed from ANMS images
+- Podman support added alongside Docker
+- ContainerFiles combined to eliminate intermediate images
+- Core ARI translation and sending route consolidated
+- Latest dtnma-tools and SQL schema adopted
+
+### Fixed
+- Correlator nonce misbehavior
+- YANG file upload failures
+- Transcoder log table navigation
+- Overly permissive regex security issue
+- Numerous CI stability and dependency upgrades
+
+## [1.1.0] - 2024-08-26
+
+### Added
+- Agent details and management modals
+- Received reports display with missing reports support
+- Report generation and display in the build tab
+- Navigation filtering on the exploration build tab
+- GitLab CI pipeline
+
+### Changed
+- RHEL version updated for AMMOS compatibility
+- ION switched to dtnma-tools backend
+- Build script updated for image tar release
+
+### Fixed
+- Report database agent parameter handling
+- ION hex string handling with blank spaces
+- Rate limiter and code scanning issues
+- Footer formatting overflow
+
+## [1.0.0] - 2023-08-31
+
+### Added
+- Initial public release of ANMS v1.0, imported from private source repository
+
 ## [0.2.0] - 2022-06-10
+
 ### Added
 - Build tab, which allows for building of ARIs
 - anms-core, centralized orchestration component which now all ANMS-developed components will use to retrieve data from other components
-- REST API documentation websites for anms-core in both OpenAPI (at /docs) and Redoc ( at /redoc) formats
+- REST API documentation websites for anms-core in both OpenAPI (at /docs) and Redoc (at /redoc) formats
 - Initial unit testing for anms-core and anms-ui
 - All components now support PostgreSQL and MySQL databases, with notional support for MariaDB.
 
@@ -18,6 +101,7 @@
 - Initial REST API role-based access controls for user management endpoint
 
 ## [0.1.1] - 2022-03-09
+
 ### Added
 - Grafana panels and documentation for viewing report variables
 - Interface to help construct controls that set up TBRs for agents to send reports at intervals
@@ -27,5 +111,6 @@
 - Fixed issues related to adding users
 
 ## [0.0.1] - 2022-02-08
+
 ### Added
 - Initial Release

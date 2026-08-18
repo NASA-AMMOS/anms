@@ -31,6 +31,21 @@
           </mat-form-field>
         }
 
+        <div class="ari-filter-row">
+          <mat-form-field appearance="outline" class="type-filter-field">
+            <mat-label>Filter by Type</mat-label>
+            <mat-select
+              [(value)]="selectedTypeFilter"
+              (selectionChange)="onTypeFilterChange($event)"
+            >
+              <mat-option value="ALL">All Types</mat-option>
+              @for (typeName of ariTypeNames; track typeName) {
+                <mat-option [value]="typeName">{{ typeName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
         <mat-form-field appearance="outline" class="ari-dropdown">
           <mat-label>Select ARI</mat-label>
           <input
@@ -86,10 +101,20 @@
       </div>
     </div>
 
+    @if (validationErrors.length > 0) {
+      <div class="validation-errors">
+        <h6>Validation Warnings:</h6>
+        @for (error of validationErrors; track error) {
+          <div class="validation-error">{{ error }}</div>
+        }
+      </div>
+    }
+
     <button
       mat-stroked-button
       class="send-button"
       type="button"
+      [disabled]="validationErrors.length > 0"
       (click)="send()"
     >
       Submit ARI
