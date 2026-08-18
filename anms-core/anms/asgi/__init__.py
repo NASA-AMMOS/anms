@@ -140,46 +140,51 @@ class FastApiApp(object):
             # Returns FastAPI Hardcoded Copy of swagger-ui-dist/oauth2-redirect.html
             return get_swagger_ui_oauth2_redirect_html()
 
-        # Basic Redirect
+        # Swagger UI (served at /docs - no trailing-slash redirect to work under any proxy)
         @self.app.get("/docs", include_in_schema=False)
-        async def custom_swagger_ui_html_redirect() -> RedirectResponse:
-            return RedirectResponse(url="/docs/")
-
-        # Catch All Docs Route...
-        @self.app.get("/docs/{path:path}", include_in_schema=False)
-        async def custom_swagger_ui_html(path: str) -> Union[RedirectResponse, HTMLResponse]:
-            if len(path) > 0:
-                return RedirectResponse(url="/docs/")
-            swagger_js_url = self.app.url_path_for("static", path="assets/fastapi/swagger-ui-dist/swagger-ui-bundle.js")
-            swagger_css_url = self.app.url_path_for("static", path="assets/fastapi/swagger-ui-dist/swagger-ui.css")
-            swagger_favicon_url = self.app.url_path_for("static", path="favicon.png")
-            return get_swagger_ui_html(
-                openapi_url=self.app.openapi_url,  # type: ignore
-                title=self.app.title + " - Swagger UI",
-                swagger_js_url=swagger_js_url,
-                swagger_css_url=swagger_css_url,
-                swagger_favicon_url=swagger_favicon_url,
-                oauth2_redirect_url=self.app.swagger_ui_oauth2_redirect_url,
-                # https://swagger.io/docs/open-source-tools/swagger-ui/usage/oauth2/
+        async def custom_swagger_ui_html() -> HTMLResponse:
+            # get_swagger_ui_html hardcodes oauth2RedirectUrl as window.location.origin + '/docs/oauth2-redirect'
+            # which breaks under proxy prefixes like /core/docs. Build HTML with relative URLs instead.
+            return HTMLResponse(
+                '<!DOCTYPE html>\n'
+                '<html>\n<head>\n'
+                '<link type="text/css" rel="stylesheet" href="../release/assets/fastapi/swagger-ui-dist/swagger-ui.css">\n'
+                '<link rel="shortcut icon" href="../release/favicon.png">\n'
+                '<title>AMMOS-ANMS - Swagger UI</title>\n'
+                '</head>\n<body>\n'
+                '<div id="swagger-ui"></div>\n'
+                '<script src="../release/assets/fastapi/swagger-ui-dist/swagger-ui-bundle.js"></script>\n'
+                '<script src="../release/assets/fastapi/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>\n'
+                '<script>\n'
+                'window.onload = function() {\n'
+                '  SwaggerUIBundle({\n'
+                "    url: '../openapi.json',\n"
+                "    dom_id: '#swagger-ui',\n"
+                "    layout: 'BaseLayout',\n"
+                '    deepLinking: true,\n'
+                '    showExtensions: true,\n'
+                '    showCommonExtensions: true,\n'
+                "    oauth2RedirectUrl: window.location.pathname + '/oauth2-redirect',\n"
+                '    presets: [\n'
+                '      SwaggerUIBundle.presets.apis,\n'
+                '      SwaggerUIBundle.SwaggerUIStandalonePreset\n'
+                '    ]\n'
+                '  });\n'
+                '};\n'
+                '</script>\n'
+                '</body>\n</html>'
             )
 
-        # Basic Redirect
+        # ReDoc (served at /redoc - no trailing-slash redirect to work under any proxy)
         @self.app.get("/redoc", include_in_schema=False)
-        async def redoc_html_redirect() -> RedirectResponse:
-            return RedirectResponse(url="/redoc/")
-
-        # Catch All ReDocs Route...
-        @self.app.get("/redoc/{path:path}", include_in_schema=False)
-        async def redoc_html(path: str) -> Union[RedirectResponse, HTMLResponse]:
-            if len(path) > 0:
-                return RedirectResponse(url="/redoc/")
+        async def redoc_html() -> HTMLResponse:
             redoc_js_url = self.app.url_path_for("static", path="assets/fastapi/redoc/bundles/redoc.standalone.js")
             swagger_favicon_url = self.app.url_path_for("static", path="favicon.png")
             return get_redoc_html(
-                openapi_url=self.app.openapi_url,  # type: ignore
+                openapi_url="../openapi.json",
                 title=self.app.title + " - ReDoc",
-                redoc_js_url=redoc_js_url,
-                redoc_favicon_url=swagger_favicon_url,
+                redoc_js_url=f"../{redoc_js_url.lstrip('/')}",
+                redoc_favicon_url=f"../{swagger_favicon_url.lstrip('/')}",
                 with_google_fonts=False
             )
 
