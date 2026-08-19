@@ -23,56 +23,39 @@
 (function () {
   'use strict';
 
-  const _ = require('lodash');
   const Boom = require('@hapi/boom');
-  const logger = require('../shared/logger');
   const axios = require('axios');
   const utils = require('../shared/utils');
-  let request = require('request');
-  
-  const config = require('../shared/config');
-  request = request.defaults({
-    json: true,
-    baseUrl: _.get(config,'core.parsedUri'),
-    encoding: 'utf8',
-    timeout: 60000 * 10 // 10 minutes
-  });
-exports.acknowledgeAlert = async function(req, res, next){
-  try {
-    const index = Number(req.params.index);
-    const url = utils.generateAnmsCoreUrl(['alerts', 'acknowledge', index]);
-    const ret = await axios.put(url);
-    return res.status(200).json(ret.data);
-  } catch (err) {
-    return next(Boom.badGateway('Error sending parameter put', err));
-  }
-};
-exports.getAlerts = async function(req, res, next){
-  return new Promise(function (resolve, reject) {
-    request.get({url: '/alerts/incoming'}, function (error, response, body) {
-      logger.info(JSON.stringify(response));
-      if (error) {
-        logger.err("error sending request to core:", error);
-        reject(error);
-      } else if (response.statusCode >= 400 && response.statusCode < 500) {
-        return next(Boom.badGateway('Error talking to core'));
-      } else {
-        resolve(body);
+
+  exports.acknowledgeAlert = async function (req, res, next) {
+    try {
+      const index = Number(req.params.index);
+      const url = utils.generateAnmsCoreUrl(['alerts', 'acknowledge', index]);
+      const ret = await axios.put(url);
+      return res.status(200).json(ret.data);
+    } catch (err) {
+      return next(Boom.badGateway('Error sending parameter put', err));
+    }
+  };
+  exports.getAlerts = async function (req, res, next) {
+    try {
+
+      const url = utils.generateAnmsCoreUrl(['alerts', 'incoming']);
+      const json = await axios.get(url);
+      if (json === null) {
+        return res.status(404);
       }
-    });
-  }).then(function(statusObj) {
-    return res.json(statusObj);
-  }).catch(function(errObj) {
-    return next(Boom.badGateway(errObj));
-  });
-} 
-exports.putAlerts = async function (req, res, next) {
+      return res.status(200).json(json.data);
+    } catch (err) {
+      return next(Boom.badGateway('Error talking to CORE', err));
+    }
+  }
+  exports.putAlerts = async function (req, res, next) {
     try {
       const new_alerts = req.body.data
       // add to alert list
       new_alerts.forEach((alert) => {
         // agents.addAlert(alert);
-        // request.put({url: '/app', data: alert});
       });
 
       return res.status(200).json();
@@ -81,4 +64,4 @@ exports.putAlerts = async function (req, res, next) {
     }
   };
 
-  })();
+})();
