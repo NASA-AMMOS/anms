@@ -84,3 +84,24 @@ jobs:
           for OPTS_NAME in ANMS_COMPOSE_OPTS TESTENV_COMPOSE_OPTS; do
             ${DOCKER_CMD} compose ${!OPTS_NAME} down --remove-orphans
           done
+
+  anms-ui-unit-test:
+    runs-on: ubuntu-24.04
+    name: ANMS UI Unit Tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: anms-ui/package-lock.json
+      - name: Install dependencies
+        working-directory: anms-ui
+        run: npm ci
+      - name: Run unit tests
+        working-directory: anms-ui
+        run: npx ng test --runner=vitest --no-watch
