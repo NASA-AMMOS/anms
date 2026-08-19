@@ -181,14 +181,29 @@ class FastApiApp(object):
         # ReDoc (served at /redoc - no trailing-slash redirect to work under any proxy)
         @self.app.get("/redoc", include_in_schema=False)
         async def redoc_html() -> HTMLResponse:
-            redoc_js_url = self.app.url_path_for("static", path="assets/fastapi/redoc/bundles/redoc.standalone.js")
-            swagger_favicon_url = self.app.url_path_for("static", path="favicon.png")
-            return get_redoc_html(
-                openapi_url="../openapi.json",
-                title=self.app.title + " - ReDoc",
-                redoc_js_url=f"../{redoc_js_url.lstrip('/')}",
-                redoc_favicon_url=f"../{swagger_favicon_url.lstrip('/')}",
-                with_google_fonts=False
+            # Use dynamic JS (same pattern as Swagger) so assets resolve at any proxy prefix
+            return HTMLResponse(
+                '<!DOCTYPE html>'
+                '<html><head>'
+                '<meta charset=\"utf-8\">'
+                '<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">'
+                '<title>AMMOS-ANMS - ReDoc</title>'
+                '<style>body{margin:0;padding:0}</style>'
+                '<script>'
+                '(function(){'
+                'var b=window.location.pathname.replace(/\\/redoc$/,"");'
+                'var f=document.createElement("link");'
+                'f.rel="icon";f.href=b+"/release/favicon.png";'
+                'document.head.appendChild(f);'
+                'var s=document.createElement("script");'
+                's.src=b+"/release/assets/fastapi/redoc/bundles/redoc.standalone.js";'
+                's.onload=function(){'
+                'var r=document.createElement("redoc");'
+                'r.setAttribute("spec-url",b+"/openapi.json");'
+                'document.body.appendChild(r);};'
+                'document.head.appendChild(s);})();'
+                '</script>'
+                '</head><body></body></html>'
             )
 
     def register_mounts(self) -> None:
