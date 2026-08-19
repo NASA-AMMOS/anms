@@ -24,10 +24,6 @@
   'use strict';
 
   const Boom = require('@hapi/boom');
-  const _ = require('lodash');
-  const logger = require('../shared/logger');
-
-  const config = require('../shared/config');
   const axios = require('axios');
   const utils = require('../shared/utils');
 

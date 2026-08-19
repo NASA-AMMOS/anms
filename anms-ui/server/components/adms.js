@@ -25,13 +25,11 @@
 
   const _ = require('lodash');
   const Boom = require('@hapi/boom');
-  let logger = require('../shared/logger');
   const url = require('url');
   const utils = require('../shared/utils');
 
   const permissions = require('../core/permissions');
 
-  const config = require('../shared/config');
   const utilities = require('./utilities');
 
   const requestTimeOut = 3000; //milliseconds

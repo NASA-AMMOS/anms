@@ -23,13 +23,9 @@
 (function () {
   'use strict';
 
-  const _ = require('lodash');
   const Boom = require('@hapi/boom');
-  const logger = require('../shared/logger');
   const axios = require('axios');
   const utils = require('../shared/utils');
-
-  const config = require('../shared/config');
 
   exports.acknowledgeAlert = async function (req, res, next) {
     try {
