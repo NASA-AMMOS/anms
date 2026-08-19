@@ -440,7 +440,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(1);
+      expect(emitted).toHaveLength(1);
     });
 
     it('does not emit when builder validation fails', () => {
@@ -451,7 +451,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(0);
+      expect(emitted).toHaveLength(0);
     });
   });
 
@@ -498,7 +498,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(1);
+      expect(emitted).toHaveLength(1);
       expect(emitted[0].mode).toBe('text');
     });
 
@@ -510,7 +510,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(0);
+      expect(emitted).toHaveLength(0);
     });
   });
 
@@ -555,7 +555,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(1);
+      expect(emitted).toHaveLength(1);
       expect(emitted[0].mode).toBe('cbor');
     });
 
@@ -567,7 +567,7 @@ describe('AriCommandBuilder', () => {
       const emitted: any[] = [];
       component.commandReady.subscribe(e => emitted.push(e));
       c(component).send();
-      expect(emitted.length).toBe(0);
+      expect(emitted).toHaveLength(0);
     });
   });
 
