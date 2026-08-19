@@ -5,6 +5,7 @@
     <mat-button-toggle-group
       class="ari-mode-toggle"
       [(ngModel)]="ariMode"
+      (ngModelChange)="onModeChange()"
       aria-label="ARI input mode"
     >
       <mat-button-toggle value="builder">ARI Builder</mat-button-toggle>
@@ -71,26 +72,50 @@
     }
 
     @if (ariMode === 'text') {
-      <mat-form-field appearance="outline" class="manual-input">
+      <mat-form-field appearance="outline" class="manual-input"
+                      [class.input-valid]="validationStatus === 'valid'"
+                      [class.input-invalid]="validationStatus === 'invalid'">
         <mat-label>Enter ARI Text</mat-label>
         <textarea
           matInput
-          [(ngModel)]="manualAriText"
+          [value]="manualAriText"
+          (input)="onTextAriInput($event)"
           rows="3"
           placeholder="ari://...">
           </textarea>
+        @if (validationStatus === 'checking') {
+          <mat-icon matSuffix>search</mat-icon>
+        }
+        @if (validationStatus === 'valid') {
+          <mat-icon matSuffix color="accent">check_circle</mat-icon>
+        }
+        @if (validationStatus === 'invalid') {
+          <mat-icon matSuffix color="warn">error</mat-icon>
+        }
       </mat-form-field>
     }
 
     @if (ariMode === 'cbor') {
-      <mat-form-field appearance="outline" class="hex-input">
+      <mat-form-field appearance="outline" class="hex-input"
+                      [class.input-valid]="validationStatus === 'valid'"
+                      [class.input-invalid]="validationStatus === 'invalid'">
         <mat-label>Enter CBOR Hex</mat-label>
         <span matTextPrefix>0x&nbsp;</span>
         <input
           matInput
-          [(ngModel)]="manualCborHex"
+          [value]="manualCborHex"
+          (input)="onCborHexInput($event)"
           placeholder="ABC123"
         />
+        @if (validationStatus === 'checking') {
+          <mat-icon matSuffix>search</mat-icon>
+        }
+        @if (validationStatus === 'valid') {
+          <mat-icon matSuffix color="accent">check_circle</mat-icon>
+        }
+        @if (validationStatus === 'invalid') {
+          <mat-icon matSuffix color="warn">error</mat-icon>
+        }
       </mat-form-field>
     }
 

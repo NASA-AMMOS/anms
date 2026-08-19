@@ -172,3 +172,31 @@
   font-size: 0.8125rem;
   margin-bottom: 0.25rem;
 }
+
+/* Backend validation feedback */
+.input-valid mat-form-field-wrapper {
+  border-color: #22c55e !important;
+}
+
+.input-invalid mat-form-field-wrapper {
+  border-color: #ef4444 !important;
+}
+
+.command-preview-row {
+  position: relative;
+}
+
+.validation-message {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0;
+}
+
+.validation-message.status-checking {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.validation-message.status-invalid {
+  color: #dc2626;
+}
