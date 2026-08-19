@@ -378,7 +378,11 @@ export class AriCommandBuilder implements OnInit {
       return;
     }
 
-    // Check required text params are filled
+    this.validateBuilderTextParams();
+    this.validateBuilderAriParams();
+  }
+
+  private validateBuilderTextParams(): void {
     for (const param of this.ariParams) {
       if (param.kind !== 'text') continue;
       if (!param.textValue?.trim()) {
@@ -387,11 +391,11 @@ export class AriCommandBuilder implements OnInit {
         );
       }
     }
+  }
 
-    // Check ARI param type mismatches
+  private validateBuilderAriParams(): void {
     for (const param of this.ariParams) {
-      if (param.kind !== 'ari-list') continue;
-      if (!param.requiredAriType) continue;
+      if (param.kind !== 'ari-list' || !param.requiredAriType) continue;
 
       for (const selectedAri of param.selectedAris) {
         if (selectedAri.type_name && selectedAri.type_name !== param.requiredAriType) {
