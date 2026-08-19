@@ -120,38 +120,21 @@ export class AriCommandBuilder implements OnInit {
       this.manualCborHex = this.initialCborCommands.join(',');
     }
 
-    // Debounced backend validation for text mode
-    this.textInput$.pipe(
-      debounceTime(400),
-      distinctUntilChanged(),
-      switchMap((value: string) => {
-        if (!value.trim()) {
-          return of({valid: false, error: 'ARI text is required'});
-        }
-        return this.api.apiValidateAri(value.trim(), 'text');
-      }),
-      tap((result) => {
-        if (result.valid) {
-          this.validationStatus = 'valid';
-          this.validationMessage = '';
-          this.validationErrors = [];
-        } else {
-          this.validationStatus = 'invalid';
-          this.validationMessage = result.error || 'Invalid ARI';
-          this.validationErrors = [this.validationMessage];
-        }
-      })
-    ).subscribe();
+    // Debounced backend validation for text/CBOR modes
+    this.setupValidationPipeline(this.textInput$, 'text');
+    this.setupValidationPipeline(this.cborInput$, 'cbor');
+  }
 
-    // Debounced backend validation for CBOR mode
-    this.cborInput$.pipe(
+  private setupValidationPipeline(input$: Subject<string>, mode: 'text' | 'cbor'): void {
+    const requiredMsg = mode === 'text' ? 'ARI text is required' : 'CBOR hex is required';
+    input$.pipe(
       debounceTime(400),
       distinctUntilChanged(),
       switchMap((value: string) => {
         if (!value.trim()) {
-          return of({valid: false, error: 'CBOR hex is required'});
+          return of({valid: false, error: requiredMsg});
         }
-        return this.api.apiValidateAri(value.trim(), 'cbor');
+        return this.api.apiValidateAri(value.trim(), mode);
       }),
       tap((result) => {
         if (result.valid) {
@@ -160,7 +143,7 @@ export class AriCommandBuilder implements OnInit {
           this.validationErrors = [];
         } else {
           this.validationStatus = 'invalid';
-          this.validationMessage = result.error || 'Invalid CBOR';
+          this.validationMessage = result.error || 'Invalid input';
           this.validationErrors = [this.validationMessage];
         }
       })
@@ -421,59 +404,43 @@ export class AriCommandBuilder implements OnInit {
   }
 
   protected onTextAriInput(event: Event): void {
-    const value = (event.target as HTMLTextAreaElement).value;
-    this.manualAriText = value;
-    this.validationStatus = 'checking';
-    this.validationMessage = '';
-    this.validationErrors = [];
-    this.textInput$.next(value);
+    this.handleAriInput(event, (v) => { this.manualAriText = v; }, this.textInput$);
   }
 
-  /**
-   * Called when the user types in the CBOR hex input field.
-   * Triggers debounced backend validation.
-   */
   protected onCborHexInput(event: Event): void {
+    this.handleAriInput(event, (v) => { this.manualCborHex = v; }, this.cborInput$);
+  }
+
+  private handleAriInput(event: Event, setter: (v: string) => void, subject$: Subject<string>): void {
     const value = (event.target as HTMLInputElement).value;
-    this.manualCborHex = value;
+    setter(value);
     this.validationStatus = 'checking';
     this.validationMessage = '';
     this.validationErrors = [];
-    this.cborInput$.next(value);
+    subject$.next(value);
   }
 
   private validateTextMode(): void {
-    const text = this.manualAriText?.trim() ?? '';
-    if (!text) {
-      this.validationErrors.push('ARI text is required');
-      this.validationStatus = 'invalid';
-      return;
-    }
-    // At send time, use the latest backend validation result
-    if (this.validationStatus === 'invalid') {
-      this.validationErrors.push(this.validationMessage || 'ARI failed backend validation');
-      return;
-    }
-    if (this.validationStatus === 'none') {
-      this.validationErrors.push('ARI has not been validated yet');
-      this.validationStatus = 'invalid';
-    }
+    this.validateTextOrCborMode('text', this.manualAriText?.trim() ?? '');
   }
 
   private validateCborMode(): void {
-    const hex = this.manualCborHex?.trim() ?? '';
-    if (!hex) {
-      this.validationErrors.push('CBOR hex is required');
+    this.validateTextOrCborMode('cbor', this.manualCborHex?.trim() ?? '');
+  }
+
+  private validateTextOrCborMode(label: 'text' | 'cbor', value: string): void {
+    if (!value) {
+      const msg = label === 'text' ? 'ARI text is required' : 'CBOR hex is required';
+      this.validationErrors.push(msg);
       this.validationStatus = 'invalid';
       return;
     }
-    // At send time, use the latest backend validation result
     if (this.validationStatus === 'invalid') {
-      this.validationErrors.push(this.validationMessage || 'CBOR failed backend validation');
+      this.validationErrors.push(this.validationMessage || `${label === 'text' ? 'ARI' : 'CBOR'} failed backend validation`);
       return;
     }
     if (this.validationStatus === 'none') {
-      this.validationErrors.push('CBOR has not been validated yet');
+      this.validationErrors.push(`${label === 'text' ? 'ARI' : 'CBOR'} has not been validated yet`);
       this.validationStatus = 'invalid';
     }
   }
