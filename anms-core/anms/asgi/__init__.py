@@ -155,7 +155,7 @@ class FastApiApp(object):
                 '<style>body{margin:0}#swagger-ui .topbar{display:none}</style>'
                 '<script>'
                 '(function(){'
-                'var b=window.location.pathname.replace(/\\/docs$/,"");'
+                'var b=window.location.pathname.replace(/\\/docs$/, "");'
                 'var c=document.createElement("link");'
                 'c.rel="stylesheet";c.href=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui.css";'
                 'document.head.appendChild(c);'
@@ -181,29 +181,30 @@ class FastApiApp(object):
         # ReDoc (served at /redoc - no trailing-slash redirect to work under any proxy)
         @self.app.get("/redoc", include_in_schema=False)
         async def redoc_html() -> HTMLResponse:
-            # Use dynamic JS (same pattern as Swagger) so assets resolve at any proxy prefix
+            # Use dynamic JS (same pattern as Swagger) so assets resolve at any proxy prefix.
+            # ReDoc needs the <redoc> element in the DOM before the script loads so it can initialize.
             return HTMLResponse(
                 '<!DOCTYPE html>'
                 '<html><head>'
-                '<meta charset=\"utf-8\">'
-                '<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">'
+                '<meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width, initial-scale=1">'
                 '<title>AMMOS-ANMS - ReDoc</title>'
                 '<style>body{margin:0;padding:0}</style>'
+                '</head><body>'
+                '<redoc></redoc>'
                 '<script>'
                 '(function(){'
-                'var b=window.location.pathname.replace(/\\/redoc$/,"");'
+                'var b=window.location.pathname.replace(/\\/redoc$/, "");'
+                'document.querySelector("redoc").setAttribute("spec-url", b+"/openapi.json");'
                 'var f=document.createElement("link");'
                 'f.rel="icon";f.href=b+"/release/favicon.png";'
                 'document.head.appendChild(f);'
                 'var s=document.createElement("script");'
                 's.src=b+"/release/assets/fastapi/redoc/bundles/redoc.standalone.js";'
-                's.onload=function(){'
-                'var r=document.createElement("redoc");'
-                'r.setAttribute("spec-url",b+"/openapi.json");'
-                'document.body.appendChild(r);};'
-                'document.head.appendChild(s);})();'
+                'document.head.appendChild(s);'
+                '})();'
                 '</script>'
-                '</head><body></body></html>'
+                '</body></html>'
             )
 
     def register_mounts(self) -> None:
