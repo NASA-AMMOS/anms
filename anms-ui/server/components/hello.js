@@ -29,6 +29,7 @@
 
   const config = require('../shared/config');
   const axios = require('axios');
+  const utils = require('../shared/utils');
 
   exports.getHello = async function(req, res, next) {
     try {

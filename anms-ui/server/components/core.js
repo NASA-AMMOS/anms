@@ -31,6 +31,7 @@ const { ReplyError } = require('redis');
 
   const config = require('../shared/config');
   const axios = require('axios');
+  const utils = require('../shared/utils');
 
 
   exports.getServiceStatus = async function(req, res, next) {
