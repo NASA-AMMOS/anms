@@ -30,7 +30,6 @@
   const utils = require('../shared/utils');
 
   const config = require('../shared/config');
-  const utils = require('../shared/utils');
 
   exports.acknowledgeAlert = async function (req, res, next) {
     try {
@@ -46,7 +45,7 @@
     try {
 
       const url = utils.generateAnmsCoreUrl(['alerts', 'incoming']);
-      const json = await axios.get('/alerts/incoming');
+      const json = await axios.get(url);
       if (json === null) {
         return res.status(404);
       }
