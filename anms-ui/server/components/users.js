@@ -26,9 +26,9 @@
   const _ = require('lodash');
   const Boom = require('@hapi/boom');
   let logger = require('../shared/logger');
-  let request = require('request');
   const url = require('url');
   const utils = require('../shared/utils');
+  const axios = require('axios');
 
   const permissions = require('../core/permissions');
 
@@ -66,29 +66,16 @@
   exports.getAllUsersWebSafe = async function (req, res, next) {
     try {
       const usersReqHeader = createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        const page = req.page ? req.page : 1;
-        const size = req.size ? req.size : 50;
-        let params = {page: page, size: size};
-        let requestUrl = generateAnmsCoreUrl('', params);
-        request({
-          method: 'Get',
-          url: requestUrl,
-          headers: usersReqHeader,
-          json: true,
-          timeout: 6000,
-        }, function (error, response, body) {
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            logger.error(error);
-            return Boom.badGateway('Error authenticating user', error);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(results){
+      const page = req.page ? req.page : 1;
+      const size = req.size ? req.size : 50;
+      const requestUrl = generateAnmsCoreUrl('', {page: page, size: size});
+      const response = await restApi({method: 'get', url: requestUrl, headers: usersReqHeader, timeout: 6000});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400) {
+        return next(Boom.badGateway('Error authenticating user'));
+      }
+      {
+        const results = response.data;
         let users = results.items;
         const viewMorePermissions = [permissions.systemPermissionsInv[permissions.systemPermissions.PERMISSION_ALL],
                                      permissions.systemPermissionsInv[permissions.systemPermissions.PERMISSION_ADD_USER],
@@ -109,7 +96,7 @@
           return _.pick(user, filter);
         });
         return res.status(200).json(cleanedUsers);
-      });
+      }
     } catch (error) {
       return next(Boom.badGateway('Error Getting Users', error));
     }
@@ -119,33 +106,14 @@
     try {
       const usersReqHeader = createAuthenticationHeader(req);
       const userName = req.params.userName;
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl(`/${userName}`);
-        logger.info("Sending getUser request to: ", requestUrl);
-        request({
-          method: 'Get',
-          url: requestUrl,
-          headers: usersReqHeader,
-          json: true,
-          timeout: requestTimeOut
-        }, function (error, response, body) {
-          
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400) {
-            let boomObj = utilities.errorCodeLookup(response.statusCode);
-            next(boomObj);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(userObj) {
-          return res.status(200).json(userObj);
-      }).catch(function(error) {
-        logger.error("Request error: ", error);
-        return next(Boom.internal(error.message));
-      });
+      const requestUrl = generateAnmsCoreUrl(`/${userName}`);
+      logger.info("Sending getUser request to: ", requestUrl);
+      const response = await restApi({method: 'get', url: requestUrl, headers: usersReqHeader, timeout: requestTimeOut});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400) {
+        return next(utilities.errorCodeLookup(response.status));
+      }
+      return res.status(200).json(response.data);
     } catch (error) {
       logger.error("Function error: ",error.message);
       return next(Boom.badGateway(error.message, error));
@@ -172,42 +140,18 @@
       const usersReqHeader = createAuthenticationHeader(req);
       const profileInfo =  utils.snakeCaseObject(filteredUserProfile);
       
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl('');
-        request({
-          method: 'Post',
-          url: requestUrl,
-          headers: usersReqHeader,
-          body: profileInfo,
-          json: true
-        }, function (error, response, body) {
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            let err = new Error();
-            let boomObj = Boom.boomify(err, {statusCode: response.statusCode, details: body})
-            logger.info(boomObj);
-            //return boomObj;
-            if (response.statusCode == 409) {
-              return res.status(409).json(body.field);
-            } else {
-              next(boomObj)
-            }
-          } else if (response.statusCode >= 500) {
-            reject(new Error("Internal server error"));
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(userProfileObj) {
-        logger.info(userProfileObj);
-        const sanitizedUser = _.pick(userProfileObj, usersProfileWebSafeFields);
-        return res.status(201).json(sanitizedUser);
-      }).catch(function(error) {
-        logger.error("Request error: ", error);
-        return next(Boom.internal(error.message));
-      });
+      const response = await restApi({method: 'post', url: generateAnmsCoreUrl(''), headers: usersReqHeader, data: profileInfo});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400 && response.status < 500) {
+        const boomObj = Boom.boomify(new Error(), {statusCode: response.status, details: response.data});
+        logger.info(boomObj);
+        return response.status === 409 ? res.status(409).json(response.data.field) : next(boomObj);
+      }
+      if (response.status >= 500) {
+        return next(Boom.internal('Internal server error'));
+      }
+      logger.info(response.data);
+      return res.status(201).json(_.pick(response.data, usersProfileWebSafeFields));
     } catch (error) {
       logger.error("Function error: ",error.message);
       return next(Boom.badGateway(error.message, error));
@@ -245,29 +189,12 @@
         return next(Boom.badData('Invalid Password Length'));
       }
       const usersReqHeader = createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl('');
-        request({
-          method: 'Post',
-          url: requestUrl,
-          headers: usersReqHeader,
-          body: utils.snakeCaseObject(filteredUser),
-          json: true
-        }, function (error, response, body) {
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            logger.err(error);
-            return Boom.badGateway('Error authenticating user', error);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(userObj) {
-        const sanitizedUser = _.pick(userObj, adminUsersWebSafeFields);
-        return res.status(201).json(sanitizedUser);
-      });
+      const response = await restApi({method: 'post', url: generateAnmsCoreUrl(''), headers: usersReqHeader, data: utils.snakeCaseObject(filteredUser)});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400) {
+        return next(Boom.badGateway('Error authenticating user'));
+      }
+      return res.status(201).json(_.pick(response.data, adminUsersWebSafeFields));
     } catch (error) {
       return next(Boom.badGateway('Error Creating User', error));
     }
@@ -292,41 +219,18 @@
       }
       logger.info("updateUser data: ", userUpdate);
       const usersReqHeader = createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl(`/${userName}`);
-        logger.info("Sending request to: ", requestUrl);
-        request({
-          method: 'Put',
-          url: requestUrl,
-          headers: usersReqHeader,
-          body: userUpdate,
-          json: true,
-          timeout: requestTimeOut, //timeout in milliseconds
-        }, function (error, response, body) {
-          //Error handling
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            let err = new Error();
-            let boomObj = Boom.boomify(err, {statusCode: response.statusCode, details: body})
-            logger.info(boomObj);
-            if (response.statusCode == 409) {
-              res.status(409).json(body.field);
-            } else {
-              next(boomObj)
-            }
-          } else if (response.statusCode >= 500) {
-            reject(new Error("Internal server error"));
-          } else {
-            resolve(response);
-          }
-        });
-      }).then(function(result) {
-        res.sendStatus(result.statusCode);
-      }).catch(function(error) {
-        logger.error("Request error: ", error);
-        return next(Boom.internal(error.message));
-      });
+      const requestUrl = generateAnmsCoreUrl(`/${userName}`);
+      logger.info("Sending request to: ", requestUrl);
+      const response = await restApi({method: 'put', url: requestUrl, headers: usersReqHeader, data: userUpdate, timeout: requestTimeOut});
+      if (response.status >= 400 && response.status < 500) {
+        const boomObj = Boom.boomify(new Error(), {statusCode: response.status, details: response.data});
+        logger.info(boomObj);
+        return response.status === 409 ? res.status(409).json(response.data.field) : next(boomObj);
+      }
+      if (response.status >= 500) {
+        return next(Boom.internal('Internal server error'));
+      }
+      return res.sendStatus(response.status);
     } catch (error) {
       logger.error("Function error: ",error.message);
       return next(Boom.badGateway(error.message, error));
@@ -356,31 +260,16 @@
         delete filteredUser.organization;
       }
       const usersReqHeader = createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl(`/${userId}`);
-        request({
-          method: 'Put',
-          url: requestUrl,
-          headers: usersReqHeader,
-          body: utils.snakeCaseObject(filteredUser),
-          json: true
-        }, function (error, response, body) {
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            logger.err(error);
-            return Boom.badGateway('Error authenticating user', error);
-          } else if (response.statusCode === 500) {
-            logger.err(body);
-            return Boom.internal('Internal Server Error', body);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(results) {
-        return res.sendStatus(200);
-      });
+      const response = await restApi({method: 'put', url: generateAnmsCoreUrl(`/${userId}`), headers: usersReqHeader, data: utils.snakeCaseObject(filteredUser)});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400 && response.status < 500) {
+        return next(Boom.badGateway('Error authenticating user'));
+      }
+      if (response.status === 500) {
+        logger.err(response.data);
+        return next(Boom.internal('Internal Server Error', response.data));
+      }
+      return res.sendStatus(200);
     } catch (error) {
       return next(Boom.badGateway('Error Getting User Data', error));
     }
@@ -393,28 +282,12 @@
         return next(Boom.badData('Invalid User ID'));
       }
       const usersReqHeader = createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl(`/${userId}/password/hashed`);
-        request({
-          method: 'Put',
-          url: requestUrl,
-          headers: usersReqHeader,
-          body: {password: hashed_password},
-          json: true
-        }, function (error, response, body) {
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            logger.err(error);
-            return Boom.badGateway('Error updating users password', error);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(userObj) {
-        return res.sendStatus(200);
-      });
+      const response = await restApi({method: 'put', url: generateAnmsCoreUrl(`/${userId}/password/hashed`), headers: usersReqHeader, data: {password: hashed_password}});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400) {
+        return next(Boom.badGateway('Error updating users password'));
+      }
+      return res.sendStatus(200);
     } catch (error) {
       return next(Boom.badGateway('Error Changing User Password', error));
     }
@@ -429,29 +302,14 @@
       }
 
       const usersReqHeader = createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl(`/${userId}/enable`);
-        request({
-          method: 'Patch',
-          url: requestUrl,
-          headers: usersReqHeader,
-          json: true
-        }, function (error, response, body) {
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            logger.err(error);
-            return Boom.badGateway('Error authenticating user', error);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(userObj) {
-        return res.sendStatus(200).json(userObj);
-      });
+      const response = await restApi({method: 'patch', url: generateAnmsCoreUrl(`/${userId}/enable`), headers: usersReqHeader});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400) {
+        return next(Boom.badGateway('Error authenticating user'));
+      }
+      return res.status(200).json(response.data);
 
-    } catch (err) {
+    } catch (error) {
       return next(Boom.badGateway('Error Enabling User', error));
     }
 
@@ -466,27 +324,12 @@
       }
 
       const usersReqHeader = createAuthenticationHeader(req);
-      return new Promise(function (resolve, reject) {
-        let requestUrl = generateAnmsCoreUrl(`/${userId}/disable`);
-        request({
-          method: 'Patch',
-          url: requestUrl,
-          headers: usersReqHeader,
-          json: true
-        }, function (error, response, body) {
-          logger.debug(JSON.stringify(response));
-          if (error) {
-            reject(error);
-          } else if (response.statusCode >= 400 && response.statusCode < 500) {
-            logger.err(error);
-            return Boom.badGateway('Error authenticating user', error);
-          } else {
-            resolve(body);
-          }
-        });
-      }).then(function(userObj) {
-        return res.sendStatus(200).json(userObj);
-      });
+      const response = await restApi({method: 'patch', url: generateAnmsCoreUrl(`/${userId}/disable`), headers: usersReqHeader});
+      logger.debug(`Core users response status: ${response.status}`);
+      if (response.status >= 400) {
+        return next(Boom.badGateway('Error authenticating user'));
+      }
+      return res.status(200).json(response.data);
 
     } catch (error) {
       return next(Boom.badGateway('Error Disabling User', error));
@@ -517,6 +360,13 @@
       _.set(coreUrlObject, 'query', params);
     }
     return url.format(coreUrlObject);
+  }
+
+  function restApi(options) {
+    return axios({
+      ...options,
+      validateStatus: () => true
+    });
   }
 
   function createAuthenticationHeader(req) {

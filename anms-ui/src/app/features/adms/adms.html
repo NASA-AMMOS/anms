@@ -33,6 +33,21 @@
     </ng-container>
   }
 
+  <!-- No ADMs message with Load Defaults button -->
+  @if (!admService.loading() && !admService.hasAdms() && !admService.hasRequestError()) {
+    <ng-container>
+      <div class="d-flex flex-column align-items-center mt-3">
+        <p class="text-muted">No ADMs are currently loaded in the system.</p>
+        <button
+          (click)="loadDefaultAdms()"
+          class="btn btn-warning btn-sm"
+        >
+          Load Default ADMs
+        </button>
+      </div>
+    </ng-container>
+  }
+
   <!-- Loading Spinner -->
   @if (admService.loading()) {
     <ng-container>

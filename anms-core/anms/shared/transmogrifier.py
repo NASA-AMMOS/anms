@@ -53,7 +53,6 @@ class Transmorgifier:
         if config.Transcoder == "Internal":
 
             self.errors_to_ignore = ["UNUSED_IMPORT", "EXTENSION_NOT_DEFINED", "MODULE_NOT_FOUND"]
-            self.admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
             self._dec = ace.ari_cbor.Decoder()
 
             db_uri = f"postgresql://{config.DB_USER}:{config.DB_PASS}@{config.DB_HOST}/{config.DB_CHROOT}"
@@ -98,7 +97,7 @@ class Transmorgifier:
                 old_adm = admset.load_from_data(
                     io.BytesIO(data_rec.data), del_dupe=False
                 )
-                comp = AdmCompare(self.admset)
+                comp = AdmCompare(admset)
                 if not comp.compare_adms(old_adm, adm_file):
                     issues = comp.get_errors()
                 else:
@@ -142,17 +141,17 @@ class Transmorgifier:
         return []
 
     async def load_default_adms(self):
-        
-        self.admset.load_default_dirs()
-        issues = ace.Checker(self.admset.db_session()).check()
+        admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
+        admset.load_default_dirs()
+        issues = ace.Checker(admset.db_session()).check()
         for iss in issues:
             LOGGER.error("ADM issue %s", iss)
 
-        for adm_file in self.admset:
+        for adm_file in admset:
             try:
                 LOGGER.info("ADM %s handling started", adm_file.norm_name)
                 async with get_async_session() as db_sess:
-                    await self.handle_adm(self.admset, adm_file, db_sess, replace=False)
+                    await self.handle_adm(admset, adm_file, db_sess, replace=False)
                 LOGGER.info("ADM %s handling finished", adm_file.norm_name)
             except Exception as err:
                 # The function already logged any SQL issue at error severity
@@ -195,8 +194,8 @@ class Transmorgifier:
         res_obj = {}
         res_obj["uri"] = ""
         res_obj["cbor"] = ""
-        
         try:
+            admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
             LOGGER.info(f"Request {input}")
             in_text = input.strip()
             res_obj["inputString"] = in_text
@@ -214,7 +213,7 @@ class Transmorgifier:
                     ari_no_nn = dec.decode(io.BytesIO(in_bytes))
                     LOGGER.debug(f"decoded as ARI {ari_no_nn}")
                     ari = ace.nickname.Converter(
-                        ace.nickname.Mode.FROM_NN, self.admset.db_session(), False
+                        ace.nickname.Mode.FROM_NN, admset.db_session(), False
                     )(ari_no_nn)
                 except ( TypeError) as err:
                     LOGGER.warning(
@@ -235,9 +234,8 @@ class Transmorgifier:
                     dec = ace.ari_text.Decoder()
                     ari_no_nn = dec.decode(io.StringIO(in_text))
                     LOGGER.debug(f"decoded as ARI {ari_no_nn}")
-
                     ari = ace.nickname.Converter(
-                        ace.nickname.Mode.FROM_NN, self.admset.db_session(), False
+                        ace.nickname.Mode.FROM_NN, admset.db_session(), False
                     )(ari_no_nn)
                 except ( TypeError) as err:
                     LOGGER.warning(
@@ -339,10 +337,11 @@ FROM adm_data
         LOGGER.info(type(data))
 
         io_buffer = io.StringIO(data.tobytes().decode("utf-8"))
-        
-        self.admset.load_from_data(io_buffer)
+
+        admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
+        admset.load_from_data(io_buffer)
         LOGGER.info("Handling finished")
-        LOGGER.info("ADMS present for: %s", self.admset.names())
+        LOGGER.info("ADMS present for: %s", admset.names())
 
 
 # SIGNALTON transmorgifier
