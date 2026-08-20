@@ -71,7 +71,7 @@ async def registered_agent_by_name(agent_endpoint_uri: str):
 
 
 @router.get("/search/{query}", status_code=status.HTTP_200_OK, response_model=Page[ARIs.RegisteredAgent])
-async def paged_registered_agents(query: str, params: Params = Depends()):
+async def search_registered_agents(query: str, params: Params = Depends()):
     async with get_async_session() as session:
         query = '%' + query + '%'
         return await paginate(session, select(RegisteredAgent).where(or_(
