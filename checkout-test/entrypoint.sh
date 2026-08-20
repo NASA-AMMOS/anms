@@ -29,7 +29,7 @@ export COMPOSE_PROFILES
 export CHECKOUT_BASE_URL
 
 SELFDIR=$(realpath $(dirname "${BASH_SOURCE[0]}"))
-TIMELIMIT=30
+TIMELIMIT=90
 
 CURLOPTS=""
 if [ -n "${SSL_CERT_FILE}" ]
@@ -42,13 +42,16 @@ if [ -z "${CHECKOUT_BASE_URL}" ]; then
     echo "Must define CHECKOUT_BASE_URL environment"
     exit 1
 fi
-echo "Waiting for ${CHECKOUT_BASE_URL} to be available..."
+echo "Waiting for ${CHECKOUT_BASE_URL} and backend services..."
 for IX in $(seq ${TIMELIMIT}); do
-    if curl -sSl $CURLOPTS "${CHECKOUT_BASE_URL}" >/dev/null; then
+    # Check authnz is up AND upstream backends respond with 200
+    # (302 is fine — unauthenticated redirect from anms-ui)
+    if curl -sSl $CURLOPTS "${CHECKOUT_BASE_URL}" >/dev/null && \
+       curl -sSLo /dev/null $CURLOPTS -w '%{http_code}' "${CHECKOUT_BASE_URL}core/docs/" | grep -qE '^(200|302)$'; then
         break
     fi
     if [ ${IX} -eq ${TIMELIMIT} ]; then
-        echo "No HTTP access after ${IX} seconds!"
+        echo "Backend services not ready after ${IX} seconds!"
         exit 1
     fi
     sleep 1
