@@ -78,17 +78,17 @@ class Transmorgifier:
         :return: A list of issues with the ADM, which is empty if successful.
         """
         LOGGER.info("Adm name: %s", adm_file.norm_name)
-        data_model_view = await self.data_model.get(
+        dm_view = await self.data_model.get(
             adm_file.ns_model_enum, adm_file.ns_org_name
         )
-        if data_model_view:
+        if dm_view:
             if not replace:
                 LOGGER.info("Not replacing existing ADM name %s", adm_file.norm_name)
                 return []
             data_rec = None
             async with get_async_session() as session:
                 data_rec, _ = await self.adm_data.get(
-                    data_model_view.data_model_id, session
+                    dm_view.data_model_id, session
                 )
 
             if data_rec:
@@ -194,8 +194,8 @@ class Transmorgifier:
         res_obj = {}
         res_obj["uri"] = ""
         res_obj["cbor"] = ""
-        adms = ace.AdmSet()
         try:
+            admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
             LOGGER.info(f"Request {input}")
             in_text = input.strip()
             res_obj["inputString"] = in_text
@@ -213,7 +213,7 @@ class Transmorgifier:
                     ari_no_nn = dec.decode(io.BytesIO(in_bytes))
                     LOGGER.debug(f"decoded as ARI {ari_no_nn}")
                     ari = ace.nickname.Converter(
-                        ace.nickname.Mode.FROM_NN, adms.db_session(), False
+                        ace.nickname.Mode.FROM_NN, admset.db_session(), False
                     )(ari_no_nn)
                 except ( TypeError) as err:
                     LOGGER.warning(
@@ -234,9 +234,8 @@ class Transmorgifier:
                     dec = ace.ari_text.Decoder()
                     ari_no_nn = dec.decode(io.StringIO(in_text))
                     LOGGER.debug(f"decoded as ARI {ari_no_nn}")
-
                     ari = ace.nickname.Converter(
-                        ace.nickname.Mode.FROM_NN, adms.db_session(), False
+                        ace.nickname.Mode.FROM_NN, admset.db_session(), False
                     )(ari_no_nn)
                 except ( TypeError) as err:
                     LOGGER.warning(
@@ -338,10 +337,11 @@ FROM adm_data
         LOGGER.info(type(data))
 
         io_buffer = io.StringIO(data.tobytes().decode("utf-8"))
-        adms = ace.AdmSet()
-        adms.load_from_data(io_buffer)
+
+        admset = ace.AdmSet(cache_dir=False, errors_to_ignore = self.errors_to_ignore)
+        admset.load_from_data(io_buffer)
         LOGGER.info("Handling finished")
-        LOGGER.info("ADMS present for: %s", adms.names())
+        LOGGER.info("ADMS present for: %s", admset.names())
 
 
 # SIGNALTON transmorgifier

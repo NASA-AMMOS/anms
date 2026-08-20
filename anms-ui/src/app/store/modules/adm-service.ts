@@ -190,4 +190,29 @@ export class AdmService {
     //return !this.loading && this.adms.length > 0;
     return this.adms().length > 0;
   }
+
+  /**
+   * Load the default ADMs from the backend.
+   * Useful when startup fails to initialize default ADMs.
+   */
+  public loadDefaultAdms() {
+    this.requestErrorSignal.set('');
+    this.loadingSignal.set(true);
+    this.apiAdm.apiLoadDefaultAdms().pipe(
+      catchError((error: HttpErrorResponse) => {
+        const message = error?.error?.message || error?.message || 'Failed to load default ADMs';
+        this.requestErrorSignal.set(`${error?.status || 'Unknown'}: ${message}`);
+        this.loadingSignal.set(false);
+        return throwError(() => error);
+      })
+    ).subscribe({
+      next: () => {
+        // Refresh the ADM list after loading defaults
+        this.getAdms();
+      },
+      error: () => {
+        // error already handled in catchError
+      }
+    });
+  }
 }

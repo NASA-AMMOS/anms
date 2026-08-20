@@ -61,7 +61,7 @@ jobs:
         run: |
           # testenv started before
           ${DOCKER_CMD} compose ${TESTENV_COMPOSE_OPTS} up -d --force-recreate
-          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 120 || true
+          ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} up -d --force-recreate --wait --wait-timeout 300 || true
       - name: Status
         if: always()
         run: |

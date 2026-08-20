@@ -35,4 +35,8 @@ export class ApiAdmService {
     };
     return this.http.post(this.adm_url, formData, {headers});
   }
+
+  public apiLoadDefaultAdms(): Observable<any> {
+    return this.http.post(this.adm_url + '/load_default', {}, {headers: this.createAuthenticationHeader()});
+  }
 }

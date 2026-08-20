@@ -25,41 +25,21 @@ const { ReplyError } = require('redis');
 (function () {
   'use strict';
 
-  let request = require('request');
   const Boom = require('@hapi/boom');
-  const _ = require('lodash');
-  const logger = require('../shared/logger');
+  const axios = require('axios');
+  const utils = require('../shared/utils');
 
-  const config = require('../shared/config');
 
-  request = request.defaults({
-    json: true,
-    baseUrl: _.get(config,'core.parsedUri'),
-    encoding: 'utf8',
-    timeout: 60000 * 10 // 10 minutes
-  });
-
-  module.exports = {
-    getServiceStatus: getServiceStatus,
-  };
-
-  function getServiceStatus(req, res, next) {
-    return new Promise(function (resolve, reject) {
-      request.get({url: '/sys_status/services'}, function (error, response, body) {
-        if (error) {
-          logger.err("error sending request to core:", error);
-          reject(error);
-        } else if (response.statusCode >= 400 && response.statusCode < 500) {
-          return next(Boom.badGateway('Error talking to core'));
-        } else {
-          resolve(body);
-        }
-      });
-    }).then(function(statusObj) {
-      return res.json(statusObj);
-    }).catch(function(errObj) {
-      return next(Boom.badGateway(errObj));
-    });
+  exports.getServiceStatus = async function(req, res, next) {
+    try {
+      const url = utils.generateAnmsCoreUrl(['sys_status', 'services']);
+      const json = await axios.get(url);
+      if (json === null) {
+        return res.status(404);
+      }
+      return res.status(200).json(json.data);
+    } catch (err) {
+      return next(Boom.badGateway('Error talking to CORE', err));
+    }
   }
-
 })();

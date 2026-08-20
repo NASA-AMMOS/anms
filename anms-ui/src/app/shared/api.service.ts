@@ -116,7 +116,10 @@ export class ApiService {
   }
 
   // ari all
-  public apiQueryForARIs(): Observable<any> {
+  public apiQueryForARIs(type?: string): Observable<any> {
+    if (type) {
+      return this.http.get('/api/build/ari/all', {params: {type}});
+    }
     return this.http.get('/api/build/ari/all');
   }
 
