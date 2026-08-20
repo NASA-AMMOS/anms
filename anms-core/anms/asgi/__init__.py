@@ -140,8 +140,9 @@ class FastApiApp(object):
             # Returns FastAPI Hardcoded Copy of swagger-ui-dist/oauth2-redirect.html
             return get_swagger_ui_oauth2_redirect_html()
 
-        # Swagger UI (served at /docs - no trailing-slash redirect to work under any proxy)
+        # Swagger UI (served at /docs and /docs/ - no redirect to work under any proxy)
         @self.app.get("/docs", include_in_schema=False)
+        @self.app.get("/docs/", include_in_schema=False)
         async def custom_swagger_ui_html() -> HTMLResponse:
             # Build all URLs dynamically via JS so this works at any proxy prefix (/core/docs, /docs, etc.)
             # get_swagger_ui_html hardcodes oauth2RedirectUrl as window.location.origin + '/docs/oauth2-redirect'
@@ -155,7 +156,7 @@ class FastApiApp(object):
                 '<style>body{margin:0}#swagger-ui .topbar{display:none}</style>'
                 '<script>'
                 '(function(){'
-                'var b=window.location.pathname.replace(/\\/docs$/, "");'
+                'var b=window.location.pathname.replace(/\\/docs\\/?$/, "");'
                 'var c=document.createElement("link");'
                 'c.rel="stylesheet";c.href=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui.css";'
                 'document.head.appendChild(c);'
@@ -178,8 +179,9 @@ class FastApiApp(object):
                 '</head><body><div id="swagger-ui"></div></body></html>'
             )
 
-        # ReDoc (served at /redoc - no trailing-slash redirect to work under any proxy)
+        # ReDoc (served at /redoc and /redoc/ - no redirect to work under any proxy)
         @self.app.get("/redoc", include_in_schema=False)
+        @self.app.get("/redoc/", include_in_schema=False)
         async def redoc_html() -> HTMLResponse:
             # Use dynamic JS (same pattern as Swagger) so assets resolve at any proxy prefix.
             # ReDoc needs the <redoc> element in the DOM before the script loads so it can initialize.
@@ -194,7 +196,7 @@ class FastApiApp(object):
                 '<redoc></redoc>'
                 '<script>'
                 '(function(){'
-                'var b=window.location.pathname.replace(/\\/redoc$/, "");'
+                'var b=window.location.pathname.replace(/\\/redoc\\/?$/, "");'
                 'document.querySelector("redoc").setAttribute("spec-url", b+"/openapi.json");'
                 'var f=document.createElement("link");'
                 'f.rel="icon";f.href=b+"/release/favicon.png";'
