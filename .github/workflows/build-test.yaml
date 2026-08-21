@@ -1,7 +1,9 @@
 name: Build and run tests
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - test-newer-ubuntu-for-podman-ci
 
 jobs:
   podman-checkout-test:
