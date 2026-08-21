@@ -37,12 +37,13 @@
     if (!config.redis.enabled) {
       return BPromise.reject(new Error('Redis not Enabled'));
     }
-
-    BPromise.promisifyAll(redis);
+    if (!URL.canParse(config.redis.parsedUri)) {
+      return BPromise.reject(new Error('Redis URL is invalid'));
+    }
 
     return new BPromise(function (resolve, reject) {
 
-      const redisClient = redis.createClient(config.redis.parsedUri, config.redis.opts);
+      const redisClient = redis.createClient({url: config.redis.parsedUri});
 
       redisClient.on('ready', onReady);
       redisClient.on('connect', onConnect);
@@ -50,6 +51,7 @@
       redisClient.on('warning', onWarning);
       redisClient.on('error', onError);
       redisClient.on('end', onEnd);
+      redisClient.connect().catch(onError);
 
       function onReady() {
         logger.info('Redis Ready');
@@ -84,4 +86,3 @@
   }
 
 })();
-
