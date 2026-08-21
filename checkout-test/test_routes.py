@@ -318,6 +318,11 @@ class TestPrimaryRoutes(BaseTest):
             resp_status=[200],
             resp_ctype=['text/html'],
         )
+        resp = self._require_response(
+            url='/core/redoc/',
+            resp_status=[200],
+            resp_ctype=['text/html'],
+        )
 
     def test_refdm_access(self):
         # any API access
