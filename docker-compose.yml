@@ -136,11 +136,11 @@ services:
     security_opt:
       - "label=type:postgres.process"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432"]
-      start_period: 10s
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432"]
+      start_period: 15s
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -293,10 +293,11 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
     healthcheck:
-      test: ["CMD", "redis-cli" ,"-h", "localhost", "ping"]
-      interval: 15s
-      timeout: 60s
-      retries: 5
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 10
     command: redis-server --databases 1 --bind 0.0.0.0 --port ${REDIS_PORT:-6379}
 
   anms-core:
