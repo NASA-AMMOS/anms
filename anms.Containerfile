@@ -407,7 +407,16 @@ COPY --from=reftools-buildenv-refdm /usr/local /usr/local
 RUN echo "/usr/local/lib64" >>/etc/ld.so.conf.d/local.conf && \
     ldconfig
 
-CMD ["sh", "-c", "refdm-proxy -l ${DTNMA_LOGLEVEL} -a ${AMP_PROXY_SOCKET}"]
+CMD ["bash", "-c", "
+  # Wait for postgres before starting refdm-proxy (avoids crash on startup)
+  if [ -n \"$DB_HOST\" ]; then
+    for i in $(seq 1 60); do
+      (echo > /dev/tcp/$DB_HOST/5432) 2>/dev/null && break
+      sleep 1
+    done
+  fi
+  exec refdm-proxy -l ${DTNMA_LOGLEVEL} -a ${AMP_PROXY_SOCKET}
+"]
 EXPOSE 8089/tcp
 
 HEALTHCHECK --start-period=10s --interval=60s --timeout=60s --retries=20 \
