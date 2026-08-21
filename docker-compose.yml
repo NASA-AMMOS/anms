@@ -135,12 +135,9 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432"]
-      start_period: 15s
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    # NOTE: No compose healthcheck for postgres - healthchecks inside
+    # containers don't work reliably in Podman + docker-compose-plugin CI.
+    # Services that need DB readiness should use service_started and retry.
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -201,7 +198,7 @@ services:
       MQTT_HOST: mqtt-broker
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_started
       mqtt-broker:
         condition: service_healthy
 
@@ -230,9 +227,9 @@ services:
       - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
     depends_on:
       redis:
-        condition: service_healthy
+        condition: service_started
       postgres:
-        condition: service_healthy
+        condition: service_started
     environment:
       NET_BIND_INTERFACE: "0.0.0.0"
       DB_HOST: postgres
@@ -292,12 +289,8 @@ services:
       - "label=type:redis.process"
     ports:
       - "${REDIS_PORT:-6379}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
-      start_period: 10s
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    # NOTE: No compose healthcheck for redis - healthchecks inside
+    # containers don't work reliably in Podman + docker-compose-plugin CI.
     command: redis-server --databases 1 --bind 0.0.0.0 --port ${REDIS_PORT:-6379}
 
   anms-core:
@@ -334,7 +327,7 @@ services:
       amp-manager:
         condition: service_healthy
       postgres:
-        condition: service_healthy
+        condition: service_started
 
   amp-manager:
     hostname: amp-manager
@@ -354,7 +347,7 @@ services:
       retries: 20
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_started
       # no strict dependence on testenv, but operational dependence
     privileged: true
     tty: true
