@@ -135,6 +135,12 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
