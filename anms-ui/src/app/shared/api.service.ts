@@ -221,4 +221,8 @@ export class ApiService {
       return this.http.get(`/api/transcoder/ui/log/search/${searchString}`, {params: params});
     }
   }
+
+  public apiValidateAri(ari: string, mode: string): Observable<any> {
+    return this.http.post('/api/ari/validate', {ari, mode});
+  }
 }

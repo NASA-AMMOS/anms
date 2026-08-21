@@ -56,6 +56,16 @@
     }
 
   };
+
+  exports.validateARI = async function (req, res, next) {
+    try {
+      const url = utils.generateAnmsCoreUrl(['ari', 'validate']);
+      const result = await axios.post(url, req.body);
+      return res.status(200).json(result.data);
+    } catch (err) {
+      return next(Boom.badGateway('Error Validating ARI', err));
+    }
+  };
 })();
 
 

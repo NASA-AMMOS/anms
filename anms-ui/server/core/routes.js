@@ -120,6 +120,7 @@
       const builder = require('../components/ariBuilder');
       router.get('/build/ari/all', builder.getARIs);
       router.get('/build/ari/id/:meta_id/:obj_id', builder.getARIParmInfo);
+      router.post('/ari/validate', builder.validateARI);
 
       // --Transcoder routes -- //
       const transcoder = require('../components/transcoder')

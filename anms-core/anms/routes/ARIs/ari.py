@@ -22,14 +22,20 @@
 # subcontract 1658085.
 #
 import asyncio
+import io
 from typing import List, Optional
 
 from fastapi import Depends, APIRouter
-from fastapi import status
+from fastapi import status, HTTPException
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, and_
 from sqlalchemy.engine import Result
+
+import ace
+import ace.ari_text
+import ace.ari_cbor
+import ace.cborutil
 
 from anms.components.schemas import ARIs
 from anms.models.relational import get_async_session
@@ -216,3 +222,56 @@ async def ari_by_name(obj_name: str):
     async with get_async_session() as session:
         result: Result = await session.scalars(stmt)
         return result.all()
+
+
+@router.post("/validate", status_code=status.HTTP_200_OK, response_model=ARIs.AriValidationResponse)
+def validate_ari(body: ARIs.AriValidationRequest):
+    """Validate an ARI string using the ACE library parser.
+    
+    Does not write to the database or perform nickname resolution.
+    Used for live frontend validation feedback.
+    """
+    in_text = body.ari.strip()
+    if not in_text:
+        return ARIs.AriValidationResponse(valid=False, error="Empty input")
+
+    if body.mode == "cbor":
+        # CBOR mode: strip optional 0x prefix
+        hex_str = in_text.removeprefix("0x").removeprefix("ari:0x")
+        try:
+            in_bytes = ace.cborutil.from_hexstr(hex_str)
+        except (ValueError, TypeError) as err:
+            return ARIs.AriValidationResponse(valid=False, error=f"Invalid hex: {err}")
+
+        try:
+            dec = ace.ari_cbor.Decoder()
+            ari_obj = dec.decode(io.BytesIO(in_bytes))
+        except ace.ari_cbor.ParseError as err:
+            return ARIs.AriValidationResponse(valid=False, error=str(err))
+
+        # Encode back to text to confirm round-trip
+        try:
+            enc = ace.ari_text.Encoder()
+            buf = io.StringIO()
+            enc.encode(ari_obj, buf)
+            return ARIs.AriValidationResponse(valid=True, parsed_ari=buf.getvalue())
+        except Exception as err:
+            return ARIs.AriValidationResponse(valid=False, error=f"Encode error: {err}")
+
+    # Text mode (default)
+    try:
+        dec = ace.ari_text.Decoder()
+        ari_obj = dec.decode(io.StringIO(in_text))
+    except ace.ari_text.ParseError as err:
+        return ARIs.AriValidationResponse(valid=False, error=str(err))
+    except Exception as err:
+        return ARIs.AriValidationResponse(valid=False, error=str(err))
+
+    # Try to encode CBOR to confirm the ARI object is well-formed
+    try:
+        enc = ace.ari_text.Encoder()
+        buf = io.StringIO()
+        enc.encode(ari_obj, buf)
+        return ARIs.AriValidationResponse(valid=True, parsed_ari=buf.getvalue())
+    except Exception as err:
+        return ARIs.AriValidationResponse(valid=False, error=f"Encode error: {err}")
