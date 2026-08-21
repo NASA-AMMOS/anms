@@ -22,11 +22,13 @@
 ''' A "unittest" which uses requests library to verify routes from a base URL.
 '''
 import datetime
+import http.client
 import json
 import logging
 import os
 import requests
 import time
+from typing import ClassVar
 import unittest
 from urllib.parse import quote, urljoin, urlsplit, urlunsplit
 import websockets
@@ -62,10 +64,17 @@ class Timer:
 class BaseTest(unittest.TestCase):
     ''' Common test logic for login session management.
     '''
-    COMPOSE_PROFILES = os.environ.get('COMPOSE_PROFILES', 'full')
-    BASE_URL = os.environ.get('CHECKOUT_BASE_URL', 'http://localhost/')
-    AUTHN_USER = os.environ.get('CHECKOUT_AUTHN_USER', 'admin')
-    AUTHN_PASSWD = os.environ.get('CHECKOUT_AUTHN_PASSWD', 'admin')
+    COMPOSE_PROFILES: ClassVar[str] = os.environ.get('COMPOSE_PROFILES', 'full')
+    BASE_URL: ClassVar[str] = os.environ.get('CHECKOUT_BASE_URL', 'http://localhost/')
+    AUTHN_USER: ClassVar[str] = os.environ.get('CHECKOUT_AUTHN_USER', 'admin')
+    AUTHN_PASSWD: ClassVar[str] = os.environ.get('CHECKOUT_AUTHN_PASSWD', 'admin')
+
+    @classmethod
+    def setUpClass(cls)->None:
+        super().setUpClass()
+
+        http.client.HTTPConnection.debuglevel = 1
+        logging.basicConfig(level=logging.DEBUG)
 
     def __init__(self, *args, **kwargs):
         super(BaseTest, self).__init__(*args, **kwargs)

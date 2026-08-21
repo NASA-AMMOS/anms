@@ -67,8 +67,27 @@ services:
       PROXY_URLS: "core,http://anms-core:5555 grafana,http://grafana:3000 grafana/api/live,http://grafana:3000 renderer,http://grafana-image-renderer:8081 adminer,http://adminer:8080 nm,http://amp-manager:8089/nm http://anms-ui:9030 opensearch,http://opensearch:9200 dashboards,http://opensearch-dashboards:5601/dashboards"
     volumes:
       - ammos-tls:/ammos/etc/pki/tls:ro
-
-
+    depends_on:
+      grafana:
+        required: false
+        condition: service_started
+      grafana-image-renderer:
+        required: false
+        condition: service_started
+      adminer:
+        required: false
+        condition: service_started
+      amp-manager:
+        condition: service_started
+      anms-ui:
+        required: false
+        condition: service_started
+      opensearch:
+        required: false
+        condition: service_started
+      opensearch-dashboards:
+        required: false
+        condition: service_started
 
   adminer:
     hostname: adminer
