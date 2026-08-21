@@ -78,6 +78,9 @@ jobs:
           ! grep '[^[:space:]]' /tmp/notgood
       - name: Test
         run: ./checkout-test/run.sh
+      - name: Failure logs
+        if: failure()
+        run: ${DOCKER_CMD} compose ${ANMS_COMPOSE_OPTS} logs --tail 50
       - name: Stop
         if: always()
         run: |
