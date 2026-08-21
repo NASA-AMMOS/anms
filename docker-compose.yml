@@ -135,15 +135,6 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:postgres.process"
-    # NOTE: Podman + docker-compose-plugin CI breaks healthchecks inside
-    # containers. This healthcheck is for Docker; Podman relies on
-    # service_started + entrypoint.sh readiness checks.
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432"]
-      start_period: 15s
-      interval: 5s
-      timeout: 5s
-      retries: 10
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -204,7 +195,7 @@ services:
       MQTT_HOST: mqtt-broker
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       mqtt-broker:
         condition: service_healthy
 
@@ -222,20 +213,14 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:anms-ui.process"
-    healthcheck:
-      test: ["CMD-SHELL", "pm2 pid anms > /dev/null 2>&1"]
-      start_period: 30s
-      interval: 5s
-      timeout: 10s
-      retries: 10
     ports:
       - "${ANMS_UI_HTTP_PORT:-9030}:9030"
       - "${ANMS_UI_HTTPS_PORT:-9443}:9443"
     depends_on:
       redis:
-        condition: service_started
+        condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
     environment:
       NET_BIND_INTERFACE: "0.0.0.0"
       DB_HOST: postgres
@@ -293,17 +278,13 @@ services:
     restart: unless-stopped
     security_opt:
       - "label=type:redis.process"
-    # NOTE: Podman + docker-compose-plugin CI breaks healthchecks inside
-    # containers. This healthcheck is for Docker; Podman relies on
-    # service_started + entrypoint.sh readiness checks.
-    healthcheck:
-      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
-      start_period: 10s
-      interval: 5s
-      timeout: 5s
-      retries: 10
     ports:
       - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli" ,"-h", "localhost", "ping"]
+      interval: 15s
+      timeout: 60s
+      retries: 5
     command: redis-server --databases 1 --bind 0.0.0.0 --port ${REDIS_PORT:-6379}
 
   anms-core:
@@ -321,12 +302,6 @@ services:
       - "label=type:anms-core.process"
     cap_add:
       - NET_RAW
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:5555/version"]
-      start_period: 30s
-      interval: 5s
-      timeout: 10s
-      retries: 10
     environment:
       DB_HOST: postgres
       DB_USER: ${DB_USER}
@@ -338,9 +313,9 @@ services:
       - "${ANMS_CORE_HTTP_PORT:-5555}:5555"
     depends_on:
       amp-manager:
-        condition: service_healthy
-      postgres:
         condition: service_started
+      postgres:
+        condition: service_healthy
 
   amp-manager:
     hostname: amp-manager
@@ -352,15 +327,9 @@ services:
         INTERNAL_CERT_URL: "${INTERNAL_CERT_URL}"
     ports:
       - "${ION_MGR_PORT:-8089}:8089/tcp"
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8089/nm/api/version"]
-      start_period: 60s
-      interval: 5s
-      timeout: 10s
-      retries: 20
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       # no strict dependence on testenv, but operational dependence
     privileged: true
     tty: true
