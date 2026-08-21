@@ -1,3 +1,7 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideToastr } from 'ngx-toastr';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Status } from './status';
@@ -8,7 +12,12 @@ describe('Status', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Status],
+      imports: [Status, HttpClientTestingModule],
+      providers: [
+        provideHttpClient(),
+        provideToastr(),
+        provideRouter([]),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Status);
