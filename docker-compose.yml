@@ -195,7 +195,7 @@ services:
       MQTT_HOST: mqtt-broker
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       mqtt-broker:
         condition: service_healthy
 
@@ -220,7 +220,7 @@ services:
       redis:
         condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
     environment:
       NET_BIND_INTERFACE: "0.0.0.0"
       DB_HOST: postgres
@@ -315,7 +315,7 @@ services:
       amp-manager:
         condition: service_started
       postgres:
-        condition: service_started
+        condition: service_healthy
 
   amp-manager:
     hostname: amp-manager
@@ -329,7 +329,7 @@ services:
       - "${ION_MGR_PORT:-8089}:8089/tcp"
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       # no strict dependence on testenv, but operational dependence
     privileged: true
     tty: true
