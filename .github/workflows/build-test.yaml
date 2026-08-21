@@ -1,11 +1,4 @@
 name: Build and run tests
-on:
-  push:
-    branches:
-    - main
-  pull_request: {} # any target
-  schedule:
-    - cron: '0 0 * * 0' # weekly
 
 jobs:
   podman-checkout-test:
