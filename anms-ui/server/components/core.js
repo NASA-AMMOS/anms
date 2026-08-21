@@ -20,8 +20,6 @@
  * subcontract 1658085.
  */
 
-const { ReplyError } = require('redis');
-
 (function () {
   'use strict';
 

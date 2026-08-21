@@ -154,7 +154,7 @@ class BaseConfig(AbstractConfig):
     OPENSEARCH_HOST = 'opensearch'
     OPENSEARCH_PORT = 9200
     OPENSEARCH_AUTH_USERNAME = 'admin'
-    OPENSEARCH_AUTH_PASSWORD = 'admin'
+    OPENSEARCH_AUTH_PASSWORD = os.environ.get('OPENSEARCH_INITIAL_ADMIN_PASSWORD', 'admin')
     # OPENSEARCH_CA_CERTS = '/full/path/to/root-ca.pem' Provide a CA bundle if you use intermediate CAs with root CA.
     # Optional client certificates if you don't want to use HTTP basic authentication.
     # OPENSEARCH_CLIENT_CERT_PATH = '/full/path/to/client.pem'
