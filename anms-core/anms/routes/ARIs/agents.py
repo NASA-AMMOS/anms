@@ -72,7 +72,7 @@ async def registered_agent_by_name(agent_endpoint_uri: str):
 
 
 @router.get("/search/{query}", status_code=status.HTTP_200_OK, response_model=Page[ARIs.RegisteredAgent])
-async def search_registered_agents(query: str, params: Params = Depends(), order_by: str = Query("id")):
+async def paged_registered_agents(query: str, params: Params = Depends(), order_by: str = Query("id")):
     order_fields = {
         "id": RegisteredAgent.registered_agents_id,
         "agent_endpoint_uri": RegisteredAgent.agent_endpoint_uri,
