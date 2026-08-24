@@ -10,6 +10,8 @@ import {MatIcon} from '@angular/material/icon';
 import {MatInput} from '@angular/material/input';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatSelect, MatSelectChange} from '@angular/material/select';
+import {debounceTime, distinctUntilChanged, switchMap, tap} from 'rxjs/operators';
+import {Subject, of} from 'rxjs';
 
 export type AriCommandMode = 'builder' | 'text' | 'cbor';
 
@@ -85,6 +87,12 @@ export class AriCommandBuilder implements OnInit {
 
   // Validation
   protected validationErrors: string[] = [];
+  protected validationStatus: 'none' | 'checking' | 'valid' | 'invalid' = 'none';
+  protected validationMessage: string = '';
+
+  // Debounced backend validation for text/CBOR modes
+  private textInput$ = new Subject<string>();
+  private cborInput$ = new Subject<string>();
 
   @Output()
   commandReady = new EventEmitter<AriCommandOutput>();
@@ -111,6 +119,35 @@ export class AriCommandBuilder implements OnInit {
     if (this.initialCborCommands.length > 0) {
       this.manualCborHex = this.initialCborCommands.join(',');
     }
+
+    // Debounced backend validation for text/CBOR modes
+    this.setupValidationPipeline(this.textInput$, 'text');
+    this.setupValidationPipeline(this.cborInput$, 'cbor');
+  }
+
+  private setupValidationPipeline(input$: Subject<string>, mode: 'text' | 'cbor'): void {
+    const requiredMsg = mode === 'text' ? 'ARI text is required' : 'CBOR hex is required';
+    input$.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      switchMap((value: string) => {
+        if (!value.trim()) {
+          return of({valid: false, error: requiredMsg});
+        }
+        return this.api.apiValidateAri(value.trim(), mode);
+      }),
+      tap((result) => {
+        if (result.valid) {
+          this.validationStatus = 'valid';
+          this.validationMessage = '';
+          this.validationErrors = [];
+        } else {
+          this.validationStatus = 'invalid';
+          this.validationMessage = result.error || 'Invalid input';
+          this.validationErrors = [this.validationMessage];
+        }
+      })
+    ).subscribe();
   }
 
   protected onTypeFilterChange(change: MatSelectChange | string | null): void {
@@ -130,6 +167,13 @@ export class AriCommandBuilder implements OnInit {
   protected filterAris(value: string | Ari | null): void {
     this.ariSearchText = typeof value === 'string' ? value : this.displayAri(value);
     this.applyMainFilter();
+  }
+
+  protected onModeChange(): void {
+    // Reset validation state when switching modes
+    this.validationStatus = 'none';
+    this.validationMessage = '';
+    this.validationErrors = [];
   }
 
   private applyMainFilter(): void {
@@ -314,13 +358,44 @@ export class AriCommandBuilder implements OnInit {
   protected validate(): boolean {
     this.validationErrors = [];
 
-    if (this.ariMode !== 'builder' || !this.selectedAri) {
-      return true;
+    switch (this.ariMode) {
+      case 'builder':
+        this.validateBuilderMode();
+        break;
+      case 'text':
+        this.validateTextMode();
+        break;
+      case 'cbor':
+        this.validateCborMode();
+        break;
     }
 
+    return this.validationErrors.length === 0;
+  }
+
+  private validateBuilderMode(): void {
+    if (!this.selectedAri) {
+      return;
+    }
+
+    this.validateBuilderTextParams();
+    this.validateBuilderAriParams();
+  }
+
+  private validateBuilderTextParams(): void {
     for (const param of this.ariParams) {
-      if (param.kind !== 'ari-list') continue;
-      if (!param.requiredAriType) continue;
+      if (param.kind !== 'text') continue;
+      if (!param.textValue?.trim()) {
+        this.validationErrors.push(
+          `Parameter "${param.name}" (${param.type}) is required`
+        );
+      }
+    }
+  }
+
+  private validateBuilderAriParams(): void {
+    for (const param of this.ariParams) {
+      if (param.kind !== 'ari-list' || !param.requiredAriType) continue;
 
       for (const selectedAri of param.selectedAris) {
         if (selectedAri.type_name && selectedAri.type_name !== param.requiredAriType) {
@@ -330,8 +405,48 @@ export class AriCommandBuilder implements OnInit {
         }
       }
     }
+  }
 
-    return this.validationErrors.length === 0;
+  protected onTextAriInput(event: Event): void {
+    this.handleAriInput(event, (v) => { this.manualAriText = v; }, this.textInput$);
+  }
+
+  protected onCborHexInput(event: Event): void {
+    this.handleAriInput(event, (v) => { this.manualCborHex = v; }, this.cborInput$);
+  }
+
+  private handleAriInput(event: Event, setter: (v: string) => void, subject$: Subject<string>): void {
+    const value = (event.target as HTMLInputElement).value;
+    setter(value);
+    this.validationStatus = 'checking';
+    this.validationMessage = '';
+    this.validationErrors = [];
+    subject$.next(value);
+  }
+
+  private validateTextMode(): void {
+    this.validateTextOrCborMode('text', this.manualAriText?.trim() ?? '');
+  }
+
+  private validateCborMode(): void {
+    this.validateTextOrCborMode('cbor', this.manualCborHex?.trim() ?? '');
+  }
+
+  private validateTextOrCborMode(label: 'text' | 'cbor', value: string): void {
+    if (!value) {
+      const msg = label === 'text' ? 'ARI text is required' : 'CBOR hex is required';
+      this.validationErrors.push(msg);
+      this.validationStatus = 'invalid';
+      return;
+    }
+    if (this.validationStatus === 'invalid') {
+      this.validationErrors.push(this.validationMessage || `${label === 'text' ? 'ARI' : 'CBOR'} failed backend validation`);
+      return;
+    }
+    if (this.validationStatus === 'none') {
+      this.validationErrors.push(`${label === 'text' ? 'ARI' : 'CBOR'} has not been validated yet`);
+      this.validationStatus = 'invalid';
+    }
   }
 
   private buildRawAriText(): string {
@@ -408,7 +523,7 @@ export class AriCommandBuilder implements OnInit {
   }
 
   protected send(): void {
-    if (this.ariMode === 'builder' && !this.validate()) {
+    if (!this.validate()) {
       return;
     }
 

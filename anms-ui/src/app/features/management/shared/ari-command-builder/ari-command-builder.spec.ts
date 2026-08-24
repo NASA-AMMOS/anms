@@ -59,6 +59,8 @@ let apiSpy: any;
 describe('AriCommandBuilder', () => {
   let component: AriCommandBuilder;
   let fixture: ComponentFixture<AriCommandBuilder>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let validateAriSpy: any;
 
   beforeEach(async () => {
     Constants.USER_DETAILS = {token: 'test-token'};
@@ -70,9 +72,11 @@ describe('AriCommandBuilder', () => {
       return of(allMockAris);
     });
 
+    validateAriSpy = vi.fn().mockReturnValue(of({valid: false, error: 'Mock error'}));
+
     await TestBed.configureTestingModule({
       imports: [AriCommandBuilder],
-      providers: [{provide: ApiService, useValue: {apiQueryForARIs: apiSpy}}],
+      providers: [{provide: ApiService, useValue: {apiQueryForARIs: apiSpy, apiValidateAri: validateAriSpy}}],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AriCommandBuilder);
@@ -401,6 +405,203 @@ describe('AriCommandBuilder', () => {
       c(component).send();
       expect(emitted).toHaveLength(1);
       expect(emitted[0].mode).toBe('builder');
+    });
+  });
+
+  describe('builder mode: required text params', () => {
+    it('fails when text param is empty', () => {
+      const ari = allMockAris[2]; // setUptime with unsignedInt param
+      c(component).onAriSelected(ari);
+      c(component).ariParams[0].textValue = '';
+
+      expect(c(component).validate()).toBe(false);
+      expect(c(component).validationErrors[0]).toContain('duration');
+    });
+
+    it('fails when text param is only whitespace', () => {
+      const ari = allMockAris[2];
+      c(component).onAriSelected(ari);
+      c(component).ariParams[0].textValue = '   ';
+
+      expect(c(component).validate()).toBe(false);
+    });
+
+    it('passes when text param has a value', () => {
+      const ari = allMockAris[2];
+      c(component).onAriSelected(ari);
+      c(component).ariParams[0].textValue = '42';
+
+      expect(c(component).validate()).toBe(true);
+    });
+
+    it('emits when builder validation passes', () => {
+      c(component).onAriSelected(allMockAris[0]);
+
+      const emitted: any[] = [];
+      component.commandReady.subscribe(e => emitted.push(e));
+      c(component).send();
+      expect(emitted).toHaveLength(1);
+    });
+
+    it('does not emit when builder validation fails', () => {
+      const ari = allMockAris[2];
+      c(component).onAriSelected(ari);
+      c(component).ariParams[0].textValue = '';
+
+      const emitted: any[] = [];
+      component.commandReady.subscribe(e => emitted.push(e));
+      c(component).send();
+      expect(emitted).toHaveLength(0);
+    });
+  });
+
+  describe('text mode: ARI syntax validation', () => {
+    beforeEach(() => {
+      (component as any).ariMode = 'text';
+    });
+
+    it('fails when text is empty', () => {
+      (component as any).manualAriText = '';
+      expect(c(component).validate()).toBe(false);
+      expect(c(component).validationErrors[0]).toBe('ARI text is required');
+    });
+
+    it('passes when backend validation marks ARI as valid', () => {
+      (component as any).manualAriText = 'ari://./Agent/CTRL/uptime';
+      // Simulate backend validation success
+      c(component).validationStatus = 'valid';
+      c(component).validationErrors = [];
+      expect(c(component).validate()).toBe(true);
+    });
+
+    it('fails when backend validation marks ARI as invalid', () => {
+      (component as any).manualAriText = 'ari://./Agent/CTRL/uptime';
+      c(component).validationStatus = 'invalid';
+      c(component).validationMessage = 'ParseError: invalid syntax';
+      expect(c(component).validate()).toBe(false);
+      expect(c(component).validationErrors[0]).toBe('ParseError: invalid syntax');
+    });
+
+    it('fails when ARI has not been validated yet', () => {
+      (component as any).manualAriText = 'ari://./Agent/CTRL/uptime';
+      c(component).validationStatus = 'none';
+      c(component).validationErrors = [];
+      expect(c(component).validate()).toBe(false);
+      expect(c(component).validationErrors[0]).toBe('ARI has not been validated yet');
+    });
+
+    it('emits when text validation passes', () => {
+      (component as any).manualAriText = 'ari://./Agent/CTRL/uptime';
+      c(component).validationStatus = 'valid';
+      c(component).validationErrors = [];
+
+      const emitted: any[] = [];
+      component.commandReady.subscribe(e => emitted.push(e));
+      c(component).send();
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].mode).toBe('text');
+    });
+
+    it('does not emit when text validation fails', () => {
+      (component as any).manualAriText = 'not-an-ari';
+      c(component).validationStatus = 'invalid';
+      c(component).validationMessage = 'ParseError: invalid syntax';
+
+      const emitted: any[] = [];
+      component.commandReady.subscribe(e => emitted.push(e));
+      c(component).send();
+      expect(emitted).toHaveLength(0);
+    });
+  });
+
+  describe('cbor mode: hex validation', () => {
+    beforeEach(() => {
+      (component as any).ariMode = 'cbor';
+    });
+
+    it('fails when hex is empty', () => {
+      (component as any).manualCborHex = '';
+      expect(c(component).validate()).toBe(false);
+      expect(c(component).validationErrors[0]).toBe('CBOR hex is required');
+    });
+
+    it('passes when backend validation marks CBOR as valid', () => {
+      (component as any).manualCborHex = 'ABC123';
+      c(component).validationStatus = 'valid';
+      c(component).validationErrors = [];
+      expect(c(component).validate()).toBe(true);
+    });
+
+    it('fails when backend validation marks CBOR as invalid', () => {
+      (component as any).manualCborHex = 'ABC123';
+      c(component).validationStatus = 'invalid';
+      c(component).validationMessage = 'ParseError: invalid CBOR';
+      expect(c(component).validate()).toBe(false);
+    });
+
+    it('fails when CBOR has not been validated yet', () => {
+      (component as any).manualCborHex = 'ABC123';
+      c(component).validationStatus = 'none';
+      c(component).validationErrors = [];
+      expect(c(component).validate()).toBe(false);
+      expect(c(component).validationErrors[0]).toBe('CBOR has not been validated yet');
+    });
+
+    it('emits when cbor validation passes', () => {
+      (component as any).manualCborHex = 'ABC123';
+      c(component).validationStatus = 'valid';
+      c(component).validationErrors = [];
+
+      const emitted: any[] = [];
+      component.commandReady.subscribe(e => emitted.push(e));
+      c(component).send();
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].mode).toBe('cbor');
+    });
+
+    it('does not emit when cbor validation fails', () => {
+      (component as any).manualCborHex = 'GGZZ';
+      c(component).validationStatus = 'invalid';
+      c(component).validationErrors = ['ParseError: invalid CBOR'];
+
+      const emitted: any[] = [];
+      component.commandReady.subscribe(e => emitted.push(e));
+      c(component).send();
+      expect(emitted).toHaveLength(0);
+    });
+  });
+
+  describe('mode change resets validation', () => {
+    it('clears validation state when switching from text to builder', () => {
+      (component as any).ariMode = 'text';
+      c(component).validationStatus = 'invalid';
+      c(component).validationErrors = ['Some error'];
+      c(component).validationMessage = 'Some error';
+
+      c(component).onModeChange();
+
+      expect(c(component).validationStatus).toBe('none');
+      expect(c(component).validationErrors).toEqual([]);
+      expect(c(component).validationMessage).toBe('');
+    });
+  });
+
+  describe('backend validation integration', () => {
+    it('onTextAriInput resets state and sets checking status', () => {
+      (component as any).ariMode = 'text';
+      const mockEvent = {target: {value: 'ari://./Agent/CTRL/uptime'}} as unknown as Event;
+      c(component).onTextAriInput(mockEvent);
+      expect(c(component).manualAriText).toBe('ari://./Agent/CTRL/uptime');
+      expect(c(component).validationStatus).toBe('checking');
+      expect(validateAriSpy).not.toHaveBeenCalled(); // debounced
+    });
+
+    it('onCborHexInput resets state and sets checking status', () => {
+      (component as any).ariMode = 'cbor';
+      const mockEvent = {target: {value: 'ABC123'}} as unknown as Event;
+      c(component).onCborHexInput(mockEvent);
+      expect(c(component).manualCborHex).toBe('ABC123');
+      expect(c(component).validationStatus).toBe('checking');
     });
   });
 });

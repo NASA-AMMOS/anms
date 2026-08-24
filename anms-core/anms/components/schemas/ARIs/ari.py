@@ -63,6 +63,17 @@ class ARICollection(BaseModel):
     num_entries: Optional[int] = None
     entries: Optional[int] = None
     use_desc: Optional[str] = None
+
+
+class AriValidationRequest(BaseModel):
+    ari: str
+    mode: str  # 'text' or 'cbor'
+
+
+class AriValidationResponse(BaseModel):
+    valid: bool
+    error: Optional[str] = None
+    parsed_ari: Optional[str] = None
    
     
     
