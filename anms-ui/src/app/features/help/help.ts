@@ -25,7 +25,7 @@ export class Help {
   protected openUrl(resource: Resource) {
     switch(resource) {
       case Resource.API_DOCS:
-        window.open(`/docs`, '_self');
+        window.open(`/core/docs`, '_self');
         break;
       case Resource.GRAFANA:
         window.open(`/grafana`, '_self');

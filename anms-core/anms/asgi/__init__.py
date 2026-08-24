@@ -140,47 +140,73 @@ class FastApiApp(object):
             # Returns FastAPI Hardcoded Copy of swagger-ui-dist/oauth2-redirect.html
             return get_swagger_ui_oauth2_redirect_html()
 
-        # Basic Redirect
+        # Swagger UI (served at /docs and /docs/ - no redirect to work under any proxy)
         @self.app.get("/docs", include_in_schema=False)
-        async def custom_swagger_ui_html_redirect() -> RedirectResponse:
-            return RedirectResponse(url="/docs/")
-
-        # Catch All Docs Route...
-        @self.app.get("/docs/{path:path}", include_in_schema=False)
-        async def custom_swagger_ui_html(path: str) -> Union[RedirectResponse, HTMLResponse]:
-            if len(path) > 0:
-                return RedirectResponse(url="/docs/")
-            swagger_js_url = self.app.url_path_for("static", path="assets/fastapi/swagger-ui-dist/swagger-ui-bundle.js")
-            swagger_css_url = self.app.url_path_for("static", path="assets/fastapi/swagger-ui-dist/swagger-ui.css")
-            swagger_favicon_url = self.app.url_path_for("static", path="favicon.png")
-            return get_swagger_ui_html(
-                openapi_url=self.app.openapi_url,  # type: ignore
-                title=self.app.title + " - Swagger UI",
-                swagger_js_url=swagger_js_url,
-                swagger_css_url=swagger_css_url,
-                swagger_favicon_url=swagger_favicon_url,
-                oauth2_redirect_url=self.app.swagger_ui_oauth2_redirect_url,
-                # https://swagger.io/docs/open-source-tools/swagger-ui/usage/oauth2/
+        @self.app.get("/docs/", include_in_schema=False)
+        async def custom_swagger_ui_html() -> HTMLResponse:
+            # Build all URLs dynamically via JS so this works at any proxy prefix (/core/docs, /docs, etc.)
+            # get_swagger_ui_html hardcodes oauth2RedirectUrl as window.location.origin + '/docs/oauth2-redirect'
+            # which breaks under proxy prefixes. Use dynamic JS to construct everything.
+            return HTMLResponse(
+                '<!DOCTYPE html>'
+                '<html><head>'
+                '<meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width, initial-scale=1">'
+                '<title>Swagger UI</title>'
+                '<style>body{margin:0}#swagger-ui .topbar{display:none}</style>'
+                '<script>'
+                '(function(){'
+                'var b=window.location.pathname.replace(/\\/docs\\/?$/, "");'
+                'var c=document.createElement("link");'
+                'c.rel="stylesheet";c.href=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui.css";'
+                'document.head.appendChild(c);'
+                'var f=document.createElement("link");'
+                'f.rel="icon";f.href=b+"/release/favicon.png";'
+                'document.head.appendChild(f);'
+                'var s=document.createElement("script");'
+                's.src=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui-bundle.js";'
+                's.onload=function(){'
+                'var p=document.createElement("script");'
+                'p.src=b+"/release/assets/fastapi/swagger-ui-dist/swagger-ui-standalone-preset.js";'
+                'p.onload=function(){'
+                'SwaggerUIBundle({url:b+"/openapi.json",dom_id:"#swagger-ui",'
+                'layout:"BaseLayout",deepLinking:true,showExtensions:true,showCommonExtensions:true,'
+                'oauth2RedirectUrl:window.location.pathname+"/oauth2-redirect",presets:['
+                'SwaggerUIBundle.presets.apis,SwaggerUIBundle.SwaggerUIStandalonePreset]});};'
+                'document.head.appendChild(p);};'
+                'document.head.appendChild(s);})();'
+                '</script>'
+                '</head><body><div id="swagger-ui"></div></body></html>'
             )
 
-        # Basic Redirect
+        # ReDoc (served at /redoc and /redoc/ - no redirect to work under any proxy)
         @self.app.get("/redoc", include_in_schema=False)
-        async def redoc_html_redirect() -> RedirectResponse:
-            return RedirectResponse(url="/redoc/")
-
-        # Catch All ReDocs Route...
-        @self.app.get("/redoc/{path:path}", include_in_schema=False)
-        async def redoc_html(path: str) -> Union[RedirectResponse, HTMLResponse]:
-            if len(path) > 0:
-                return RedirectResponse(url="/redoc/")
-            redoc_js_url = self.app.url_path_for("static", path="assets/fastapi/redoc/bundles/redoc.standalone.js")
-            swagger_favicon_url = self.app.url_path_for("static", path="favicon.png")
-            return get_redoc_html(
-                openapi_url=self.app.openapi_url,  # type: ignore
-                title=self.app.title + " - ReDoc",
-                redoc_js_url=redoc_js_url,
-                redoc_favicon_url=swagger_favicon_url,
-                with_google_fonts=False
+        @self.app.get("/redoc/", include_in_schema=False)
+        async def redoc_html() -> HTMLResponse:
+            # Use dynamic JS (same pattern as Swagger) so assets resolve at any proxy prefix.
+            # ReDoc needs the <redoc> element in the DOM before the script loads so it can initialize.
+            return HTMLResponse(
+                '<!DOCTYPE html>'
+                '<html><head>'
+                '<meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width, initial-scale=1">'
+                '<title>AMMOS-ANMS - ReDoc</title>'
+                '<style>body{margin:0;padding:0}</style>'
+                '</head><body>'
+                '<redoc></redoc>'
+                '<script>'
+                '(function(){'
+                'var b=window.location.pathname.replace(/\\/redoc\\/?$/, "");'
+                'document.querySelector("redoc").setAttribute("spec-url", b+"/openapi.json");'
+                'var f=document.createElement("link");'
+                'f.rel="icon";f.href=b+"/release/favicon.png";'
+                'document.head.appendChild(f);'
+                'var s=document.createElement("script");'
+                's.src=b+"/release/assets/fastapi/redoc/bundles/redoc.standalone.js";'
+                'document.head.appendChild(s);'
+                '})();'
+                '</script>'
+                '</body></html>'
             )
 
     def register_mounts(self) -> None:
