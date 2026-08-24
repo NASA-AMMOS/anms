@@ -47,6 +47,8 @@ from .ari import ARI
 from .ari import ARIInDB
 from .ari import ARIBase
 from .ari import ARIDisplayAndParams
+from .ari import AriValidationRequest
+from .ari import AriValidationResponse
 from .registered_agent import RegisteredAgentBase
 from .registered_agent import RegisteredAgent
 from .registered_agent import RegisteredAgentInDB
