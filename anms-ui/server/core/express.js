@@ -47,7 +47,7 @@
   const errorHandler = require('errorhandler');
   const cookieParser = require('cookie-parser');
   const methodOverride = require('method-override');
-  const RedisStore = require('connect-redis')(session);
+  const { RedisStore } = require('connect-redis');
   const expressEnforcesSSL = require('express-enforces-ssl');
 
   const routes = require('./routes');
@@ -63,6 +63,14 @@
     app.disable('x-powered-by');
     app.use(helmet({
       hsts: false,
+      // The Angular production build uses an inline onload handler to switch
+      // the deferred stylesheet from media="print" to media="all".
+      contentSecurityPolicy: {
+        directives: {
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+          'script-src-attr': ["'unsafe-inline'"]
+        }
+      },
       frameguard: {
         action: 'sameorigin' // Set X-Frame: sameorigin to prevent click jacking site-framing by anyone
       },
@@ -131,20 +139,13 @@
     app.use(cookieParser(config.auth.sessionSecret)); // not needed since express-session 1.5
 
     // Configure Session Management
-    const sessionStore = new RedisStore({
-      client: (() => {
-        if (!config.redis.enabled) {
-          return {};
-        }
-        let rClient = redis.createClient(config.redis.parsedUri, config.redis.opts);
-        rClient.unref(); // allows the program to exit once no more commands are pending...
-        rClient.on('error', logger.error);
-        return rClient;
-      })(),
+    const redisClient = createRedisClient();
+    const sessionStore = redisClient ? new RedisStore({
+      client: redisClient,
       prefix: config.redis.sessionPrefix,
       ttl: 86400000
-    });
-    const finalSessionStore = config.redis.enabled ? sessionStore : new session.MemoryStore();
+    }) : null;
+    const finalSessionStore = redisClient ? sessionStore : new session.MemoryStore();
 
     app.use(session({
       store: finalSessionStore,
@@ -193,7 +194,10 @@
     }
 
     // Init Api Routes (Don't Cache This Ever?)
-    app.use(config.uris.apiBase, helmet.noCache(), routes.api);
+    app.use(config.uris.apiBase, function (req, res, next) {
+      res.set('Cache-Control', 'no-store');
+      next();
+    }, routes.api);
 
     // Init Web Routes
     app.use(config.uris.webBase, routes.web);
@@ -242,5 +246,16 @@
     return app;
 
   };
+
+  function createRedisClient() {
+    if (!config.redis.enabled || !URL.canParse(config.redis.parsedUri)) {
+      logger.warn('Redis is enabled but its configured URL is invalid; using the in-memory session store.');
+      return null;
+    }
+    const client = redis.createClient({url: config.redis.parsedUri});
+    client.on('error', logger.error);
+    client.connect().catch(logger.error);
+    return client;
+  }
 
 })();

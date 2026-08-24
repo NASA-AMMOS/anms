@@ -94,10 +94,7 @@
   function parseGlobConfigs(pathGlob) {
     var parsedConfigs = {};
     return new Promise(function (resolve, reject) {
-      glob(pathGlob, {}, function (er, files) {
-        if (er) {
-          return reject(er);
-        }
+      glob.glob(pathGlob, {}).then(function (files) {
         async.each(files, function (filePath, eachCb) {
           fs.readFile(filePath, 'utf8', function (err, data) {
             if (err) {
@@ -116,7 +113,7 @@
           }
           resolve(parsedConfigs);
         });
-      });
+      }).catch(reject);
     });
   }
 
@@ -163,4 +160,3 @@
 
 
 })();
-
