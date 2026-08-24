@@ -23,9 +23,10 @@
 #
 
 from typing import List
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends
-from fastapi import status
+from fastapi import status, HTTPException, Query
 from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.async_sqlalchemy import paginate
 from sqlalchemy import select, or_, String
@@ -71,11 +72,49 @@ async def registered_agent_by_name(agent_endpoint_uri: str):
 
 
 @router.get("/search/{query}", status_code=status.HTTP_200_OK, response_model=Page[ARIs.RegisteredAgent])
-async def paged_registered_agents(query: str, params: Params = Depends()):
+async def paged_registered_agents(query: str, params: Params = Depends(), order_by: str = Query("id")):
+    order_fields = {
+        "id": RegisteredAgent.registered_agents_id,
+        "agent_endpoint_uri": RegisteredAgent.agent_endpoint_uri,
+        "first_registered": RegisteredAgent.first_registered,
+        "last_registered": RegisteredAgent.last_registered,
+    }
+
+    if order_by not in order_fields:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid order_by field: {order_by}",
+        )
+    
     async with get_async_session() as session:
-        query = '%' + query + '%'
-        return await paginate(session, select(RegisteredAgent).where(or_(
-            RegisteredAgent.agent_endpoint_uri.ilike(query),
-            RegisteredAgent.first_registered.cast(String).ilike(query),
-            RegisteredAgent.last_registered.cast(String).ilike(query)
-        )).order_by(RegisteredAgent.registered_agents_id), params)
+        try:
+            day = datetime.fromisoformat(query)
+
+            # If not searching by time, round to the day
+            if "T" not in query and " " not in query:
+                start = datetime.combine(day, datetime.min.time())
+                end = start + timedelta(days=1)
+            else: # Simplify by restricting search to minute resolution
+                start = day.replace(
+                    second=0,
+                    microsecond=0,
+                )
+                end = start + timedelta(minutes=1)
+                
+            stmt = select(RegisteredAgent).where(
+                or_(
+                    RegisteredAgent.first_registered.between(start, end),
+                    RegisteredAgent.last_registered.between(start, end),
+                )
+            )
+
+        except ValueError:
+            pattern = f"%{query}%"
+
+            stmt = select(RegisteredAgent).where(
+                RegisteredAgent.agent_endpoint_uri.ilike(pattern)
+            )
+        return await paginate(session,
+                              stmt.order_by(order_fields[order_by]),
+                              params)
+    

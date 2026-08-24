@@ -73,4 +73,8 @@ export class Adms implements AfterViewInit {
       }
     });
   }
+
+  protected loadDefaultAdms(): void {
+    this.admService.loadDefaultAdms();
+  }
 }

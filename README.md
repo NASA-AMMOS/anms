@@ -284,3 +284,17 @@ If running certain versions of Podman, or sytems with SELinux features enabled, 
 The create_volume.sh script in the directions above automatically detects if docker or podman is available.  If both are available (and are not aliased to each other), you must explicitly specify your chosen container type to ensure the volume is created appropriately.
 
 This can be done by setting the DOCKER_CMD environment variable such as `DOCKER_CMD=podman ./create_volume.sh ./puppet/modules/apl_test/files/anms/tls`
+
+### No ADMs loaded after startup
+
+If the ADMs page shows an empty list after starting ANMS, the default Application Data Models may have failed to initialize during startup. This can occur intermittently on some systems and is being investigated.
+
+You can reload the default ADMs in two ways:
+
+- **From the ANMS UI:** The ADMs page displays a "Load Default ADMs" button when no ADMs are present. Click it to restore the defaults.
+
+- **From the command line:** Send a POST request to the ANMS core endpoint:
+
+```bash
+curl -X POST http://<hostname>:5555/adms/load_default
+```
