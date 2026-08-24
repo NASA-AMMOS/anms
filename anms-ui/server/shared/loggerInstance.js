@@ -32,10 +32,9 @@
     if (!_.isNull(module.exports.provider)) {
       return module.exports.provider;
     }
-    module.exports.provider = new (winston.Logger)({ // winston.createLogger({ <-- winston@3
+    module.exports.provider = winston.createLogger({
       transports: [
         new (WinstonDailyRotate)({
-          name: 'Debug.log',
           maxFiles: 30,
           // maxSize: '500m',
           auditFile: null,
@@ -43,10 +42,9 @@
           datePattern: 'YYYY-MM-DD',
           dirname: logPath,
           filename: 'debug.%DATE%.log',
-          json: true // remove on winston@3
+          format: winston.format.combine(winston.format.timestamp(), winston.format.json())
         }),
         new (WinstonDailyRotate)({
-          name: 'PrettyDebug.log',
           maxFiles: 30,
           // maxSize: '500m',
           auditFile: null,
@@ -54,23 +52,18 @@
           datePattern: 'YYYY-MM-DD',
           dirname: logPath,
           filename: 'debug.pretty.%DATE%.log',
-          json: false // remove on winston@3
+          format: winston.format.combine(winston.format.timestamp(), winston.format.simple())
         }),
         new (winston.transports.Console)({
-          name: 'Console.log',
           handleExceptions: true,
           handleRejections: true,
-          humanReadableUnhandledException: true, // remove on winston@3
-          json: false, // remove on winston@3
-          colorize: true, // remove on winston@3
-          timestamp: true // remove on winston@3
+          format: winston.format.combine(winston.format.colorize(), winston.format.timestamp(), winston.format.simple())
         })
       ],
       exceptionHandlers: [
         // https://github.com/winstonjs/winston/issues/1479
         // Reason we haven't migrated to winston@3 yet...
         new (WinstonDailyRotate)({
-          name: 'Crash.log',
           maxFiles: 30,
           // maxSize: '500m',
           auditFile: null,
@@ -80,11 +73,9 @@
           filename: 'crash.%DATE%.log',
           handleExceptions: true,
           handleRejections: true,
-          humanReadableUnhandledException: true, // remove on winston@3
-          json: true // remove on winston@3
+          format: winston.format.combine(winston.format.timestamp(), winston.format.json())
         }),
         new (WinstonDailyRotate)({
-          name: 'PrettyCrash.log',
           maxFiles: 30,
           // maxSize: '500m',
           auditFile: null,
@@ -94,8 +85,7 @@
           filename: 'crash.pretty.%DATE%.log',
           handleExceptions: true,
           handleRejections: true,
-          humanReadableUnhandledException: true, // remove on winston@3
-          json: false // remove on winston@3
+          format: winston.format.combine(winston.format.timestamp(), winston.format.simple())
         })
       ],
       exitOnError: false
