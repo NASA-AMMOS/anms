@@ -32,7 +32,6 @@
   const https = require('https');
   const http2 = require('spdy'); // replace with http2 when express v5 comes out
   const process = require('process');
-  const winston = require('winston');
   const cluster = require('cluster');
   const express = require('express');
 
@@ -68,7 +67,7 @@
   });
 
   if (cluster.isMaster || process.env.pm_id === '0' || process.env.NODE_APP_INSTANCE === '0') {
-    winston.info('Starting Application with Configuration:\n', JSON.stringify(config, null, 4));
+    logger.info('Starting Application with Configuration:\n', JSON.stringify(config, null, 4));
     initHandlers.initDefaults(); // Init
   }
 
@@ -120,7 +119,7 @@
       // redirects not supported in IPC mode
       if (shouldRedirect) {
         const redirectApp = express();
-        redirectApp.get('*', function (req, res) {
+        redirectApp.use(function (req, res) {
           res.redirect(301, url.format({protocol: config.net.sslProto, port: config.net.sslPort, hostname: config.net.sslHost}));
         });
         redirectServer = http.createServer(redirectApp);

@@ -26,7 +26,7 @@
   const path = require('path');
   const redis = require('redis');
   const rateLimit = require('express-rate-limit');
-  const RedisLimiterStore = require('rate-limit-redis');
+  const { RedisStore } = require('rate-limit-redis');
 
   const config = require('../shared/config');
   const logger = require('../shared/logger');
@@ -39,21 +39,18 @@
     max: config.auth.requestLimit, // # max requests per time-window
     skip: enableRateLimiter ? _.constant(false) : _.constant(true)
   };
-  if (enableRateLimiter) {
-    rateLimiterOptions.store = new RedisLimiterStore({
-      expiry: (config.auth.requestLimitWindow / 1000),
-      resetExpiryOnChange: false,
+  if (enableRateLimiter && URL.canParse(config.redis.parsedUri)) {
+    const rClient = redis.createClient({url: config.redis.parsedUri});
+    rClient.on('error', logger.error);
+    rClient.connect().catch(logger.error);
+    rateLimiterOptions.store = new RedisStore({
       prefix: config.redis.limiterPrefix,
-      client: (() => {
-        if (!config.redis.enabled) {
-          return {};
-        }
-        let rClient = redis.createClient(config.redis.parsedUri, config.redis.opts);
-        rClient.unref(); // allows the program to exit once no more commands are pending...
-        rClient.on('error', logger.error);
-        return rClient;
-      })()
+      sendCommand: function (...args) {
+        return rClient.sendCommand(args);
+      }
     });
+  } else if (enableRateLimiter) {
+    logger.warn('Redis is enabled but its configured URL is invalid; using the in-memory rate-limit store.');
   }
   const userLimiter = rateLimit(rateLimiterOptions);
 
@@ -148,7 +145,7 @@
       router.post('/report/entries/table/:obj_agent_id', reports.getReportEntriesByAgent);
 
       //------------- Unknown API Routes -------------//
-      router.all('/*', function (req, res, next) {
+      router.all('/{*path}', function (req, res, next) {
         next({code: 404, message: 'Resource not found.'});
       });
 
@@ -172,11 +169,11 @@
       router.get(indexPageMatches, pageHandlers.preMainPageHandler, pageHandlers.mainPageHandler);
 
       //------------- HTML5 Matcher -------------//
-      router.get('/*', pageHandlers.preMainPageHandler, pageHandlers.mainPageHandler);
+      router.get('/{*path}', pageHandlers.preMainPageHandler, pageHandlers.mainPageHandler);
 
       //------------- Routes -------------//
 
-      router.all('/*', userLimiter, function (req, res) {
+      router.all('/{*path}', userLimiter, function (req, res) {
         res.status(404);
         res.type('html').sendFile(config.client.error);
       });

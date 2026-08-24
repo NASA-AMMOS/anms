@@ -25,7 +25,6 @@
   const _ = require('lodash');
   const fs = require('fs');
   const yaml = require('js-yaml');
-  const winston = require('winston');
 
   module.exports = {
     init: initUtils
@@ -125,9 +124,9 @@
   function configYamlLoader(path) {
     const configExists = fs.existsSync(path);
     if (configExists === true) {
-      winston.info('Loaded Configuration File', path);
+      console.info('Loaded Configuration File', path);
       const yamlBlob = fs.readFileSync(path, 'utf8');
-      const result = yaml.safeLoad(yamlBlob);
+      const result = yaml.load(yamlBlob);
       return _.isPlainObject(result) ? result : {};
     } else {
       return {};
