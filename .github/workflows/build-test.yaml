@@ -115,7 +115,7 @@ jobs:
           cache-dependency-path: anms-ui/package-lock.json
       - name: Install dependencies
         working-directory: anms-ui
-        run: npm ci
+        run: npm ci --ignore-scripts
       - name: Run unit tests
         working-directory: anms-ui
-        run: npx ng test --runner=vitest --no-watch
+        run: npm run test -- --runner=vitest --no-watch
