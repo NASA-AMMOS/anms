@@ -1,0 +1,38 @@
+_meta:
+  type: "roles"
+  config_version: 2
+
+anonymous_dashboard_viewer:
+  reserved: false
+  hidden: false
+
+  cluster_permissions:
+    - "cluster_composite_ops_ro"
+    - "cluster:admin/opensearch/ql/datasources/read"
+
+  index_permissions:
+    # Allows anonymous Dashboards users to read saved dashboards,
+    # visualizations, index patterns, searches, etc.
+    - index_patterns:
+        - ".kibana"
+        - ".kibana_*"
+        - ".opensearch_dashboards"
+        - ".opensearch_dashboards_*"
+      allowed_actions:
+        - "read"
+
+    # Your actual dashboard data indexes.
+    - index_patterns:
+        - "logs-*"
+        - "public-*"
+        - "opensearch_dashboards_sample_data_*"
+        - "anms-index"
+        - "anms-index*"
+      allowed_actions:
+        - "read"
+
+  tenant_permissions:
+    - tenant_patterns:
+        - "global_tenant"
+      allowed_actions:
+        - "kibana_all_read"

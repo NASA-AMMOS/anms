@@ -68,10 +68,10 @@ config:
     kibana:
     # Kibana multitenancy
       multitenancy_enabled: true
-      private_tenant_enabled: true
+      private_tenant_enabled: false
       default_tenant: global tenant
-    #server_username: kibanaserver
-    #index: '.kibana'
+      server_username: kibanaserver
+      index: '.kibana'
     http:
       anonymous_auth_enabled: true
       xff:
@@ -102,12 +102,12 @@ config:
         description: "Authenticate via HTTP Basic against internal users database"
         http_enabled: true
         transport_enabled: true
-        order: 4
+        order: 0
         http_authenticator:
           type: basic
-          challenge: true
+          challenge: false
         authentication_backend:
-          type: intern
+          type: internal
       proxy_auth_domain:
         description: "Authenticate via proxy"
         http_enabled: false

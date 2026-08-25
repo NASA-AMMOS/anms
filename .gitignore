@@ -21,6 +21,7 @@ testresults.xml
 /anms-core/build/
 /anms-ui/release/
 docker-compose.override.yml
+/opensearch/dashboards/opensearch.ndjson.imported
 
 # Javascript and ESLint related content to be ignored
 node_modules
