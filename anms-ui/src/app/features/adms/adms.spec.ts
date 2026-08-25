@@ -1,7 +1,8 @@
-import { provideHttpClient } from '@angular/common/http';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideToastr } from 'ngx-toastr';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+
+import { ApiAdmService } from '../../shared/api-adm.service';
+import { NotificationService } from '../../shared/notification.service';
 
 import { Adms } from './adms';
 
@@ -11,8 +12,16 @@ describe('Adms', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Adms, HttpClientTestingModule],
-      providers: [provideHttpClient(), provideToastr()],
+      imports: [Adms],
+      providers: [
+        {
+          provide: ApiAdmService,
+          useValue: {
+            apiGetAdms: () => of([]),
+          },
+        },
+        { provide: NotificationService, useValue: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Adms);

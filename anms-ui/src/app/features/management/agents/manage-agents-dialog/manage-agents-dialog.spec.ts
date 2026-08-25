@@ -1,8 +1,9 @@
-import { provideHttpClient } from '@angular/common/http';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideToastr } from 'ngx-toastr';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+
+import { ApiService } from '../../../../shared/api.service';
+import { NotificationService } from '../../../../shared/notification.service';
 
 import { ManageAgentsDialog } from './manage-agents-dialog';
 
@@ -12,12 +13,20 @@ describe('ManageAgentsDialog', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ManageAgentsDialog, HttpClientTestingModule],
+      imports: [ManageAgentsDialog],
       providers: [
-        provideHttpClient(),
-        provideToastr(),
         { provide: MatDialogRef, useValue: { close: () => {} } },
         { provide: MAT_DIALOG_DATA, useValue: { agents: [] } },
+        {
+          provide: ApiService,
+          useValue: {
+            apiQueryForARIs: () => of([]),
+            apiPutTranscodedString: () => of({ id: 1 }),
+            apiGetTranscoderLogById: () => of({ cbor: '' }),
+            apiSendRawCommand: () => of({}),
+          },
+        },
+        { provide: NotificationService, useValue: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() } },
       ],
     }).compileComponents();
 
