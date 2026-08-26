@@ -41,7 +41,7 @@ Environment setup is done with `src/environments` `environment.ts` for deploymen
 ## Testing
 Run the Angular unit test suite (Vitest):
 ```
-npm test -- --runner=vitest --no-watch
+npm run test -- --runner=vitest --no-watch
 ```
 
 ## Build and Deploy
