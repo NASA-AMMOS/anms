@@ -326,7 +326,7 @@ RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
 # ---------------------------------------------------------------------------
 ENV PIP_CERT=/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
 ENV PIP_DEFAULT_TIMEOUT=300
-
+ENV GIT_EXECUTABLE=git
 
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y --setopt=install_weak_deps=False epel-release 'dnf-command(config-manager)' && \
@@ -336,7 +336,7 @@ RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y --setopt=install_weak_deps=False \
         gcc g++ \
         cmake ninja-build ruby pkg-config \
-        flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel && \
+        flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel git&& \
     dnf clean all && \
     echo "/usr/local/lib64" >/etc/ld.so.conf.d/local.conf && \
     ldconfig
