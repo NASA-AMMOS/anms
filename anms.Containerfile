@@ -102,7 +102,10 @@ ENV NODE_OPTIONS=--use-openssl-ca
 
 # Install System Level Dependencies
 # Yarn cannot be installed via RPM because of FIPS-mode restrictions
-RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
+# RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
+ADD --checksum=sha256:b0ed2b9b66002e7ee802e8777cf3a92b25f1ecc0129812dc6f59a43a536810cc https://rpm.nodesource.com/setup_22.x /tmp/setup_22.x
+RUN bash /tmp/setup_22.x && \
+    rm /tmp/setup_22.x
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y --setopt=install_weak_deps=False nodejs && \
     dnf clean all && \
@@ -280,7 +283,7 @@ RUN mkdir -p /usr/local/share/ace && \
 
 RUN mkdir -p /usr/local/share/anms
 RUN touch /usr/local/share/anms/alerts.json
-RUN chmod go+w  /usr/local/share/anms/alerts.json
+RUN chmod g+w  /usr/local/share/anms/alerts.json
 
 # adding extra ADMS added before build
 COPY anms-core/extra_adms /usr/local/share/ace/adms
@@ -299,7 +302,7 @@ HEALTHCHECK --start-period=10s --interval=60s --timeout=10s --retries=20 \
 FROM yarn-base AS anms-core-integration
 
 # Install node+yarn from upstream
-RUN npm install --ignore-scripts -g newman
+RUN npm install --ignore-scripts -g newman@6.2.2
 
 COPY anms-core/integration_test /root/
 WORKDIR /root
