@@ -121,7 +121,7 @@ ENV BUILD_DATE=$BUILD_DATE
 
 # Install NodeJS Global Dependencies
 RUN --mount=type=cache,uid=99,gid=99,target=/home/"${APP_USER}"/.npm \
-    npm install --ignore-scripts --global pm2
+    npm install --ignore-scripts --global pm2@7.0.4
 
 # Remaining commands as this user
 USER "${APP_USER}":"${APP_USER}"
@@ -335,7 +335,9 @@ RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y --setopt=install_weak_deps=False \
         gcc g++ \
         cmake ninja-build ruby pkg-config \
-        flex libfl-static bison pcre2-devel civetweb civetweb-devel openssl-devel cjson-devel libpq-devel systemd-devel git&& \
+        flex libfl-static bison pcre2-devel \
+        civetweb civetweb-devel openssl-devel \
+        cjson-devel libpq-devel systemd-devel git && \
     dnf clean all && \
     echo "/usr/local/lib64" >/etc/ld.so.conf.d/local.conf && \
     ldconfig
