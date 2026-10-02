@@ -42,8 +42,8 @@ ENV PIP_DEFAULT_TIMEOUT=300
 
 # Explicit User (top of file to avoid conflicts down the line with IDs)
 ENV APP_USER=anms
-RUN groupadd -r -g 99 ${APP_USER} && \
-    useradd -m -r -g ${APP_USER} -u 99 ${APP_USER}
+RUN groupadd -r -g 99 "${APP_USER}" && \
+    useradd -m -r -g "${APP_USER}" -u 99 "${APP_USER}"
 
 
 # This image includes common libraries used by the aricodec and anms-core
@@ -66,15 +66,15 @@ ENV PYTHON=python3
 ENV PY_WHEEL_DIR=/usr/local/lib/wheels
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} install --upgrade 'pip~=24.0' 'pip-tools==7.5.3'
+    "${PIP}" install --upgrade 'pip~=24.0' 'pip-tools==7.5.3'
 
 COPY deps/dtnma-ace /usr/src/dtnma-ace
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} wheel /usr/src/dtnma-ace -w ${PY_WHEEL_DIR} --no-deps
+    "${PIP}" wheel /usr/src/dtnma-ace -w "${PY_WHEEL_DIR}" --no-deps
 
 COPY deps/dtnma-camp /usr/src/dtnma-camp
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} wheel /usr/src/dtnma-camp -w ${PY_WHEEL_DIR} --no-deps
+    "${PIP}" wheel /usr/src/dtnma-camp -w "${PY_WHEEL_DIR}" --no-deps
 
 COPY deps/dtnma-adms /usr/src/dtnma-adms
 
@@ -106,13 +106,13 @@ RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
 RUN --mount=type=cache,target=/var/cache/yum \
     dnf install -y --setopt=install_weak_deps=False nodejs && \
     dnf clean all && \
-    npm config set cafile ${PIP_CERT}
+    npm config set cafile "${PIP_CERT}"
 
 
 # Actual installation
 FROM yarn-base AS anms-ui
 ENV APP_WORK_DIR=/opt/node_app
-ENV PM2_HOME=${APP_WORK_DIR}/.pm2
+ENV PM2_HOME="${APP_WORK_DIR}"/.pm2
 
 ARG BUILD_VERSION=unknown
 ARG BUILD_DATE=unknown
@@ -120,44 +120,44 @@ ENV BUILD_VERSION=$BUILD_VERSION
 ENV BUILD_DATE=$BUILD_DATE
 
 # Install NodeJS Global Dependencies
-RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
-    npm install --global pm2
+RUN --mount=type=cache,uid=99,gid=99,target=/home/"${APP_USER}"/.npm \
+    npm install --ignore-scripts --global pm2
 
 # Remaining commands as this user
-USER ${APP_USER}:${APP_USER}
+USER "${APP_USER}":"${APP_USER}"
 
 
 # Install Angular UI and Server Dependencies
-COPY --chown=${APP_USER}:${APP_USER} anms-ui/ ${APP_WORK_DIR}/
-WORKDIR ${APP_WORK_DIR}
+COPY --chown="${APP_USER}":"${APP_USER}" anms-ui/ "${APP_WORK_DIR}"/
+WORKDIR "${APP_WORK_DIR}"
 
 RUN ./modify_version.sh
 
 # TODO: Modify this to use 'npm ci'
-RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
-    cd ${APP_WORK_DIR}/server && \
-    npm install --omit=dev
+RUN --mount=type=cache,uid=99,gid=99,target=/home/"${APP_USER}"/.npm \
+    cd "${APP_WORK_DIR}"/server && \
+    npm install --ignore-scripts --omit=dev
 
 # TODO: Restore 'npm ci' after fixing checked-in package-lock.json
 # NOTE: npm i line is provided for developer usage when updating package-lock.json
-RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
-    npm i && \
+RUN --mount=type=cache,uid=99,gid=99,target=/home/"${APP_USER}"/.npm \
+    npm i --ignore-scripts && \
     npm run build && \
     npm prune --omit=dev
-#RUN --mount=type=cache,uid=99,gid=99,target=/home/${APP_USER}/.npm \
+#RUN --mount=type=cache,uid=99,gid=99,target=/home/"${APP_USER}"/.npm \
 #    npm ci
 
 # Clean any old release dir and copy Angular browser build into it
-RUN rm -rf ${APP_WORK_DIR}/server/release && \
-    mkdir -p ${APP_WORK_DIR}/server/release && \
-    cp -R ${APP_WORK_DIR}/dist/anms-ui/browser/* ${APP_WORK_DIR}/server/release/
+RUN rm -rf "${APP_WORK_DIR}"/server/release && \
+    mkdir -p "${APP_WORK_DIR}"/server/release && \
+    cp -R "${APP_WORK_DIR}"/dist/anms-ui/browser/* "${APP_WORK_DIR}"/server/release/
 
 # for updating config.yaml
 COPY --chmod=755 anms-ui/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 ENTRYPOINT ["docker-entrypoint"]
 
 # Tune Final Settings
-WORKDIR ${APP_WORK_DIR}
+WORKDIR "${APP_WORK_DIR}"
 
 CMD ["pm2-docker", "process.yml", "--env", "production"]
 EXPOSE 9030
@@ -209,18 +209,18 @@ FROM dtnma-acelib AS transcoder
 ENV APP_WORK_DIR=/opt/app
 
 # Copy over all required content (source, data, etc.)
-COPY --chown=${APP_USER}:${APP_USER} transcoder ${APP_WORK_DIR}
+COPY --chown="${APP_USER}":"${APP_USER}" transcoder "${APP_WORK_DIR}"
 # Install all python dependencies
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} install -r ${APP_WORK_DIR}/requirements.txt
+    "${PIP}" install -r "${APP_WORK_DIR}"/requirements.txt
 
 # Tune Final Settings
-WORKDIR ${APP_WORK_DIR}
+WORKDIR "${APP_WORK_DIR}"
 
 # Persist Docker Container
 COPY --chmod=755 transcoder/docker-entrypoint.sh /usr/local/bin/
 # Remaining commands as this user
-USER ${APP_USER}:${APP_USER}
+USER "${APP_USER}":"${APP_USER}"
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
 
 
@@ -231,23 +231,23 @@ CMD ["/usr/local/bin/docker-entrypoint.sh"]
 FROM dtnma-acelib AS aricodec
 
 ENV APP_WORK_DIR=/usr/local/src/aricodec
-
+WORKDIR "${APP_WORK_DIR}"
 # Requirement of main package
-COPY aricodec/pyproject.toml ${APP_WORK_DIR}/
+COPY aricodec/pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd ${APP_WORK_DIR} && \
     mkdir src && \
-    pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml -vv && \
-    ${PIP} install -r requirements.txt
+    pip-compile --find-links "${PY_WHEEL_DIR}" pyproject.toml -vv && \
+    "${PIP}" install -r requirements.txt
+
 # Actual main package
-COPY aricodec/src ${APP_WORK_DIR}/src
+COPY aricodec/src ./src
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} install ${APP_WORK_DIR}
+    "${PIP}" install .
 
 COPY --chmod=755 aricodec/docker-entrypoint.sh /usr/local/bin/
 ENV SQLALCHEMY_SILENCE_UBER_WARNING=1
 # Remaining commands as the local user
-USER ${APP_USER}
+USER "${APP_USER}"
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
 
 
@@ -264,17 +264,16 @@ ENV BUILD_VERSION=$BUILD_VERSION
 ENV BUILD_DATE=$BUILD_DATE
 
 ENV APP_WORK_DIR=/usr/src/anms-core
-
+WORKDIR "${APP_WORK_DIR}"
 # Requirement of main module
-COPY anms-core/pyproject.toml ${APP_WORK_DIR}/
+COPY anms-core/pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd ${APP_WORK_DIR} && \
-    pip-compile --find-links ${PY_WHEEL_DIR} pyproject.toml && \
-    ${PIP} install  --ignore-installed  -r requirements.txt
+    pip-compile --find-links "${PY_WHEEL_DIR}" pyproject.toml && \
+    "${PIP}" install  --ignore-installed  -r requirements.txt
 # Actual main package
-COPY anms-core/anms ${APP_WORK_DIR}/anms
+COPY anms-core/anms "${APP_WORK_DIR}"/anms
 RUN --mount=type=cache,target=/root/.cache/pip \
-    ${PIP} install ${APP_WORK_DIR}
+    "${PIP}" install "${APP_WORK_DIR}"
 
 RUN mkdir -p /usr/local/share/ace && \
     cp -R /usr/src/dtnma-adms /usr/local/share/ace/adms
@@ -289,7 +288,7 @@ COPY anms-core/extra_adms /usr/local/share/ace/adms
 RUN setcap cap_net_raw=ep /usr/bin/ping
 COPY --chmod=755 anms-core/docker-entrypoint.sh /usr/local/bin/
 # Remaining commands as the local user
-USER ${APP_USER}
+USER "${APP_USER}"
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
 EXPOSE 5555/tcp
 
