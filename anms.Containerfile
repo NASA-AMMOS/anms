@@ -188,7 +188,7 @@ RUN if [ -n "$INTERNAL_CERT_URL" ]; then \
 
 USER grafana
 
-COPY --chown=grafana grafana/provisioning /etc/grafana/provisioning
+COPY grafana/provisioning /etc/grafana/provisioning
 COPY grafana/grafana.ini /etc/grafana/grafana.ini
 
 
