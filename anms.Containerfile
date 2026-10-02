@@ -135,10 +135,11 @@ COPY --chown="${APP_USER}":"${APP_USER}" anms-ui/ "${APP_WORK_DIR}"/
 WORKDIR "${APP_WORK_DIR}"
 RUN ./modify_version.sh
 
+WORKDIR "${APP_WORK_DIR}/server"
 RUN --mount=type=cache,uid=99,gid=99,target=/home/"${APP_USER}"/.npm \
-    cd "${APP_WORK_DIR}/server" && \
     npm ci --ignore-scripts --omit=dev
 
+WORKDIR "${APP_WORK_DIR}"
 # NOTE: npm i line is provided for developer usage when updating package-lock.json
 RUN --mount=type=cache,uid=99,gid=99,target=/home/"${APP_USER}"/.npm \
     npm i --ignore-scripts && \
