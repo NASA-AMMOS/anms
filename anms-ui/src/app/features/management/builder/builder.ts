@@ -171,7 +171,8 @@ export class Builder implements OnInit {
   protected sendToAgents(): void {
     const cborCommands = this.selection.selected
       .map((log) => log.cbor)
-      .filter((cbor): cbor is string => !!cbor);
+      .filter((cbor): cbor is string => !!cbor)
+      .map((cbor) => cbor.trim().replace(/^0x/i, ''));
 
     if (cborCommands.length != this.selection.selected.length) {
       this.notificationService.error('Not all selected entries contain valid CBOR', 'Erroneous Entries Selected'); // FIXME: toastr messages appear at top of page which might not be visible if window is scrolled down to table

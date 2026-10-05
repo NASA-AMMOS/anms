@@ -50,11 +50,6 @@
       [rptts]="this.agentsService.getRptt()"
       [registeredAgentsId]="agentInfo.registered_agents_id">
     </app-reports>
-
-    <app-crud
-      [agentId]="agentInfo.registered_agents_id"
-      [operations]="this.agentsService.getOperations()">
-    </app-crud>
   </mat-dialog-content>
 }
 

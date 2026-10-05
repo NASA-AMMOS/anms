@@ -12,6 +12,7 @@ import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatSelect, MatSelectChange} from '@angular/material/select';
 import {debounceTime, distinctUntilChanged, switchMap, tap} from 'rxjs/operators';
 import {Subject, of} from 'rxjs';
+import {NgTemplateOutlet} from '@angular/common';
 
 export type AriCommandMode = 'builder' | 'text' | 'cbor';
 
@@ -25,6 +26,10 @@ type ParamInputKind = 'text' | 'ari-list';
 const ARI_TYPE_NAMES = ['IDENT', 'CONST', 'CTRL', 'EDD', 'MAC', 'OPER', 'SBR', 'TBR', 'TYPEDEF'] as const;
 type AriTypeName = (typeof ARI_TYPE_NAMES)[number];
 
+interface AriSelection extends Ari {
+  parameters?: AriParamState[];
+}
+
 interface AriParamState {
   index: number;
   name: string;
@@ -33,11 +38,9 @@ interface AriParamState {
 
   textValue: string;
 
-  selectedAris: Ari[];
-  searchText: '';
+  selectedAris: AriSelection[];
+  searchText: string;
   filteredAris: Ari[];
-
-  // Auto-filtered type from param's type definition (e.g., 'CONST' from 'CONST/AC')
   requiredAriType: AriTypeName | null;
 }
 
@@ -46,6 +49,7 @@ interface AriParamState {
   templateUrl: './ari-command-builder.html',
   styleUrls: ['./ari-command-builder.css'],
   imports: [
+    NgTemplateOutlet,
     MatButtonToggleGroup,
     FormsModule,
     MatButtonToggle,
@@ -123,6 +127,7 @@ export class AriCommandBuilder implements OnInit {
     // Debounced backend validation for text/CBOR modes
     this.setupValidationPipeline(this.textInput$, 'text');
     this.setupValidationPipeline(this.cborInput$, 'cbor');
+    this.onModeChange();
   }
 
   private setupValidationPipeline(input$: Subject<string>, mode: 'text' | 'cbor'): void {
@@ -153,15 +158,7 @@ export class AriCommandBuilder implements OnInit {
   protected onTypeFilterChange(change: MatSelectChange | string | null): void {
     this.selectedTypeFilter = (typeof change === 'string' ? change : change?.value) ?? 'ALL';
 
-    // Fetch server-side filtered list when type changes (or resets to ALL)
-    const typeForServer = this.selectedTypeFilter === 'ALL' ? undefined : this.selectedTypeFilter;
-    this.api.apiQueryForARIs(typeForServer).subscribe({
-      next: (data: Ari[]) => {
-        this.aris = data;
-        this.applyMainFilter();
-      },
-      error: (err) => console.error('Failed to load ARIs', err),
-    });
+    this.applyMainFilter();
   }
 
   protected filterAris(value: string | Ari | null): void {
@@ -171,7 +168,9 @@ export class AriCommandBuilder implements OnInit {
 
   protected onModeChange(): void {
     // Reset validation state when switching modes
-    this.validationStatus = 'none';
+    this.validationStatus = this.ariMode === 'cbor' &&
+      this.initialCborCommands.length > 0 &&
+      this.manualCborHex === this.initialCborCommands.join(',') ? 'valid' : 'none';
     this.validationMessage = '';
     this.validationErrors = [];
   }
@@ -180,7 +179,9 @@ export class AriCommandBuilder implements OnInit {
     const search = this.ariSearchText?.toLowerCase() ?? '';
 
     this.filteredAris = this.aris.filter(ari => {
-      // Text search (server already filtered by type, client filters by text)
+      if (this.selectedTypeFilter !== 'ALL' && ari.type_name !== this.selectedTypeFilter) {
+        return false;
+      }
       if (search && !ari.display.toLowerCase().includes(search)) {
         return false;
       }
@@ -192,7 +193,7 @@ export class AriCommandBuilder implements OnInit {
     return (ari.param_names ?? []).map((paramName, index) => {
       const type = ari.param_types?.[index] ?? '';
 
-      return {
+      const param: AriParamState = {
         index,
         name: paramName,
         type,
@@ -203,9 +204,12 @@ export class AriCommandBuilder implements OnInit {
         selectedAris: [],
         searchText: '',
         filteredAris: [],
-
         requiredAriType: this.getTypeFilterFromParamType(type),
       };
+      if (param.kind === 'ari-list') {
+        this.filterParamAris(param);
+      }
+      return param;
     });
   }
 
@@ -229,10 +233,6 @@ export class AriCommandBuilder implements OnInit {
     return 'text';
   }
 
-  /**
-   * Extract the ARI type filter from a param type string.
-   * e.g., "CONST/AC" → "CONST", "CTRL/AC" → "CTRL", "/ARITYPE/AC" → null (any type)
-   */
   private getTypeFilterFromParamType(type: string): AriTypeName | null {
     const parts = type.split('/');
     const firstNonEmpty = parts.find(Boolean);
@@ -251,20 +251,16 @@ export class AriCommandBuilder implements OnInit {
   protected onAriSelected(ari: Ari): void {
     this.selectedAri = ari;
     this.ariParams = this.buildParamState(ari);
-    // Initialize each param's filtered list with auto-type-restriction
-    for (const param of this.ariParams) {
-      if (param.kind === 'ari-list') {
-        param.filteredAris = this.aris.filter(a =>
-          !param.requiredAriType || a.type_name === param.requiredAriType
-        );
-      }
-    }
     this.ariSearchText = ari.display;
     this.updateAriText();
   }
 
-  protected onParamAriSelectedPrim(paramIndex: number, ari: string): void {
-    const param = this.ariParams[paramIndex];
+  protected onParamAriSelectedPrim(paramTarget: number | AriParamState, ari: string): void {
+    if (!ari.trim()) {
+      return;
+    }
+
+    const param = this.resolveParam(paramTarget);
     const newAri: Ari = {
       obj_metadata_id: 0,
       obj_id: 0,
@@ -283,40 +279,43 @@ export class AriCommandBuilder implements OnInit {
     param.selectedAris = [...param.selectedAris, newAri];
 
     param.searchText = '';
-    param.filteredAris = this.aris.filter(a =>
-      !param.requiredAriType || a.type_name === param.requiredAriType
-    );
+    this.filterParamAris(param);
 
     this.updateAriText();
   }
 
-  protected onParamAriSelected(paramIndex: number, ari: Ari): void {
-    const param = this.ariParams[paramIndex];
+  protected onParamAriSelected(paramTarget: number | AriParamState, ari: Ari): void {
+    const param = this.resolveParam(paramTarget);
 
     const alreadySelected = param.selectedAris.some(
       selected => selected.obj_metadata_id === ari.obj_metadata_id
     );
 
     if (!alreadySelected) {
-      param.selectedAris = [...param.selectedAris, ari];
+      param.selectedAris = [...param.selectedAris, {
+        ...ari,
+        parameters: this.buildParamState(ari),
+      }];
     }
 
     param.searchText = '';
-    param.filteredAris = this.aris.filter(a =>
-      !param.requiredAriType || a.type_name === param.requiredAriType
-    );
+    this.filterParamAris(param);
 
     this.updateAriText();
   }
 
-  protected removeParamAri(paramIndex: number, ari: Ari): void {
-    const param = this.ariParams[paramIndex];
+  protected removeParamAri(paramTarget: number | AriParamState, ari: Ari): void {
+    const param = this.resolveParam(paramTarget);
 
     param.selectedAris = param.selectedAris.filter(
       selected => selected.obj_metadata_id !== ari.obj_metadata_id
     );
 
     this.updateAriText();
+  }
+
+  private resolveParam(paramTarget: number | AriParamState): AriParamState {
+    return typeof paramTarget === 'number' ? this.ariParams[paramTarget] : paramTarget;
   }
 
   protected updateAriText(): void {
@@ -328,7 +327,15 @@ export class AriCommandBuilder implements OnInit {
       return;
     }
 
-    this.ariText = this.wrapExecutionSetIfNeeded(rawAriText);
+    this.ariText = this.encodeQuotedStrings(this.wrapExecutionSetIfNeeded(rawAriText));
+  }
+
+  private encodeQuotedStrings(value: string): string {
+    return value.replace(/"(?:\\.|[^"\\])*"/g, quoted =>
+      encodeURIComponent(quoted).replace(/[!*()]/g, character =>
+        `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+      )
+    );
   }
 
   protected getPreviewLabel(): string {
@@ -383,7 +390,7 @@ export class AriCommandBuilder implements OnInit {
   }
 
   private validateBuilderTextParams(): void {
-    for (const param of this.ariParams) {
+    for (const param of this.getAllParams(this.ariParams)) {
       if (param.kind !== 'text') continue;
       if (!param.textValue?.trim()) {
         this.validationErrors.push(
@@ -394,7 +401,7 @@ export class AriCommandBuilder implements OnInit {
   }
 
   private validateBuilderAriParams(): void {
-    for (const param of this.ariParams) {
+    for (const param of this.getAllParams(this.ariParams)) {
       if (param.kind !== 'ari-list' || !param.requiredAriType) continue;
 
       for (const selectedAri of param.selectedAris) {
@@ -443,10 +450,21 @@ export class AriCommandBuilder implements OnInit {
       this.validationErrors.push(this.validationMessage || `${label === 'text' ? 'ARI' : 'CBOR'} failed backend validation`);
       return;
     }
+    if (this.validationStatus === 'checking') {
+      this.validationErrors.push(`${label === 'text' ? 'ARI' : 'CBOR'} validation is in progress`);
+      return;
+    }
     if (this.validationStatus === 'none') {
       this.validationErrors.push(`${label === 'text' ? 'ARI' : 'CBOR'} has not been validated yet`);
       this.validationStatus = 'invalid';
     }
+  }
+
+  private getAllParams(params: AriParamState[]): AriParamState[] {
+    return params.flatMap(param => [
+      param,
+      ...param.selectedAris.flatMap(ari => this.getAllParams(ari.parameters ?? [])),
+    ]);
   }
 
   private buildRawAriText(): string {
@@ -454,19 +472,23 @@ export class AriCommandBuilder implements OnInit {
       return '';
     }
 
-    if (this.selectedAri.actual || this.ariParams.length === 0) {
-      return this.selectedAri.display;
+    return this.buildParameterizedAriText(this.selectedAri, this.ariParams);
+  }
+
+  private buildParameterizedAriText(ari: Ari, params: AriParamState[]): string {
+    if (ari.actual || params.length === 0) {
+      return ari.display;
     }
 
-    const paramText = this.ariParams
+    const paramText = params
       .map((param) => this.renderParamValue(param))
       .join(',');
 
     return (
-      `ari://${this.selectedAri.namespace}` +
-      `/${this.selectedAri.data_model_name}` +
-      `/${this.selectedAri.type_name}` +
-      `/${this.selectedAri.name}` +
+      `ari://${ari.namespace}` +
+      `/${ari.data_model_name}` +
+      `/${ari.type_name}` +
+      `/${ari.name}` +
       `(${paramText})`
     );
   }
@@ -485,7 +507,9 @@ export class AriCommandBuilder implements OnInit {
 
   protected renderParamValue(param: AriParamState): string {
     if (param.kind === 'ari-list') {
-      const values = param.selectedAris.map((ari) => ari.display);
+      const values = param.selectedAris.map((ari) =>
+        this.buildParameterizedAriText(ari, ari.parameters ?? [])
+      );
 
       if (param.type.includes('TYPEDEF') && values.length === 1) {
         return values[0];
@@ -501,16 +525,15 @@ export class AriCommandBuilder implements OnInit {
     return param.textValue ?? '';
   }
 
-  protected displayAri = (ari: Ari | null): string => {
-    return ari?.display ?? '';
+  protected displayAri = (ari: Ari | string | null): string => {
+    return typeof ari === 'string' ? ari : ari?.display ?? '';
   };
 
-  protected filterParamAris(paramIndex: number): void {
-    const param = this.ariParams[paramIndex];
+  protected filterParamAris(paramTarget: number | AriParamState): void {
+    const param = this.resolveParam(paramTarget);
     const search = param.searchText.toLowerCase();
 
     param.filteredAris = this.aris.filter(ari => {
-      // Auto-restrict by required type
       if (param.requiredAriType && ari.type_name !== param.requiredAriType) {
         return false;
       }

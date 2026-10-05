@@ -7,7 +7,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 
 import { NotificationService } from '../../../shared/notification.service';
-import { Builder } from './builder';
+import { Builder, TranscoderLogEntry } from './builder';
+import { CommandHandoffService } from '../../../shared/command-handoff.service';
 
 describe('Builder', () => {
   let component: Builder;
@@ -52,5 +53,21 @@ describe('Builder', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('removes leading hex prefixes before handing CBOR commands to agents', () => {
+    const logs: TranscoderLogEntry[] = ['0xABCD', '0X1234', '5678'].map((cbor, index) => ({
+      transcoder_log_id: index,
+      input_string: '',
+      parsed_as: '',
+      ari: '',
+      uri: '',
+      cbor,
+    }));
+    component['selection'].select(...logs);
+    component['sendToAgents']();
+
+    expect(TestBed.inject(CommandHandoffService).cborCommands()).toEqual(['ABCD', '1234', '5678']);
+    expect(TestBed.inject(Router).navigate).toHaveBeenCalledWith(['/dashboard/agents']);
   });
 });

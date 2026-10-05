@@ -105,6 +105,9 @@
 
 .param-block {
   margin-bottom: 1rem;
+  border: 1px solid var(--mat-sys-outline, #4b5563);
+  border-radius: 8px;
+  padding: 1rem;
 }
 
 .selected-param-aris {
@@ -134,6 +137,21 @@
 
 .selected-param-ari-row span {
   overflow-wrap: anywhere;
+}
+
+.nested-param-fields {
+  padding: 0.75rem;
+  border-top: 1px solid #4b5563;
+}
+
+.nested-param-header {
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.nested-param-fields > .param-block:last-child {
+  margin-bottom: 0;
 }
 
 .nonce-input {
@@ -180,6 +198,11 @@
 
 .input-invalid mat-form-field-wrapper {
   border-color: #ef4444 !important;
+}
+.command-preview {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  white-space: normal;
 }
 
 .command-preview-row {

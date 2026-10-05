@@ -40,7 +40,7 @@ class ManagerChecker:
     def __init__(self, config):
         self.known_agents = {}
         self.lock = Lock()
-        self.alert_file = io.StringIO()
+        self.alert_file = {}
         self.ui_url = "http://" + config['UI_HOST'] + ":" + str(config['UI_PORT']) + config['UI_API_BASE']
         self.manager_connect = True  # tracks manager connection status so doesnt repeat alerts of disconnect
         self.curr_id = 0  # tracking the alert id for acknowledging
@@ -65,15 +65,16 @@ class ManagerChecker:
                     json.dump(alerts, f)
             except (FileNotFoundError, json.JSONDecodeError):
                 logger.error("ERROR reading alert.json")
+
     def get_alerts(self):
         data = {}
         with self.lock:
             try:
-                with open(self.alert_file, 'r') as f:
-                    data = json.load(f)
+                # with open(self.alert_file, 'r') as f:
+                data = json.load(self.alert_file)
                 return data
             except Exception as e:
-                logger.error(e)
+                logger.error(f"Error occurred while loading alerts: {e}")
         return data
 
     async def check_list(self):
@@ -88,7 +89,7 @@ class ManagerChecker:
                 url = nm_url + "/agents"
                 async with httpx.AsyncClient() as client:
                     response = await client.get(url)
-                if not response.ok:
+                if response.is_error:
                     raise RuntimeError('no valid resonse')
 
                 if not self.manager_connect:  # if manager was disconnected alert for reconnect
@@ -97,7 +98,7 @@ class ManagerChecker:
                     await alerts.store_alert("manager_reconnect", "20", "reconnected to manager")
                     self.curr_id = self.curr_id + 1
                     self.manager_connect = True
-                agents = agents["agents"]
+                agents = response.json()["agents"]
 
             except Exception as e:
                 if self.manager_connect:
