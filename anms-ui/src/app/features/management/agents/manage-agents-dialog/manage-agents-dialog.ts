@@ -157,7 +157,7 @@ export class ManageAgentsDialog implements OnInit {
       cborCommands.map((cbor) =>
         this.api.apiSendRawCommand(
           agent.agent_endpoint_uri,
-          cbor
+          cbor.trim().replace(/^0x/i, '')
         )
       )
     );
