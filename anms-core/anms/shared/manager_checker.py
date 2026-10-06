@@ -64,17 +64,16 @@ class ManagerChecker:
                 with open(self.alert_file, 'w') as f:
                     json.dump(alerts, f)
             except (FileNotFoundError, json.JSONDecodeError):
-                logger.error("ERROR reading alert.json")
+                logger.exception("ERROR reading alert.json")
 
     def get_alerts(self):
         data = {}
         with self.lock:
             try:
-                # with open(self.alert_file, 'r') as f:
                 data = json.load(self.alert_file)
                 return data
             except Exception as e:
-                logger.error(f"Error occurred while loading alerts: {e}")
+                logger.exception(f"Error occurred while loading alerts: {e}")
         return data
 
     async def check_list(self):
@@ -108,7 +107,7 @@ class ManagerChecker:
                     self.curr_id = self.curr_id + 1
                     logger.error("could not reach nm manager")
                     self.manager_connect = False
-                logger.error(f"{e} while getting agents")
+                logger.exception(f"{e} while getting agents")
                 agents = []
 
             # process agent list from manager

@@ -93,8 +93,7 @@ export class Agents implements AfterViewInit {
     nodeList.forEach((node) => {
       this.apiService
         .apiPostAgent(node.trim())
-        .subscribe({next: (response) => {
-          const results = response;
+        .subscribe({next: (_) => {
           this.notificationService.success(`Agent added to node: ${node}`);
         },
           error: (err: any) => {

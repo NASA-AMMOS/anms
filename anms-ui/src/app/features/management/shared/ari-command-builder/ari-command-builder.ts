@@ -330,15 +330,7 @@ export class AriCommandBuilder implements OnInit {
       return;
     }
 
-    this.ariText = this.encodeQuotedStrings(this.wrapExecutionSetIfNeeded(rawAriText));
-  }
-
-  private encodeQuotedStrings(value: string): string {
-    return value.replace(/"(?:\\.|[^"\\])*"/g, quoted =>
-      encodeURIComponent(quoted).replace(/[!*()]/g, character =>
-        `%${character.charCodeAt(0).toString(16).toUpperCase()}`
-      )
-    );
+    this.ariText = encodeURI(this.wrapExecutionSetIfNeeded(rawAriText));
   }
 
   protected getPreviewLabel(): string {
