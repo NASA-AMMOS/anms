@@ -35,6 +35,7 @@ interface AriParamState {
   name: string;
   type: string;
   kind: ParamInputKind;
+  wrapInAc: boolean;
 
   textValue: string;
 
@@ -192,12 +193,14 @@ export class AriCommandBuilder implements OnInit {
   protected buildParamState(ari: Ari): AriParamState[] {
     return (ari.param_names ?? []).map((paramName, index) => {
       const type = ari.param_types?.[index] ?? '';
+      const kind = this.getParamKind(type);
 
       const param: AriParamState = {
         index,
         name: paramName,
         type,
-        kind: this.getParamKind(type),
+        kind,
+        wrapInAc: kind === 'ari-list' && !type.includes('TYPEDEF'),
 
         textValue: '',
 
@@ -402,7 +405,13 @@ export class AriCommandBuilder implements OnInit {
 
   private validateBuilderAriParams(): void {
     for (const param of this.getAllParams(this.ariParams)) {
-      if (param.kind !== 'ari-list' || !param.requiredAriType) continue;
+      if (param.kind !== 'ari-list') continue;
+      if (!param.wrapInAc && param.selectedAris.length > 1) {
+        this.validationErrors.push(
+          `Parameter "${param.name}" has multiple values; enable ARI Collection (AC) or select a single value`
+        );
+      }
+      if (!param.requiredAriType) continue;
 
       for (const selectedAri of param.selectedAris) {
         if (selectedAri.type_name && selectedAri.type_name !== param.requiredAriType) {
@@ -500,7 +509,7 @@ export class AriCommandBuilder implements OnInit {
 
     const noncePart = this.correlatorNonce
       ? `n=${this.correlatorNonce};`
-      : '';
+      : 'n=null;';
 
     return `ari:/EXECSET/${noncePart}(${rawAriText})`;
   }
@@ -511,15 +520,11 @@ export class AriCommandBuilder implements OnInit {
         this.buildParameterizedAriText(ari, ari.parameters ?? [])
       );
 
-      if (param.type.includes('TYPEDEF') && values.length === 1) {
-        return values[0];
-      }
-
-      if (values.length > 0) {
+      if (param.wrapInAc) {
         return `/AC/(${values.join(',')})`;
       }
 
-      return '';
+      return values.join(',');
     }
 
     return param.textValue ?? '';

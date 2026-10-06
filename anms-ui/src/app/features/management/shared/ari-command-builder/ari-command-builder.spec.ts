@@ -292,6 +292,62 @@ describe('AriCommandBuilder', () => {
     expect(c(component).ariParams[0].selectedAris).toEqual([]);
   });
 
+  describe('parameter AC checkbox', () => {
+    it('toggles the collection wrapper around a generated parameter ARI', async () => {
+      c(component).onAriSelected(allMockAris[4]);
+      c(component).onParamAriSelected(0, allMockAris[2]);
+      c(component).ariParams[0].selectedAris[0].parameters[0].textValue = '123';
+      c(component).updateAriText();
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const checkbox: HTMLInputElement = fixture.nativeElement.querySelector('.param-block mat-checkbox input');
+      fixture.detectChanges();
+      expect(checkbox.checked).toBe(true);
+      expect(c(component).ariText).toContain('/AC/(ari://.//Agent/OPER/setUptime(123))');
+      checkbox.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(c(component).ariParams[0].wrapInAc).toBe(false);
+      expect(c(component).ariText).toContain('/OPER/restart(ari://.//Agent/OPER/setUptime(123))');
+      checkbox.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(c(component).ariText).toContain('/AC/(ari://.//Agent/OPER/setUptime(123))');
+      expect(fixture.nativeElement.querySelector('.nested-param-fields mat-checkbox')).toBeNull();
+    });
+
+    it('allows TYPEDEF values to be wrapped and generates an empty AC when checked', () => {
+      c(component).onAriSelected({...allMockAris[4], param_types: ['CONST/TYPEDEF']});
+      const param = c(component).ariParams[0];
+      expect(param.wrapInAc).toBe(false);
+      c(component).onParamAriSelected(0, allMockAris[5]);
+      expect(c(component).renderParamValue(param)).toBe(allMockAris[5].display);
+      param.wrapInAc = true;
+      expect(c(component).renderParamValue(param)).toBe(`/AC/(${allMockAris[5].display})`);
+      c(component).removeParamAri(0, param.selectedAris[0]);
+      expect(c(component).renderParamValue(param)).toBe('/AC/()');
+    });
+
+    it('requires an AC for multiple values and independently wraps nested parameters', () => {
+      c(component).onAriSelected(allMockAris[4]);
+      c(component).onParamAriSelected(0, allMockAris[4]);
+      const parent = c(component).ariParams[0];
+      const nested = parent.selectedAris[0].parameters[0];
+      c(component).onParamAriSelected(nested, allMockAris[0]);
+      c(component).onParamAriSelected(nested, allMockAris[1]);
+      nested.wrapInAc = false;
+      expect(c(component).validate()).toBe(false);
+      expect(c(component).validationErrors[0]).toContain('enable ARI Collection (AC)');
+      nested.wrapInAc = true;
+      parent.wrapInAc = false;
+      c(component).updateAriText();
+      expect(c(component).validate()).toBe(true);
+      expect(c(component).ariText).toContain(`/OPER/restart(ari://.//Device/OPER/restart(/AC/(${allMockAris[0].display},${allMockAris[1].display})))`);
+    });
+  });
+
   describe('quoted string encoding', () => {
     it.each([
       ['"hello world"', '%22hello%20world%22'],

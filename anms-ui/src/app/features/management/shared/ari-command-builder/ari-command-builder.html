@@ -200,6 +200,15 @@
             }
           </mat-form-field>
 
+          @if (param.kind === 'ari-list') {
+            <mat-checkbox
+              [(ngModel)]="param.wrapInAc"
+              (ngModelChange)="updateAriText()"
+            >
+              ARI Collection (AC)
+            </mat-checkbox>
+          }
+
           @if (param.selectedAris.length > 0) {
             <div class="selected-param-aris">
               <div class="selected-param-header">Selected ARIs:</div>
