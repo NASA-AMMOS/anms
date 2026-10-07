@@ -88,7 +88,8 @@ async def _report_from_id_source(
 ):
     res = []
     report_dict = []
-
+    if report_source.startswith("0x"):
+        report_source = report_source[2:]
     if agent_idx:
         if start_time is None:
             start_time = datetime.fromisoformat("2010-01-01T00:00:00+00:00")
@@ -96,18 +97,19 @@ async def _report_from_id_source(
             end_time = datetime.fromisoformat("2100-01-01T00:00:00+00:00")
         start_time = start_time.replace(tzinfo=None)
         end_time = end_time.replace(tzinfo=None)
-
-        stmt = (
-            select(Report)
-            .where(Report.agent_id == agent_idx)
-            .where(Report.report_source == bytes.fromhex(report_source))
-            .filter(Report.reference_time >= start_time)
-            .filter(Report.reference_time <= end_time)
-        )
-        async with get_async_session() as session:
-            result: Result = await session.scalars(stmt)
-            res = result.all()
-
+        try:
+            stmt = (
+                select(Report)
+                .where(Report.agent_id == agent_idx)
+                .where(Report.report_source == bytes.fromhex(report_source))
+                .filter(Report.reference_time >= start_time)
+                .filter(Report.reference_time <= end_time)
+            )
+            async with get_async_session() as session:
+                result: Result = await session.scalars(stmt)
+                res = result.all()
+        except Exception as e:
+            logger.exception(f"Error fetching reports: {e}")
     if res:
         # translate report_source  if its const use its values as the forms for the final report
         report_source_ari = TRANSMORGIFIER.transcode("0x" + report_source)

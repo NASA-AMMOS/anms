@@ -27,5 +27,3 @@ if ! grep -q '^OPENSEARCH_INITIAL_ADMIN_PASSWORD=' .env; then
     password=$(generate_password)
     echo "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${password}" >> .env
 fi
-
-

@@ -121,27 +121,47 @@ services:
     #     hard: 65536
     volumes:
       - "opensearch:/usr/share/opensearch/data"
-      - "./opensearch/dashboards:/tmp/dashboards"
       - "./opensearch/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml"
+      - "./opensearch/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml"
+      - "./opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml"
+      - "./opensearch/opensearch-entrypoint.sh:/usr/local/bin/opensearch-entrypoint.sh:ro"
     ports:
       - "${OPENSEARCH_PORT1:-9200}:9200"
       - "${OPENSEARCH_PORT2:-9600}:9600" # required for Performance Analyzer
+    
+    entrypoint: ["/usr/local/bin/opensearch-entrypoint.sh"]
+    command: ["opensearch"]
 
   opensearch-dashboards:
     profiles: ["full"]
     hostname: opensearch-dashboards
     image: docker.io/opensearchproject/opensearch-dashboards:2.19.5
+    depends_on:
+      - opensearch
     restart: unless-stopped
     security_opt:
       - "label=type:opensearch-dashboards.process"
     ports:
       - "${OPENSEARCH_DASH_PORT:-5601}:5601"
     volumes:
-      - "./opensearch/opensearch-dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch-dashboards.yml"
+      - "./opensearch/dashboards:/tmp/dashboards"
+      - "./opensearch/opensearch-dashboards-entrypoint.sh:/usr/local/bin/opensearch-dashboards-entrypoint.sh:ro"
     environment:
       OPENSEARCH_HOSTS: '["https://opensearch:9200"]' # must be a string with no spaces when specified as an environment variable
       SERVER_BASEPATH: /dashboards
       SERVER_REWRITEBASEPATH: true
+      OPENSEARCH_REQUESTHEADERSWHITELIST: '["securitytenant","Authorization"]'
+      OPENSEARCH_SECURITY_MULTITENANCY_ENABLED: "true"
+      OPENSEARCH_SECURITY_MULTITENANCY_TENANTS_ENABLE_GLOBAL: "true"
+      OPENSEARCH_SECURITY_MULTITENANCY_TENANTS_ENABLE_PRIVATE: "false"
+      OPENSEARCH_SECURITY_MULTITENANCY_TENANTS_PREFERRED: '["Global"]'
+      OPENSEARCH_SECURITY_AUTH_ANONYMOUS_AUTH_ENABLED: "true"
+      OPENSEARCH_SECURITY_READONLY_MODE_ROLES: '["kibana_read_only","anonymous_dashboard_viewer"]'
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+
+    
+    entrypoint: ["/usr/local/bin/opensearch-dashboards-entrypoint.sh"]
+
 
   postgres:
     hostname: postgres

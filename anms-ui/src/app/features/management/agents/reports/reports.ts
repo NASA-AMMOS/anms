@@ -57,6 +57,9 @@ export class Reports implements OnInit {
     Promise.all(preloadPromises)
       .finally(() => {
         this.loading = false;
+      }).catch((error) => {
+        console.error('Error preloading reports:', error);
+        this.toastr.error('Error preloading reports: ' + error);
       });
   }
 
