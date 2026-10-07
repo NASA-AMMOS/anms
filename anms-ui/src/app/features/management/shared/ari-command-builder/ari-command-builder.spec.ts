@@ -10,37 +10,37 @@ import {Ari} from '../../agents/model/ari.model';
 function mockAris(): Ari[] {
   return [
     {
-      obj_metadata_id: 1, obj_id: 1, name: 'agentId', namespace: './',
+      obj_metadata_id: 1, obj_id: 1, name: 'agentId', namespace: '.',
       data_model_name: 'Agent', type_name: 'CONST', data_model_id: 1,
       parm_id: null, actual: true, display: 'ari://./Agent/CONST/agentId',
       param_names: [], param_types: [],
     },
     {
-      obj_metadata_id: 2, obj_id: 2, name: 'uptime', namespace: './',
+      obj_metadata_id: 2, obj_id: 2, name: 'uptime', namespace: '.',
       data_model_name: 'Agent', type_name: 'CTRL', data_model_id: 1,
       parm_id: null, actual: true, display: 'ari://./Agent/CTRL/uptime',
       param_names: [], param_types: [],
     },
     {
-      obj_metadata_id: 3, obj_id: 3, name: 'setUptime', namespace: './',
+      obj_metadata_id: 3, obj_id: 3, name: 'setUptime', namespace: '.',
       data_model_name: 'Agent', type_name: 'OPER', data_model_id: 1,
       parm_id: null, actual: false, display: 'ari://./Agent/OPER/setUptime',
       param_names: ['duration'], param_types: ['unsignedInt'],
     },
     {
-      obj_metadata_id: 4, obj_id: 4, name: 'reportTable', namespace: './',
+      obj_metadata_id: 4, obj_id: 4, name: 'reportTable', namespace: '.',
       data_model_name: 'Agent', type_name: 'EDD', data_model_id: 1,
       parm_id: null, actual: true, display: 'ari://./Agent/EDD/reportTable',
       param_names: [], param_types: [],
     },
     {
-      obj_metadata_id: 5, obj_id: 5, name: 'restart', namespace: './',
+      obj_metadata_id: 5, obj_id: 5, name: 'restart', namespace: '.',
       data_model_name: 'Device', type_name: 'OPER', data_model_id: 2,
       parm_id: null, actual: false, display: 'ari://./Device/OPER/restart',
       param_names: ['target'], param_types: ['/ARITYPE/AC'],
     },
     {
-      obj_metadata_id: 6, obj_id: 6, name: 'configType', namespace: './',
+      obj_metadata_id: 6, obj_id: 6, name: 'configType', namespace: '.',
       data_model_name: 'Device', type_name: 'TYPEDEF', data_model_id: 2,
       parm_id: null, actual: true, display: 'ari://./Device/TYPEDEF/configType',
       param_names: [], param_types: [],
@@ -305,16 +305,16 @@ describe('AriCommandBuilder', () => {
       const checkbox: HTMLInputElement = fixture.nativeElement.querySelector('.param-block mat-checkbox input');
       fixture.detectChanges();
       expect(checkbox.checked).toBe(true);
-      expect(c(component).ariText).toContain('/AC/(ari://.//Agent/OPER/setUptime(123))');
+      expect(c(component).ariText).toContain('/AC/(ari://./Agent/OPER/setUptime(123))');
       checkbox.click();
       fixture.detectChanges();
       await fixture.whenStable();
       expect(c(component).ariParams[0].wrapInAc).toBe(false);
-      expect(c(component).ariText).toContain('/OPER/restart(ari://.//Agent/OPER/setUptime(123))');
+      expect(c(component).ariText).toContain('/OPER/restart(ari://./Agent/OPER/setUptime(123))');
       checkbox.click();
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(c(component).ariText).toContain('/AC/(ari://.//Agent/OPER/setUptime(123))');
+      expect(c(component).ariText).toContain('/AC/(ari://./Agent/OPER/setUptime(123))');
       expect(fixture.nativeElement.querySelector('.nested-param-fields mat-checkbox')).toBeNull();
     });
 
@@ -344,7 +344,7 @@ describe('AriCommandBuilder', () => {
       parent.wrapInAc = false;
       c(component).updateAriText();
       expect(c(component).validate()).toBe(true);
-      expect(c(component).ariText).toContain(`/OPER/restart(ari://.//Device/OPER/restart(/AC/(${allMockAris[0].display},${allMockAris[1].display})))`);
+      expect(c(component).ariText).toContain(`/OPER/restart(ari://./Device/OPER/restart(/AC/(${allMockAris[0].display},${allMockAris[1].display})))`);
     });
   });
 
@@ -375,7 +375,7 @@ describe('AriCommandBuilder', () => {
       c(component).onParamAriSelected(0, allMockAris[2]);
       c(component).ariParams[0].selectedAris[1].parameters[0].textValue = '"hello world"';
       c(component).updateAriText();
-      expect(c(component).ariText).toContain('/AC/(%22a%2Cb%22,ari://.//Agent/OPER/setUptime(%22hello%20world%22))');
+      expect(c(component).ariText).toContain('/AC/(%22a%2Cb%22,ari://./Agent/OPER/setUptime(%22hello%20world%22))');
       const command = c(component).ariText;
       c(component).updateAriText();
       expect(c(component).ariText).toBe(command);
@@ -399,7 +399,7 @@ describe('AriCommandBuilder', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      expect(c(component).ariText).toContain('/AC/(ari://.//Agent/OPER/setUptime(123))');
+      expect(c(component).ariText).toContain('/AC/(ari://./Agent/OPER/setUptime(123))');
       const emitted = vi.fn();
       component.commandReady.subscribe(emitted);
       c(component).send();
@@ -455,7 +455,7 @@ describe('AriCommandBuilder', () => {
       await fixture.whenStable();
 
       expect(fixture.nativeElement.querySelector('.nested-param-fields .nested-param-fields input')).not.toBeNull();
-      expect(c(component).ariText).toContain('/OPER/restart(/AC/(ari://.//Agent/OPER/setUptime(789)))');
+      expect(c(component).ariText).toContain('/OPER/restart(/AC/(ari://./Agent/OPER/setUptime(789)))');
       expect(c(component).validate()).toBe(true);
 
       nestedSelection.parameters[0].textValue = '';
@@ -529,7 +529,7 @@ describe('AriCommandBuilder', () => {
   describe('param auto-restriction by type', () => {
     it('extracts requiredAriType from param type like CONST/AC', () => {
       const ariWithConstParam: Ari = {
-        obj_metadata_id: 99, obj_id: 99, name: 'setTarget', namespace: './',
+        obj_metadata_id: 99, obj_id: 99, name: 'setTarget', namespace: '.',
         data_model_name: 'Test', type_name: 'OPER', data_model_id: 1,
         parm_id: null, actual: false, display: 'ari://./Test/OPER/setTarget',
         param_names: ['constTarget'], param_types: ['CONST/AC'],
@@ -542,7 +542,7 @@ describe('AriCommandBuilder', () => {
 
     it('extracts requiredAriType from CTRL/AC', () => {
       const ariWithCtrlParam: Ari = {
-        obj_metadata_id: 100, obj_id: 100, name: 'setCtrl', namespace: './',
+        obj_metadata_id: 100, obj_id: 100, name: 'setCtrl', namespace: '.',
         data_model_name: 'Test', type_name: 'OPER', data_model_id: 1,
         parm_id: null, actual: false, display: 'ari://./Test/OPER/setCtrl',
         param_names: ['ctrlTarget'], param_types: ['CTRL/AC'],
@@ -560,7 +560,7 @@ describe('AriCommandBuilder', () => {
 
     it('restricts param filteredAris to the required type on select', () => {
       const ariWithCtrlParam: Ari = {
-        obj_metadata_id: 101, obj_id: 101, name: 'setCtrl', namespace: './',
+        obj_metadata_id: 101, obj_id: 101, name: 'setCtrl', namespace: '.',
         data_model_name: 'Test', type_name: 'OPER', data_model_id: 1,
         parm_id: null, actual: false, display: 'ari://./Test/OPER/setCtrl',
         param_names: ['ctrlTarget'], param_types: ['CTRL/AC'],
@@ -574,7 +574,7 @@ describe('AriCommandBuilder', () => {
 
     it('combines type restriction with text search in param filter', () => {
       const ariWithConstParam: Ari = {
-        obj_metadata_id: 102, obj_id: 102, name: 'setConst', namespace: './',
+        obj_metadata_id: 102, obj_id: 102, name: 'setConst', namespace: '.',
         data_model_name: 'Test', type_name: 'OPER', data_model_id: 1,
         parm_id: null, actual: false, display: 'ari://./Test/OPER/setConst',
         param_names: ['constTarget'], param_types: ['CONST/AC'],
@@ -596,7 +596,7 @@ describe('AriCommandBuilder', () => {
 
     it('passes when all param ARI types match', () => {
       const ariWithConstParam: Ari = {
-        obj_metadata_id: 110, obj_id: 110, name: 'setConst', namespace: './',
+        obj_metadata_id: 110, obj_id: 110, name: 'setConst', namespace: '.',
         data_model_name: 'Test', type_name: 'OPER', data_model_id: 1,
         parm_id: null, actual: false, display: 'ari://./Test/OPER/setConst',
         param_names: ['constTarget'], param_types: ['CONST/AC'],
@@ -608,7 +608,7 @@ describe('AriCommandBuilder', () => {
 
     it('fails when param ARI type does not match', () => {
       const ariWithConstParam: Ari = {
-        obj_metadata_id: 111, obj_id: 111, name: 'setConst', namespace: './',
+        obj_metadata_id: 111, obj_id: 111, name: 'setConst', namespace: '.',
         data_model_name: 'Test', type_name: 'OPER', data_model_id: 1,
         parm_id: null, actual: false, display: 'ari://./Test/OPER/setConst',
         param_names: ['constTarget'], param_types: ['CONST/AC'],
@@ -639,7 +639,7 @@ describe('AriCommandBuilder', () => {
   describe('send() respects validation', () => {
     it('does not emit when validation fails', () => {
       const ariWithConstParam: Ari = {
-        obj_metadata_id: 120, obj_id: 120, name: 'setConst', namespace: './',
+        obj_metadata_id: 120, obj_id: 120, name: 'setConst', namespace: '.',
         data_model_name: 'Test', type_name: 'OPER', data_model_id: 1,
         parm_id: null, actual: false, display: 'ari://./Test/OPER/setConst',
         param_names: ['constTarget'], param_types: ['CONST/AC'],
