@@ -28,6 +28,14 @@
   const axios = require('axios');
   const utils = require('../shared/utils');
 
+  function createNMError(err) {
+    
+    const responseData = _.get(err, 'response.data');
+    logger.info(err);
+    const details = _.isString(responseData) ? responseData : JSON.stringify(responseData);
+    const message = responseData == null ? 'Error talking to NM' : `Error talking to NM: ${details}`;
+    return Boom.badGateway(message, err);
+  }
 
   exports.getVersion = async function (req, res, next) {
     try {
@@ -39,7 +47,7 @@
       }
       return res.status(200).json(version.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -56,7 +64,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -79,7 +87,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -101,7 +109,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -118,7 +126,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -135,7 +143,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -153,7 +161,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -172,7 +180,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 
@@ -190,7 +198,7 @@
       }
       return res.status(200).json(manResponse.data);
     } catch (err) {
-      return next(Boom.badGateway('Error talking to NM', err));
+      return next(createNMError(err));
     }
   };
 

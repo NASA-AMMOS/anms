@@ -189,6 +189,7 @@ async def update_adm(file: UploadFile, request: Request):
                     else: # if its the same nothing else to be done
                         logger.warning("Duplicate ADM add attempted")
                         message = "Duplicate ADM add attempted"
+                        status_code = status.HTTP_400_BAD_REQUEST
                         response = JSONResponse(status_code=status_code,
                                                 content={"message": message, "error_details": error_details})
                         return response

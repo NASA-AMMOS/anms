@@ -129,8 +129,8 @@ def _transcoder_put_cbor(input_cbor):
             send_to_transcode = True
         else:
             # the input_ari has already been submitted
-            status = "ARI previously submitted, check log"
             transcoder_log_id = curr_uri.transcoder_log_id
+            status = f"ARI previously submitted, check log id:{transcoder_log_id}"
 
     if send_to_transcode:
         status = "Submitted ARI to transcoder"
@@ -189,8 +189,8 @@ def _transcoder_put_str(input_ari: str):
             send_to_transcode = True
         else:
             # the input_ari has already been submitted
-            state = "ARI previously submitted, check log"
             transcoder_log_id = curr_uri.transcoder_log_id
+            state = f"ARI previously submitted, check log id:{transcoder_log_id}"
 
     if send_to_transcode:
         state = "Submitted ARI to transcoder"

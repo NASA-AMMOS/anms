@@ -9,6 +9,7 @@ import {Ari} from '../model/ari.model';
 import {NotificationService} from '../../../../shared/notification.service';
 import {forkJoin, switchMap} from 'rxjs';
 import {AriCommandBuilder, AriCommandOutput} from '../../shared/ari-command-builder/ari-command-builder';
+import {HttpErrorResponse} from '@angular/common/http';
 
 interface ManageAgentsDialogData {
   agents: AgentInfo[];
@@ -51,7 +52,7 @@ export class ManageAgentsDialog implements OnInit {
         this.aris = data;
         this.filteredAris = data;
       },
-      error: (err) => this.notificationService.error('Failed to load ARIs',err),
+      error: (err) => this.notificationService.error(this.getErrorMessage(err), 'Failed to load ARIs'),
     });
   }
 
@@ -100,7 +101,7 @@ export class ManageAgentsDialog implements OnInit {
         this.dialogRef.close({ updated: true });
       },
       error: (err) => {
-        this.notificationService.error(err, 'Error sending ARI');
+        this.notificationService.error(this.getErrorMessage(err), 'Error sending ARI');
       },
     });
   }
@@ -128,8 +129,27 @@ export class ManageAgentsDialog implements OnInit {
         ),
 
       error: (err) =>
-        this.notificationService.error(err.message, 'Error sending CBOR'),
+        this.notificationService.error(
+          `${this.getErrorMessage(err)}`,
+          'Error sending CBOR'
+        ),
     });
+  }
+
+  private getErrorMessage(error: HttpErrorResponse | Error): string {
+    if (error instanceof HttpErrorResponse) {
+      const details = error.error;
+      if (typeof details === 'string' && details) {
+        return details;
+      }
+      if (typeof details?.message === 'string') {
+        return details.message;
+      }
+      if (details?.detail != null) {
+        return typeof details.detail === 'string' ? details.detail : JSON.stringify(details.detail);
+      }
+    }
+    return error.message;
   }
 
   private sendRawCborRequest(cborCommands: string[]) {
@@ -137,7 +157,7 @@ export class ManageAgentsDialog implements OnInit {
       cborCommands.map((cbor) =>
         this.api.apiSendRawCommand(
           agent.agent_endpoint_uri,
-          cbor
+          cbor.trim().replace(/^0x/i, '')
         )
       )
     );
