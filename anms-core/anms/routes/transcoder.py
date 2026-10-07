@@ -110,7 +110,7 @@ async def transcoder_put_cbor_await(cbor: str):
 def _transcoder_put_cbor(input_cbor):
     transcoder_log_id = None
     send_to_transcode = False
-    status = "pending"
+    status_string = "pending"
     with get_session() as session:
         curr_uri = TranscoderLog.query.filter(
             or_(
@@ -130,13 +130,13 @@ def _transcoder_put_cbor(input_cbor):
         else:
             # the input_ari has already been submitted
             transcoder_log_id = curr_uri.transcoder_log_id
-            status = f"ARI previously submitted, check log id:{transcoder_log_id}"
+            status_string = f"ARI previously submitted, check log id:{transcoder_log_id}"
 
     if send_to_transcode:
-        status = "Submitted ARI to transcoder"
+        status_string = "Submitted ARI to transcoder"
         TRANSMORGIFIER.transcode(input_cbor)
 
-    return {"id": transcoder_log_id, "status": status}
+    return {"id": transcoder_log_id, "status": status_string}
 
 
 # PUT 	/ui/incoming/str 	Body is str ARI to send to transcoder
@@ -202,7 +202,7 @@ def _transcoder_put_str(input_ari: str):
 def do_nm_put_hex_eid(eid: str, ari: str) -> int:
     """Send an execution set to the manager daemon.
     """
-    url = nm_url + "/agents/eid/{}/send?form=cborhex".format(quote(strip(eid)))
+    url = nm_url + "/agents/eid/{}/send?form=cborhex".format(quote(eid.strip()))
     logger.debug('post to nm manager %s with eid %s and data %s' % (url, eid, ari))
 
     try:
@@ -263,8 +263,8 @@ async def transcoder_send_ari_str(eid: str, ari: str):
             )
 
         # Publish
-        status = do_nm_put_hex_eid(eid, info.cbor)
-        return {"idinfo": idinfo, "info": info, "status": status}
+        status_string = do_nm_put_hex_eid(eid, info.cbor)
+        return {"idinfo": idinfo, "info": info, "status": status_string}
     except HTTPException as e:
         e.detail = {"idinfo": idinfo, "info": info, "status": e.status_code}
         raise e
