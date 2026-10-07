@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DASHBOARDS_URL="http://0.0.0.0:5601"
+DASHBOARDS_URL="https://0.0.0.0:5601"
 DASHBOARDS_USER="admin"
 DASHBOARDS_PASSWORD="${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-admin}"
 SECURITY_TENANT="${SECURITY_TENANT:-global}"
