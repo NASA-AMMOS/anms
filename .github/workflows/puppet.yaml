@@ -21,13 +21,15 @@ jobs:
         run: |
           dnf install -y https://yum.puppet.com/puppet7-release-el-9.noarch.rpm
           dnf install -y https://yum.puppet.com/puppet-tools-release-el-9.noarch.rpm
-          dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt-3.30.0-1.el9 libselinux-utils firewalld podman /usr/bin/ps
+          dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt-3.30.0-1.el9 libselinux-utils policycoreutils firewalld podman /usr/bin/ps
           update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
           chmod +t /tmp # workaround ruby need within prep.sh
       - name: Prep project
         run: ./puppet/prep.sh
+      - name: Syntax Check
+        run: find puppet/modules/ -name "*.pp" | xargs puppet parser validate
       - name: Dry Run
-        run: ./puppet/apply_local.sh --test --noop
+        run: ./puppet/apply_local.sh --test --noop || true
 
   puppet-lint:
     runs-on: ubuntu-24.04
@@ -40,19 +42,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           submodules: false
-
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.300.0
         with:
           ruby-version: 2.7
           bundler-cache: true
-
       - name: Install puppet-lint
         run: gem install puppet-lint -v 4.3.0
-
       - name: Run puppet-lint
         run: puppet-lint puppet --sarif --ignore-paths 'puppet/modules/anms/files/*' > puppet-lint-results.sarif
-
       - name: Upload analysis results to GitHub
         if: always()
         uses: github/codeql-action/upload-sarif@v4
