@@ -29,7 +29,14 @@ jobs:
       - name: Syntax Check
         run: find puppet/modules/ -name "*.pp" | xargs puppet parser validate
       - name: Dry Run
-        run: ./puppet/apply_local.sh --test --noop || true
+        run: |
+          cat <<EOF >puppet/data/override.yaml
+          #anms::hostenv::use_fips: false
+          simp_options::fips: false
+          selinux::mode: permissive
+          selinux::type: targeted
+          EOF
+          ./puppet/apply_local.sh --test --noop || true
 
   puppet-lint:
     runs-on: ubuntu-24.04
