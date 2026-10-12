@@ -21,7 +21,7 @@ jobs:
         run: |
           dnf install -y https://yum.puppet.com/puppet7-release-el-9.noarch.rpm
           dnf install -y https://yum.puppet.com/puppet-tools-release-el-9.noarch.rpm
-          dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt-3.30.0-1.el9 libselinux-utils firewalld /usr/bin/ps
+          dnf install -y puppet-agent-7.28.0-1.el9 puppet-bolt-3.30.0-1.el9 libselinux-utils firewalld podman /usr/bin/ps
           update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
           chmod +t /tmp # workaround ruby need within prep.sh
       - name: Prep project
