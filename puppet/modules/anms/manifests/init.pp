@@ -6,7 +6,7 @@ class anms(
   String $version = '',
   String $gw_fqdn = $facts['networking']['fqdn'],
   String $amp_db_user = 'root',
-  String $amp_db_password = 'root'
+  String $amp_db_password = 'root',
   String $opensearch_admin_password = 'admin',
   String $grafana_db_password = 'grafana',
   Optional[String] $ctr_registry_user = undef,

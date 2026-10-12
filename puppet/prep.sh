@@ -35,4 +35,4 @@ cp "${SELFDIR}/../docker-compose.yml" \
    "${SELFDIR}/modules/anms/files/"
 
 export BOLT_PROJECT="${SELFDIR}"
-bolt module install --force
+bolt module install --force "$@"
