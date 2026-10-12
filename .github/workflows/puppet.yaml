@@ -31,10 +31,9 @@ jobs:
       - name: Dry Run
         run: |
           cat <<EOF >puppet/data/override.yaml
-          #anms::hostenv::use_fips: false
+          anms::hostenv::use_fips: false
           simp_options::fips: false
           selinux::mode: permissive
-          selinux::type: targeted
           EOF
           ./puppet/apply_local.sh --test --noop || true
 
