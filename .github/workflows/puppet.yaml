@@ -25,8 +25,9 @@ jobs:
           update-alternatives --install /usr/bin/puppet puppet-agent /opt/puppetlabs/bin/puppet 10
           chmod +t /tmp # workaround ruby need within prep.sh
       - name: Prep project
-        run: |
-          ./puppet/prep.sh
+        run: ./puppet/prep.sh
+      - name: Dry Run
+        run: ./puppet/apply_local.sh --test --noop
 
   puppet-lint:
     runs-on: ubuntu-24.04
