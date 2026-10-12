@@ -35,7 +35,7 @@ jobs:
           simp_options::fips: false
           selinux::mode: permissive
           EOF
-          ./puppet/apply_local.sh --test --noop || true
+          ./puppet/apply_local.sh --test --noop
 
   puppet-lint:
     runs-on: ubuntu-24.04
