@@ -14,7 +14,7 @@ define anms::compose(
   Enum['present','absent'] $ensure,
   String $directory,
   String $compose_file,
-  String $profiles,
+  String $profiles = '',
   Boolean $pull_first = true,
 ) {
   require anms::podman
