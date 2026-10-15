@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DASHBOARDS_URL="https://0.0.0.0:5601"
+DASHBOARDS_URL="${DASHBOARDS_URL:-http://127.0.0.1:5601}"
 DASHBOARDS_USER="admin"
 DASHBOARDS_PASSWORD="${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-admin}"
 SECURITY_TENANT="${SECURITY_TENANT:-global}"
@@ -27,7 +27,7 @@ OSD_PID="$!"
 
 echo "Waiting for OpenSearch Dashboards to become available..."
 
-until curl -sS \
+until curl --fail -sS \
   -u "${DASHBOARDS_USER}:${DASHBOARDS_PASSWORD}" \
   "${DASHBOARDS_URL}/dashboards/api/status" >/dev/null 2>&1; do
   sleep 5
@@ -48,28 +48,29 @@ if [ -d "$IMPORT_DIR" ]; then
       break
     }
 
-    marker="${file}.imported"
-
-    if [ -f "$marker" ]; then
-      echo "Skipping already imported file: $file"
-      continue
-    fi
-
     echo "Importing saved objects from $file into tenant ${SECURITY_TENANT}..."
 
-    curl -sS \
+    # Import on every startup: markers on the host can outlive the OpenSearch
+    # data volume and incorrectly skip provisioning on a fresh deployment.
+    # The import API can return HTTP 200 with success=false and object errors.
+    # Use the Node runtime bundled with OpenSearch Dashboards to check the body.
+    curl --fail -sS \
       -u "${DASHBOARDS_USER}:${DASHBOARDS_PASSWORD}" \
       -X POST "${DASHBOARDS_URL}/dashboards/api/saved_objects/_import?overwrite=true" \
       -H "osd-xsrf: true" \
-      -H "securitytenant: global" \
-      -F "file=@${file}"
+      -H "securitytenant: ${SECURITY_TENANT}" \
+      -F "file=@${file}" |
+      /usr/share/opensearch-dashboards/node/bin/node -e '
+      const fs = require("fs");
+      const result = JSON.parse(fs.readFileSync(0, "utf8"));
+      if (result.success !== true) {
+        console.error("Saved-object import failed:", JSON.stringify(result));
+        process.exit(1);
+      }
+      console.log(`Imported ${result.successCount} saved objects`);
+    '
 
-    echo
     echo "Imported $file"
-
-    # This marker only works if the import directory is writable.
-    # If mounted read-only, import will still work but repeat on restart.
-    touch "$marker" 2>/dev/null || true
   done
 else
   echo "Import directory does not exist: $IMPORT_DIR"
