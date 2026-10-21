@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2023 The Johns Hopkins University Applied Physics
+Copyright (c) 2026 The Johns Hopkins University Applied Physics
 Laboratory LLC.
 
 This file is part of the Asynchronous Network Management System (ANMS).
@@ -25,7 +25,7 @@ An AsyncAPI component for handling encoding and decoding request from ANMS-CORE 
 
 ## Copyright
 
-Copyright (C) 2022 The Johns Hopkins University Applied Physics Laboratory LLC.
+Copyright (C) 2026 The Johns Hopkins University Applied Physics Laboratory LLC.
 
 ## Setting up environment and installing dependencies
 
