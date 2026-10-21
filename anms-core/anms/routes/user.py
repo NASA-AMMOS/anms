@@ -75,9 +75,9 @@ async def create_user(data: UserBase, request: Request):
   existing_values = dict()
   #Check for authorization
   # print("Request headers:", request.headers)
-  # if not is_authorized(request, data_dict["username"]):
-  #   response = JSONResponse(status_code=401, content={"message": "Unauthorized"})
-  #   return response
+  if not is_authorized(request, data_dict["username"]):
+    response = JSONResponse(status_code=401, content={"message": "Unauthorized"})
+    return response
   #Check if username exist or email exist
   rows = await User.check_exist(data_dict["username"], data_dict["email"])
   if rows == None:
