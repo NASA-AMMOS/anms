@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-set -e
 ##
-## Copyright (c) 2023 The Johns Hopkins University Applied Physics
-## Laboratory LLC.
+## Copyright (c) 2026 The Johns Hopkins University Applied Physics
+## Copyright (c) 2026
 ##
 ## This file is part of the Asynchronous Network Management System (ANMS).
 ##
@@ -21,6 +20,7 @@ set -e
 ## the prime contract 80NM0018D0004 between the Caltech and NASA under
 ## subcontract 1658085.
 ##
+set -e
 
 # --------------------------------------------------------------------
 # Determine the UI version.
